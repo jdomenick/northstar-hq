@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VenturesRouteImport } from './routes/ventures'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VenturesIdRouteImport } from './routes/ventures.$id'
 
 const VenturesRoute = VenturesRouteImport.update({
   id: '/ventures',
@@ -22,31 +23,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VenturesIdRoute = VenturesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VenturesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/ventures': typeof VenturesRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/ventures': typeof VenturesRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/ventures': typeof VenturesRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ventures'
+  fullPaths: '/' | '/ventures' | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ventures'
-  id: '__root__' | '/' | '/ventures'
+  to: '/' | '/ventures' | '/ventures/$id'
+  id: '__root__' | '/' | '/ventures' | '/ventures/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  VenturesRoute: typeof VenturesRoute
+  VenturesRoute: typeof VenturesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +74,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ventures/$id': {
+      id: '/ventures/$id'
+      path: '/$id'
+      fullPath: '/ventures/$id'
+      preLoaderRoute: typeof VenturesIdRouteImport
+      parentRoute: typeof VenturesRoute
+    }
   }
 }
 
+interface VenturesRouteChildren {
+  VenturesIdRoute: typeof VenturesIdRoute
+}
+
+const VenturesRouteChildren: VenturesRouteChildren = {
+  VenturesIdRoute: VenturesIdRoute,
+}
+
+const VenturesRouteWithChildren = VenturesRoute._addFileChildren(
+  VenturesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  VenturesRoute: VenturesRoute,
+  VenturesRoute: VenturesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

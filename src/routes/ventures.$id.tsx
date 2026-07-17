@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ventures } from "@/lib/northstar-data";
+import { ventures, type Venture } from "@/lib/northstar-data";
 
 export const Route = createFileRoute("/ventures/$id")({
   component: VentureDetail,
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/ventures/$id")({
 });
 
 function VentureDetail() {
-  const v = Route.useLoaderData();
+  const v = Route.useLoaderData() as Venture;
 
   return (
     <div>
