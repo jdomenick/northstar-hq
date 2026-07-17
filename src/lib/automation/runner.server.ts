@@ -29,9 +29,9 @@ async function emitAutomationSignal(
     signalType: payload.signalType as never,
     jobId: job.id,
     automationDefinitionId: job.automation_definition_id,
-    assetId: payload.assetId ?? job.asset_id,
+    assetId: payload.assetId ?? job.asset_id ?? null,
     title: payload.title,
-  });
+  } as never);
   await supabase.from("signals").insert({
     organization_id: job.organization_id,
     venture_id: job.venture_id,

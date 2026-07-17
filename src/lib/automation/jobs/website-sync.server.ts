@@ -72,6 +72,7 @@ async function syncOneSource(supabase: SB, organizationId: string, sourceId: str
   if (source.organization_id !== organizationId) throw new AutomationError("cross_org_denied");
   if (!source.source_url) throw new AutomationError("malformed_input", "source has no url");
 
+  if (!source.connection_id) throw new AutomationError("source_deleted");
   const { data: conn } = await supabase
     .from("integration_connections")
     .select("id, organization_id, status, deleted_at")
