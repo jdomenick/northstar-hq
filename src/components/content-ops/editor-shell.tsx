@@ -771,9 +771,20 @@ export function EditorShell({ organizationId, parentContentItemId }: {
   const parentRiskScore = (parentMeta.risk_score as number | null) ?? null;
   const generationProv = (parentMeta.generation_provenance as Record<string, unknown> | null) ?? null;
 
-  const updateParent = async (patch: Parameters<typeof updateParentFn>[0]["data"]) => {
+  interface ParentPatch {
+    organizationId: string;
+    ventureId: string;
+    contentItemId: string;
+    campaignId?: string | null;
+    pillarId?: string | null;
+    objective?: string | null;
+    promotionClassification?: string | null;
+    riskBand?: string;
+    riskScore?: number | null;
+  }
+  const updateParent = async (patch: ParentPatch) => {
     try {
-      await updateParentFn({ data: patch });
+      await updateParentFn({ data: patch as never });
       invalidate();
     } catch (e) {
       setError((e as Error).message);
