@@ -56,13 +56,18 @@ function roleMeetsMinimum(role: OrgRole, min: WorkflowMinRole): boolean {
 }
 
 function validateDateRange(input: WorkflowRunInput, registry: WorkflowRegistryEntry): { start: string | null; end: string | null } {
-  if (!input.periodStart && !input.periodEnd) return { start: null, end: null };
+  if (!input.periodStart && !input.periodEnd) {
+    if (registry.supportsDateRange && registry.key === "weekly_review") throw new SamError("invalid_date_range");
+    return { start: null, end: null };
+  }
   if (!registry.supportsDateRange) throw new SamError("invalid_date_range");
   if (!input.periodStart || !input.periodEnd) throw new SamError("invalid_date_range");
   const start = new Date(input.periodStart);
   const end = new Date(input.periodEnd);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) throw new SamError("invalid_date_range");
   if (end.getTime() <= start.getTime()) throw new SamError("invalid_date_range");
+  // Reject future-only ranges (start must be at or before now).
+  if (start.getTime() > Date.now()) throw new SamError("invalid_date_range");
   const days = (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000);
   if (days > SAM_WORKFLOW_LIMITS.maxDateRangeDays) throw new SamError("invalid_date_range");
   return { start: start.toISOString(), end: end.toISOString() };
@@ -99,6 +104,20 @@ export async function resolveWorkflowScope(
   if (input.scope === "venture" && !ventureId) throw new SamError("venture_required");
 
   const { start, end } = validateDateRange(input, registry);
+
+  // Workflow-specific input validation.
+  if (registry.key === "decision_review") {
+    if (!input.entityId) throw new SamError("record_unavailable");
+    // Verify the selected decision exists and belongs to this org.
+    const { data: d, error: derr } = await supabase
+      .from("decisions")
+      .select("id, organization_id, venture_id, deleted_at")
+      .eq("id", input.entityId)
+      .maybeSingle();
+    if (derr) throw new SamError("record_unavailable", derr.message);
+    if (!d || d.organization_id !== orgId || d.deleted_at) throw new SamError("record_unavailable");
+    if (ventureId && d.venture_id && d.venture_id !== ventureId) throw new SamError("invalid_workflow_scope");
+  }
 
   return { orgId, userId, role, ventureId, periodStart: start, periodEnd: end };
 }
