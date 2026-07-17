@@ -12,19 +12,19 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="border-b border-border/60 px-4 py-8 md:px-10 md:py-12">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <div className="px-6 pb-10 pt-14 md:px-14 md:pb-14 md:pt-20">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           {eyebrow && (
-            <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="mb-4 text-[10.5px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80">
               {eyebrow}
             </div>
           )}
-          <h1 className="font-display text-4xl md:text-5xl leading-[1.05] text-foreground">
+          <h1 className="font-display text-[40px] leading-[1.02] text-foreground md:text-[56px]">
             {title}
           </h1>
           {description && (
-            <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+            <p className="mt-5 max-w-xl text-[14.5px] leading-[1.7] text-muted-foreground">
               {description}
             </p>
           )}
@@ -37,7 +37,7 @@ export function PageHeader({
 
 export function PageBody({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 md:px-10 md:py-12">{children}</div>
+    <div className="mx-auto max-w-6xl px-6 pb-24 md:px-14">{children}</div>
   );
 }
 
@@ -53,13 +53,13 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="mb-12">
-      <div className="mb-4 flex items-end justify-between gap-4">
+    <section className="mb-16">
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <h2 className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80">
             {title}
           </h2>
-          {hint && <p className="mt-1 text-[13px] text-muted-foreground/80">{hint}</p>}
+          {hint && <p className="mt-2 text-[13px] text-muted-foreground/70">{hint}</p>}
         </div>
         {action}
       </div>
