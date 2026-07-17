@@ -90,7 +90,7 @@ type Msg = {
 };
 
 function SamPage() {
-  const { activeOrgId, activeOrg, activeVenture } = useOrg();
+  const { activeOrgId, activeMembership, memberships } = useOrg();
   const qc = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -168,7 +168,11 @@ function SamPage() {
     }
   }
 
-  const contextLine = [activeOrg?.name, activeVenture?.name].filter(Boolean).join(" - ");
+  const activeOrgName =
+    activeMembership?.organization?.name ??
+    memberships.find((m) => m.organization_id === activeOrgId)?.organization?.name ??
+    null;
+  const contextLine = activeOrgName ?? "";
 
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] paper-grain">
