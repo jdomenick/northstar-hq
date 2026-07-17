@@ -68,6 +68,121 @@ export type Database = {
           },
         ]
       }
+      asset_types: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          is_system: boolean
+          key: string
+          label: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          key: string
+          label: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      assets: {
+        Row: {
+          asset_type: string
+          automation_mode: string
+          created_at: string
+          criticality: string
+          deleted_at: string | null
+          description: string | null
+          display_name: string
+          freshness: string
+          health: string
+          id: string
+          last_activity_at: string | null
+          metadata: Json
+          organization_id: string
+          owner_user_id: string | null
+          status: string
+          tags: string[]
+          trust_level: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          asset_type: string
+          automation_mode?: string
+          created_at?: string
+          criticality?: string
+          deleted_at?: string | null
+          description?: string | null
+          display_name: string
+          freshness?: string
+          health?: string
+          id?: string
+          last_activity_at?: string | null
+          metadata?: Json
+          organization_id: string
+          owner_user_id?: string | null
+          status?: string
+          tags?: string[]
+          trust_level?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          asset_type?: string
+          automation_mode?: string
+          created_at?: string
+          criticality?: string
+          deleted_at?: string | null
+          description?: string | null
+          display_name?: string
+          freshness?: string
+          health?: string
+          id?: string
+          last_activity_at?: string | null
+          metadata?: Json
+          organization_id?: string
+          owner_user_id?: string | null
+          status?: string
+          tags?: string[]
+          trust_level?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_asset_type_fkey"
+            columns: ["asset_type"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commitments: {
         Row: {
           completed_at: string | null
@@ -652,18 +767,24 @@ export type Database = {
       }
       ingested_content_items: {
         Row: {
+          asset_id: string | null
           author: string | null
           canonical_url: string | null
           category: string | null
+          classification_confidence: number
+          classification_signals: Json
           connection_id: string | null
           content_hash: string
           content_summary: string | null
           content_text: string | null
           created_at: string
+          current_version_number: number
           deleted_at: string | null
           external_id: string | null
           freshness_status: Database["public"]["Enums"]["content_freshness_status"]
           id: string
+          last_change_at: string | null
+          last_change_significance: string | null
           last_ingested_at: string
           metadata: Json
           modified_at: string | null
@@ -681,18 +802,24 @@ export type Database = {
           verification_status: Database["public"]["Enums"]["content_verification_status"]
         }
         Insert: {
+          asset_id?: string | null
           author?: string | null
           canonical_url?: string | null
           category?: string | null
+          classification_confidence?: number
+          classification_signals?: Json
           connection_id?: string | null
           content_hash: string
           content_summary?: string | null
           content_text?: string | null
           created_at?: string
+          current_version_number?: number
           deleted_at?: string | null
           external_id?: string | null
           freshness_status?: Database["public"]["Enums"]["content_freshness_status"]
           id?: string
+          last_change_at?: string | null
+          last_change_significance?: string | null
           last_ingested_at?: string
           metadata?: Json
           modified_at?: string | null
@@ -710,18 +837,24 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["content_verification_status"]
         }
         Update: {
+          asset_id?: string | null
           author?: string | null
           canonical_url?: string | null
           category?: string | null
+          classification_confidence?: number
+          classification_signals?: Json
           connection_id?: string | null
           content_hash?: string
           content_summary?: string | null
           content_text?: string | null
           created_at?: string
+          current_version_number?: number
           deleted_at?: string | null
           external_id?: string | null
           freshness_status?: Database["public"]["Enums"]["content_freshness_status"]
           id?: string
+          last_change_at?: string | null
+          last_change_significance?: string | null
           last_ingested_at?: string
           metadata?: Json
           modified_at?: string | null
@@ -739,6 +872,13 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["content_verification_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "ingested_content_items_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ingested_content_items_connection_id_fkey"
             columns: ["connection_id"]
@@ -772,9 +912,11 @@ export type Database = {
       ingested_content_versions: {
         Row: {
           captured_at: string
+          change_significance: string | null
           content_hash: string
           content_item_id: string
           content_text: string | null
+          diff_summary: Json
           id: string
           metadata: Json
           organization_id: string
@@ -783,9 +925,11 @@ export type Database = {
         }
         Insert: {
           captured_at?: string
+          change_significance?: string | null
           content_hash: string
           content_item_id: string
           content_text?: string | null
+          diff_summary?: Json
           id?: string
           metadata?: Json
           organization_id: string
@@ -794,9 +938,11 @@ export type Database = {
         }
         Update: {
           captured_at?: string
+          change_significance?: string | null
           content_hash?: string
           content_item_id?: string
           content_text?: string | null
+          diff_summary?: Json
           id?: string
           metadata?: Json
           organization_id?: string
@@ -822,6 +968,7 @@ export type Database = {
       }
       integration_connections: {
         Row: {
+          asset_id: string | null
           automation_mode: string
           connection_type: Database["public"]["Enums"]["integration_connection_type"]
           created_at: string
@@ -848,6 +995,7 @@ export type Database = {
           venture_id: string | null
         }
         Insert: {
+          asset_id?: string | null
           automation_mode?: string
           connection_type: Database["public"]["Enums"]["integration_connection_type"]
           created_at?: string
@@ -874,6 +1022,7 @@ export type Database = {
           venture_id?: string | null
         }
         Update: {
+          asset_id?: string | null
           automation_mode?: string
           connection_type?: Database["public"]["Enums"]["integration_connection_type"]
           created_at?: string
@@ -900,6 +1049,13 @@ export type Database = {
           venture_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "integration_connections_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "integration_connections_discovery_last_run_id_fkey"
             columns: ["discovery_last_run_id"]
@@ -2568,6 +2724,115 @@ export type Database = {
           },
           {
             foreignKeyName: "sam_workflow_runs_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signals: {
+        Row: {
+          asset_id: string | null
+          connection_id: string | null
+          content_item_id: string | null
+          created_at: string
+          dedup_key: string | null
+          description: string | null
+          detected_at: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          severity: string
+          signal_type: string
+          significance: string | null
+          source_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          connection_id?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          dedup_key?: string | null
+          description?: string | null
+          detected_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          severity?: string
+          signal_type: string
+          significance?: string | null
+          source_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          connection_id?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          dedup_key?: string | null
+          description?: string | null
+          detected_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          severity?: string
+          signal_type?: string
+          significance?: string | null
+          source_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "ingested_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_venture_id_fkey"
             columns: ["venture_id"]
             isOneToOne: false
             referencedRelation: "ventures"
