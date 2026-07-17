@@ -103,12 +103,12 @@ function ArchiveCenterTab() {
   const restoreDocument = useRestoreDocument(activeOrgId);
   const canRestore = can.archiveContent(activeMembership?.role);
 
-  async function handleRestore(row: { id: string; type: ArchivedType; title: string }) {
+  async function handleRestore(row: { id: string; type: ArchivedType; title: string; ventureId?: string | null }) {
     if (!confirm(`Restore "${row.title}"?`)) return;
     try {
-      if (row.type === "project") await restoreProject.mutateAsync({ id: row.id });
-      else if (row.type === "knowledge") await restoreKnowledge.mutateAsync({ id: row.id });
-      else if (row.type === "document") await restoreDocument.mutateAsync({ id: row.id });
+      if (row.type === "project") await restoreProject.mutateAsync(row.id);
+      else if (row.type === "knowledge") await restoreKnowledge.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
+      else if (row.type === "document") await restoreDocument.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
       else return toast.info(`Restore for ${row.type} is not yet supported in-app.`);
       toast.success("Restored");
     } catch (err) {
@@ -118,7 +118,7 @@ function ArchiveCenterTab() {
 
   return (
     <div className="space-y-6">
-      <Section title="Archive Center" description="Archived records stay in your organization and can be restored. Nothing is permanently deleted.">
+      <Section title="Archive Center" hint="Archived records stay in your organization and can be restored. Nothing is permanently deleted.">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <input
             value={query}
