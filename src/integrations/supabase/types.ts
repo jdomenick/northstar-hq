@@ -1782,6 +1782,334 @@ export type Database = {
           },
         ]
       }
+      sam_workflow_citations: {
+        Row: {
+          citation_type: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          finding_id: string | null
+          href: string | null
+          id: string
+          lineage: Json
+          organization_id: string
+          relevance: string | null
+          title: string
+          workflow_run_id: string
+        }
+        Insert: {
+          citation_type?: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          finding_id?: string | null
+          href?: string | null
+          id?: string
+          lineage?: Json
+          organization_id: string
+          relevance?: string | null
+          title: string
+          workflow_run_id: string
+        }
+        Update: {
+          citation_type?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          finding_id?: string | null
+          href?: string | null
+          id?: string
+          lineage?: Json
+          organization_id?: string
+          relevance?: string | null
+          title?: string
+          workflow_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_workflow_citations_finding_id_fkey"
+            columns: ["finding_id"]
+            isOneToOne: false
+            referencedRelation: "sam_workflow_findings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_workflow_citations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_workflow_citations_workflow_run_id_fkey"
+            columns: ["workflow_run_id"]
+            isOneToOne: false
+            referencedRelation: "sam_workflow_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_workflow_feedback: {
+        Row: {
+          created_at: string
+          feedback_text: string | null
+          feedback_type: Database["public"]["Enums"]["sam_workflow_feedback_type"]
+          id: string
+          organization_id: string
+          updated_at: string
+          user_id: string
+          workflow_run_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type: Database["public"]["Enums"]["sam_workflow_feedback_type"]
+          id?: string
+          organization_id: string
+          updated_at?: string
+          user_id: string
+          workflow_run_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type?: Database["public"]["Enums"]["sam_workflow_feedback_type"]
+          id?: string
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+          workflow_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_workflow_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_workflow_feedback_workflow_run_id_fkey"
+            columns: ["workflow_run_id"]
+            isOneToOne: false
+            referencedRelation: "sam_workflow_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_workflow_findings: {
+        Row: {
+          confidence_band: string | null
+          confidence_score: number | null
+          created_at: string
+          finding_type: Database["public"]["Enums"]["sam_workflow_finding_type"]
+          id: string
+          organization_id: string
+          priority: number
+          severity: Database["public"]["Enums"]["sam_workflow_severity"]
+          sort_order: number
+          status: string
+          structured_data: Json
+          summary: string | null
+          title: string
+          workflow_run_id: string
+        }
+        Insert: {
+          confidence_band?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          finding_type: Database["public"]["Enums"]["sam_workflow_finding_type"]
+          id?: string
+          organization_id: string
+          priority?: number
+          severity?: Database["public"]["Enums"]["sam_workflow_severity"]
+          sort_order?: number
+          status?: string
+          structured_data?: Json
+          summary?: string | null
+          title: string
+          workflow_run_id: string
+        }
+        Update: {
+          confidence_band?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          finding_type?: Database["public"]["Enums"]["sam_workflow_finding_type"]
+          id?: string
+          organization_id?: string
+          priority?: number
+          severity?: Database["public"]["Enums"]["sam_workflow_severity"]
+          sort_order?: number
+          status?: string
+          structured_data?: Json
+          summary?: string | null
+          title?: string
+          workflow_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_workflow_findings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_workflow_findings_workflow_run_id_fkey"
+            columns: ["workflow_run_id"]
+            isOneToOne: false
+            referencedRelation: "sam_workflow_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_workflow_runs: {
+        Row: {
+          archived_at: string | null
+          archived_by: string | null
+          citation_summary: Json
+          completed_at: string | null
+          confidence_band: string | null
+          confidence_score: number | null
+          confidence_version: string
+          constitution_version: string
+          context_summary: Json
+          created_at: string
+          deleted_at: string | null
+          executive_summary: string | null
+          failed_at: string | null
+          failure_code: string | null
+          finding_count: number
+          graph_version: string
+          id: string
+          initiated_by: string
+          input_snapshot: Json
+          input_tokens: number | null
+          latency_ms: number | null
+          memory_version: string
+          model: string | null
+          organization_id: string
+          output_snapshot: Json | null
+          output_tokens: number | null
+          period_end: string | null
+          period_start: string | null
+          pipeline_version: string
+          prompt_version: string
+          provider: string | null
+          recommendation_count: number
+          risk_count: number
+          started_at: string
+          status: Database["public"]["Enums"]["sam_workflow_status"]
+          synthesis_status: string
+          trigger_type: Database["public"]["Enums"]["sam_workflow_trigger"]
+          updated_at: string
+          venture_id: string | null
+          workflow_type: Database["public"]["Enums"]["sam_workflow_type"]
+          workflow_version: string
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
+          citation_summary?: Json
+          completed_at?: string | null
+          confidence_band?: string | null
+          confidence_score?: number | null
+          confidence_version: string
+          constitution_version: string
+          context_summary?: Json
+          created_at?: string
+          deleted_at?: string | null
+          executive_summary?: string | null
+          failed_at?: string | null
+          failure_code?: string | null
+          finding_count?: number
+          graph_version: string
+          id?: string
+          initiated_by: string
+          input_snapshot?: Json
+          input_tokens?: number | null
+          latency_ms?: number | null
+          memory_version: string
+          model?: string | null
+          organization_id: string
+          output_snapshot?: Json | null
+          output_tokens?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          pipeline_version: string
+          prompt_version: string
+          provider?: string | null
+          recommendation_count?: number
+          risk_count?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["sam_workflow_status"]
+          synthesis_status?: string
+          trigger_type?: Database["public"]["Enums"]["sam_workflow_trigger"]
+          updated_at?: string
+          venture_id?: string | null
+          workflow_type: Database["public"]["Enums"]["sam_workflow_type"]
+          workflow_version: string
+        }
+        Update: {
+          archived_at?: string | null
+          archived_by?: string | null
+          citation_summary?: Json
+          completed_at?: string | null
+          confidence_band?: string | null
+          confidence_score?: number | null
+          confidence_version?: string
+          constitution_version?: string
+          context_summary?: Json
+          created_at?: string
+          deleted_at?: string | null
+          executive_summary?: string | null
+          failed_at?: string | null
+          failure_code?: string | null
+          finding_count?: number
+          graph_version?: string
+          id?: string
+          initiated_by?: string
+          input_snapshot?: Json
+          input_tokens?: number | null
+          latency_ms?: number | null
+          memory_version?: string
+          model?: string | null
+          organization_id?: string
+          output_snapshot?: Json | null
+          output_tokens?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          pipeline_version?: string
+          prompt_version?: string
+          provider?: string | null
+          recommendation_count?: number
+          risk_count?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["sam_workflow_status"]
+          synthesis_status?: string
+          trigger_type?: Database["public"]["Enums"]["sam_workflow_trigger"]
+          updated_at?: string
+          venture_id?: string | null
+          workflow_type?: Database["public"]["Enums"]["sam_workflow_type"]
+          workflow_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_workflow_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_workflow_runs_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -2108,6 +2436,47 @@ export type Database = {
         | "partially_helpful"
         | "incorrect"
         | "missing_context"
+      sam_workflow_feedback_type:
+        | "useful"
+        | "partially_useful"
+        | "not_useful"
+        | "incorrect"
+        | "missing_context"
+      sam_workflow_finding_type:
+        | "observation"
+        | "priority"
+        | "risk"
+        | "opportunity"
+        | "blocker"
+        | "decision_needed"
+        | "commitment_issue"
+        | "goal_issue"
+        | "contradiction"
+        | "recommendation"
+        | "missing_information"
+      sam_workflow_severity:
+        | "informational"
+        | "low"
+        | "medium"
+        | "high"
+        | "critical"
+      sam_workflow_status:
+        | "pending"
+        | "running"
+        | "completed"
+        | "failed"
+        | "archived"
+      sam_workflow_trigger: "manual" | "scheduled_future" | "system_future"
+      sam_workflow_type:
+        | "daily_briefing"
+        | "weekly_review"
+        | "decision_review"
+        | "commitment_review"
+        | "priority_planning"
+        | "risk_review"
+        | "goal_alignment"
+        | "venture_health"
+        | "organization_health"
       task_status:
         | "backlog"
         | "ready"
@@ -2413,6 +2782,52 @@ export const Constants = {
         "partially_helpful",
         "incorrect",
         "missing_context",
+      ],
+      sam_workflow_feedback_type: [
+        "useful",
+        "partially_useful",
+        "not_useful",
+        "incorrect",
+        "missing_context",
+      ],
+      sam_workflow_finding_type: [
+        "observation",
+        "priority",
+        "risk",
+        "opportunity",
+        "blocker",
+        "decision_needed",
+        "commitment_issue",
+        "goal_issue",
+        "contradiction",
+        "recommendation",
+        "missing_information",
+      ],
+      sam_workflow_severity: [
+        "informational",
+        "low",
+        "medium",
+        "high",
+        "critical",
+      ],
+      sam_workflow_status: [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "archived",
+      ],
+      sam_workflow_trigger: ["manual", "scheduled_future", "system_future"],
+      sam_workflow_type: [
+        "daily_briefing",
+        "weekly_review",
+        "decision_review",
+        "commitment_review",
+        "priority_planning",
+        "risk_review",
+        "goal_alignment",
+        "venture_health",
+        "organization_health",
       ],
       task_status: [
         "backlog",
