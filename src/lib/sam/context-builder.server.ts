@@ -19,7 +19,7 @@ export interface AssembledContext {
   }>;
   tasks: Array<{ id: string; title: string; status: string | null; due_date: string | null }>;
   goals: Array<{ id: string; title: string; status: string | null; target_date: string | null }>;
-  decisions: Array<{ id: string; title: string; status: string | null; due_date: string | null }>;
+  decisions: Array<{ id: string; title: string; status: string | null; review_date: string | null }>;
   commitments: Array<{
     id: string;
     title: string;
@@ -33,8 +33,8 @@ export interface AssembledContext {
     importance: string | null;
     updated_at: string;
   }>;
-  documents: Array<{ id: string; title: string; mime_type: string | null; updated_at: string }>;
-  activity: Array<{ id: string; event_type: string; entity_type: string; created_at: string }>;
+  documents: Array<{ id: string; title: string; file_type: string | null; updated_at: string }>;
+  activity: Array<{ id: string; action: string; entity_type: string; created_at: string }>;
   counts: Record<string, number>;
   truncations: string[];
 }
@@ -77,58 +77,62 @@ export async function buildContext(
       .from("ventures")
       .select("id, name, status")
       .eq("organization_id", orgId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(PER_TYPE),
     supabase
       .from("projects")
       .select("id, name, status, venture_id, updated_at")
       .eq("organization_id", orgId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("tasks")
       .select("id, title, status, due_date")
       .eq("organization_id", orgId)
-      .neq("status", "done")
+      .neq("status", "completed")
+      .is("deleted_at", null)
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("goals")
       .select("id, title, status, target_date")
       .eq("organization_id", orgId)
+      .is("deleted_at", null)
       .order("target_date", { ascending: true, nullsFirst: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("decisions")
-      .select("id, title, status, due_date")
+      .select("id, title, status, review_date")
       .eq("organization_id", orgId)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("commitments")
       .select("id, title, status, due_date")
       .eq("organization_id", orgId)
+      .is("deleted_at", null)
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("knowledge_records")
       .select("id, title, verification_status, importance, updated_at")
       .eq("organization_id", orgId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("documents")
-      .select("id, title, mime_type, updated_at")
+      .select("id, title, file_type, updated_at")
       .eq("organization_id", orgId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .limit(PER_TYPE + 1),
     supabase
       .from("activity_events")
-      .select("id, event_type, entity_type, created_at")
+      .select("id, action, entity_type, created_at")
       .eq("organization_id", orgId)
       .order("created_at", { ascending: false })
       .limit(LIMITS.activityFeed),

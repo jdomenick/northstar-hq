@@ -1,4 +1,4 @@
-import { generateText, generateObject } from "ai";
+import { generateText, generateObject, type JSONValue } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import type {
   CompletionProvider,
@@ -34,12 +34,12 @@ export function createLovableGatewayCompletionProvider(
     async generateStructuredResponse<T>(req: CompletionRequest): Promise<CompletionResponse<T>> {
       if (!req.responseSchema) throw new Error("responseSchema required for structured response");
       const started = Date.now();
-      const result = await generateObject({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await (generateObject as any)({
         model,
         system: req.system,
         messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
-        // Cast: AI SDK accepts a Zod schema even when the provider is untyped.
-        schema: req.responseSchema as never,
+        schema: req.responseSchema,
         temperature: req.temperature ?? 0.2,
         maxOutputTokens: req.maxOutputTokens ?? 2048,
       });
