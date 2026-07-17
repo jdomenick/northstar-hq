@@ -20,6 +20,12 @@ import {
   useRestoreProject,
   useRestoreKnowledge,
   useRestoreDocument,
+  useRestoreVenture,
+  useRestoreGoal,
+  useRestoreDecision,
+  useRestoreCommitment,
+  useSamSettings,
+  useUpsertSamSettings,
   type ArchivedType,
   type MemberStatus,
   type OrgMemberFull,
@@ -96,9 +102,9 @@ function SamSettingsTab() {
       <div>{props.children}</div>
     </div>
   );
-  const set = (patch: Record<string, unknown>) => upsert.mutate(patch, {
+  const set = (patch: Record<string, unknown>) => upsert.mutate(patch as never, {
     onSuccess: () => toast.success("SAM settings updated"),
-    onError: (e) => toast.error((e as Error).message || "Update failed"),
+    onError: (e: unknown) => toast.error((e as Error).message || "Update failed"),
   });
   const disabled = !canManage;
   return (
