@@ -157,7 +157,7 @@ function ItemLine({ item, tz, onClick }: { item: CalendarItem; tz: string; onCli
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm text-ink">{item.title ?? item.hook ?? "(untitled)"}</div>
         <div className="mt-1 text-xs text-ink/60">
-          {cfg.label} · {item.status}
+          {cfg.displayName} · {item.status}
           {item.approval_status !== "approved" && ` · ${item.approval_status}`}
           {jobStatus && ` · job ${jobStatus}`}
           {jobErr && ` (${jobErr})`}

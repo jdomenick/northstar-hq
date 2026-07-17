@@ -117,7 +117,7 @@ function CalendarPage() {
         ) : q.isLoading ? (
           <EditorialSkeleton />
         ) : q.error ? (
-          <ErrorLine>{(q.error as Error).message}</ErrorLine>
+          <ErrorLine message={(q.error as Error).message} />
         ) : q.data ? (
           <CalendarView
             timezone={q.data.timezone}
