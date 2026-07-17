@@ -27,6 +27,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
+import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedKnowledgeIdRouteImport } from './routes/_authenticated/knowledge.$id'
@@ -34,6 +35,8 @@ import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
 import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
+import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
+import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -126,6 +129,12 @@ const AuthenticatedVenturesIdRoute = AuthenticatedVenturesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedVenturesRoute,
 } as any)
+const AuthenticatedSettingsIntegrationsRoute =
+  AuthenticatedSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSamMemoryRoute = AuthenticatedSamMemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
@@ -165,6 +174,18 @@ const AuthenticatedCommitmentsIdRoute =
     path: '/commitments/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsIntegrationsNewRoute =
+  AuthenticatedSettingsIntegrationsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
+  } as any)
+const AuthenticatedSettingsIntegrationsConnectionIdRoute =
+  AuthenticatedSettingsIntegrationsConnectionIdRouteImport.update({
+    id: '/$connectionId',
+    path: '/$connectionId',
+    getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -179,7 +200,7 @@ export interface FileRoutesByFullPath {
   '/operator': typeof AuthenticatedOperatorRoute
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/sam': typeof AuthenticatedSamRouteWithChildren
-  '/settings': typeof AuthenticatedSettingsRoute
+  '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
@@ -190,7 +211,10 @@ export interface FileRoutesByFullPath {
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
+  '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
@@ -204,7 +228,7 @@ export interface FileRoutesByTo {
   '/operator': typeof AuthenticatedOperatorRoute
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/sam': typeof AuthenticatedSamRouteWithChildren
-  '/settings': typeof AuthenticatedSettingsRoute
+  '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
@@ -216,7 +240,10 @@ export interface FileRoutesByTo {
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
+  '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -232,7 +259,7 @@ export interface FileRoutesById {
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/sam': typeof AuthenticatedSamRouteWithChildren
-  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
@@ -244,7 +271,10 @@ export interface FileRoutesById {
   '/_authenticated/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
+  '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -272,7 +302,10 @@ export interface FileRouteTypes {
     | '/knowledge/$id'
     | '/projects/$id'
     | '/sam/memory'
+    | '/settings/integrations'
     | '/ventures/$id'
+    | '/settings/integrations/$connectionId'
+    | '/settings/integrations/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -298,7 +331,10 @@ export interface FileRouteTypes {
     | '/knowledge/$id'
     | '/projects/$id'
     | '/sam/memory'
+    | '/settings/integrations'
     | '/ventures/$id'
+    | '/settings/integrations/$connectionId'
+    | '/settings/integrations/new'
   id:
     | '__root__'
     | '/_authenticated'
@@ -325,7 +361,10 @@ export interface FileRouteTypes {
     | '/_authenticated/knowledge/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/sam/memory'
+    | '/_authenticated/settings/integrations'
     | '/_authenticated/ventures/$id'
+    | '/_authenticated/settings/integrations/$connectionId'
+    | '/_authenticated/settings/integrations/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -462,6 +501,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVenturesIdRouteImport
       parentRoute: typeof AuthenticatedVenturesRoute
     }
+    '/_authenticated/settings/integrations': {
+      id: '/_authenticated/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/sam/memory': {
       id: '/_authenticated/sam/memory'
       path: '/memory'
@@ -510,6 +556,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/commitments/$id'
       preLoaderRoute: typeof AuthenticatedCommitmentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/integrations/new': {
+      id: '/_authenticated/settings/integrations/new'
+      path: '/new'
+      fullPath: '/settings/integrations/new'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsNewRouteImport
+      parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
+    }
+    '/_authenticated/settings/integrations/$connectionId': {
+      id: '/_authenticated/settings/integrations/$connectionId'
+      path: '/$connectionId'
+      fullPath: '/settings/integrations/$connectionId'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRouteImport
+      parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
     }
   }
 }
@@ -591,6 +651,38 @@ const AuthenticatedSamRouteChildren: AuthenticatedSamRouteChildren = {
 const AuthenticatedSamRouteWithChildren =
   AuthenticatedSamRoute._addFileChildren(AuthenticatedSamRouteChildren)
 
+interface AuthenticatedSettingsIntegrationsRouteChildren {
+  AuthenticatedSettingsIntegrationsConnectionIdRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
+  AuthenticatedSettingsIntegrationsNewRoute: typeof AuthenticatedSettingsIntegrationsNewRoute
+}
+
+const AuthenticatedSettingsIntegrationsRouteChildren: AuthenticatedSettingsIntegrationsRouteChildren =
+  {
+    AuthenticatedSettingsIntegrationsConnectionIdRoute:
+      AuthenticatedSettingsIntegrationsConnectionIdRoute,
+    AuthenticatedSettingsIntegrationsNewRoute:
+      AuthenticatedSettingsIntegrationsNewRoute,
+  }
+
+const AuthenticatedSettingsIntegrationsRouteWithChildren =
+  AuthenticatedSettingsIntegrationsRoute._addFileChildren(
+    AuthenticatedSettingsIntegrationsRouteChildren,
+  )
+
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsIntegrationsRoute:
+    AuthenticatedSettingsIntegrationsRouteWithChildren,
+}
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  )
+
 interface AuthenticatedVenturesRouteChildren {
   AuthenticatedVenturesIdRoute: typeof AuthenticatedVenturesIdRoute
 }
@@ -614,7 +706,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedSamRoute: typeof AuthenticatedSamRouteWithChildren
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedCommitmentsIdRoute: typeof AuthenticatedCommitmentsIdRoute
@@ -630,7 +722,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedSamRoute: AuthenticatedSamRouteWithChildren,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedCommitmentsIdRoute: AuthenticatedCommitmentsIdRoute,
