@@ -13,25 +13,12 @@ export const Route = createFileRoute("/_authenticated/operator")({
 });
 
 const suggestions = [
-  "Summarize what changed across my ventures this week.",
-  "Which decisions am I avoiding?",
-  "Where is Healing Path bottlenecked?",
-  "Draft a response to the Mercy Health legal team.",
-];
-
-const briefing = [
-  {
-    title: "Cross-venture pattern",
-    body: "Both Healing Path and Elite Fleet Rides are one enterprise contract away from step-changing revenue. Neither is legally ready. Consider prioritizing a single fractional GC across ventures.",
-  },
-  {
-    title: "You are the bottleneck on three items",
-    body: "The Mercy MSA, the dispatch vendor choice, and the board chair acceptance have all been open more than 48 hours.",
-  },
-  {
-    title: "Quiet win",
-    body: "Personal Brand newsletter grew 412 net subscribers this week — the highest since launch.",
-  },
+  "What deserves my attention today?",
+  "Which projects are currently at risk?",
+  "What decisions are waiting on me?",
+  "Where am I falling behind on commitments?",
+  "Summarize activity across my ventures.",
+  "What should I prioritize this week?",
 ];
 
 function OperatorPage() {
@@ -52,18 +39,15 @@ function OperatorPage() {
           connected. Ask in plain English.
         </p>
 
-        <div className="mt-16 space-y-10">
-          {briefing.map((b, i) => (
-            <article key={b.title} className="group">
-              <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">
-                {b.title}
-              </div>
-              <p className="mt-3 text-[16px] leading-[1.7] text-foreground/90">{b.body}</p>
-              {i < briefing.length - 1 && (
-                <div className="mt-10 h-px w-16 bg-border" />
-              )}
-            </article>
-          ))}
+        <div className="mt-16 rounded-xl border border-dashed border-border/70 bg-card/30 p-6">
+          <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">
+            Operator is not active yet
+          </div>
+          <p className="mt-3 text-[15px] leading-[1.7] text-muted-foreground">
+            Operator intelligence is coming in a later phase. When enabled, it will read
+            across your ventures, projects, decisions, commitments, and documents to
+            surface honest, sourced briefings — not generated filler.
+          </p>
         </div>
 
         <div className="mt-20">
@@ -98,8 +82,9 @@ function OperatorPage() {
           />
           <button
             aria-label="Send message"
+            title="Operator is not active yet"
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background hover:opacity-90 disabled:opacity-30"
-            disabled={!input.trim()}
+            disabled
           >
             <ArrowUp className="h-4 w-4" />
           </button>
