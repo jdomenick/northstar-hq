@@ -15,7 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { bandForScore } from "./schema";
 
-type FeedbackType = Database["public"]["Enums"]["sam_feedback_type"];
+type FeedbackType = Database["public"]["Enums"]["sam_memory_feedback_type"];
 
 export interface MemoryReliability {
   memoryItemId: string;
