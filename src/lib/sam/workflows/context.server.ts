@@ -148,7 +148,6 @@ export async function assembleWorkflowContext(
         .from("sam_memory_items")
         .select("id, layer, category, title, statement, status, confidence_score", { count: "exact" })
         .match(orgFilter)
-        .neq("status", "expired")
         .neq("status", "archived")
         .order("confidence_score", { ascending: false })
         .limit(SAM_WORKFLOW_LIMITS.maxMemoryRetrieval)
@@ -210,21 +209,28 @@ export async function assembleWorkflowContext(
     return list;
   };
 
-  const ventures = record("ventures", venturesRes as never);
-  const projects = record("projects", projectsRes as never);
-  const tasks = record("tasks", tasksRes as never);
-  const goals = record("goals", goalsRes as never);
-  const decisions = record("decisions", decisionsRes as never);
-  const commitments = record("commitments", commitmentsRes as never);
-  const knowledge = record("knowledge", knowledgeRes as never);
-  const documents = record("documents", documentsRes as never);
-  const activity = record("activity", activityRes as never);
+  const ventures = record("ventures", venturesRes as never) as WorkflowContext["ventures"];
+  const projects = record("projects", projectsRes as never) as WorkflowContext["projects"];
+  const tasks = record("tasks", tasksRes as never) as WorkflowContext["tasks"];
+  const goals = record("goals", goalsRes as never) as WorkflowContext["goals"];
+  const decisions = record("decisions", decisionsRes as never) as WorkflowContext["decisions"];
+  const commitments = record("commitments", commitmentsRes as never) as WorkflowContext["commitments"];
+  const knowledge = record("knowledge", knowledgeRes as never) as WorkflowContext["knowledge"];
+  const documents = record("documents", documentsRes as never) as WorkflowContext["documents"];
+  const activity = record("activity", activityRes as never) as WorkflowContext["activity"];
 
   const memoryRows = (memoryRes.data ?? []) as Array<{
     id: string; layer: string; category: string; title: string; statement: string; status: string; confidence_score: number | null;
   }>;
+  // sam_settings columns for workflows are not yet migrated — read from a
+  // JSON extras column if present, else use safe defaults.
+  const settingsExtras =
+    ((settingsRes.data as unknown as Record<string, unknown> | null)?.workflow_preferences as
+      | Record<string, unknown>
+      | undefined) ?? {};
   const includeUncertain =
-    settingsRes.data?.include_uncertain_memory ?? WORKFLOW_DEFAULT_SETTINGS.include_uncertain_memory;
+    (settingsExtras.include_uncertain_memory as boolean | undefined) ??
+    WORKFLOW_DEFAULT_SETTINGS.include_uncertain_memory;
   const trusted = memoryRows
     .filter((m) => m.status === "confirmed")
     .map((m) => ({ id: m.id, layer: m.layer, title: m.title, statement: m.statement, confidence: m.confidence_score ?? 0 }));
@@ -315,11 +321,10 @@ export async function assembleWorkflowContext(
     settings: {
       include_uncertain_memory: includeUncertain,
       include_archived_historical_evidence:
-        (settingsRes.data as { include_archived_historical_evidence?: boolean } | null)
-          ?.include_archived_historical_evidence ??
+        (settingsExtras.include_archived_historical_evidence as boolean | undefined) ??
         WORKFLOW_DEFAULT_SETTINGS.include_archived_historical_evidence,
       default_priority_limit:
-        (settingsRes.data as { default_priority_limit?: number } | null)?.default_priority_limit ??
+        (settingsExtras.default_priority_limit as number | undefined) ??
         WORKFLOW_DEFAULT_SETTINGS.default_priority_limit,
     },
   };
