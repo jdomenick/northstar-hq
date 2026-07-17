@@ -370,6 +370,7 @@ export const getMemoryReliability = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMembership(supabase, data.organizationId, userId);
+    const { computeMemoryReliability } = await import("./reliability.server");
     const r = await computeMemoryReliability(supabase, data.organizationId, data.id);
     if (!r) throw new SamError("memory_not_found");
     return r;
