@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { logActivity } from "./activity";
+import { LIMITS } from "./constants";
 
 export type Venture = Database["public"]["Tables"]["ventures"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
