@@ -3,7 +3,7 @@
 // pre-resolved scope so client-supplied organization_id cannot be trusted.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Json } from "@/integrations/supabase/types";
+import type { Database, Json, TablesUpdate } from "@/integrations/supabase/types";
 import {
   AUTOMATION_LIMITS,
   type AutomationHealthBand,
@@ -94,7 +94,7 @@ export async function updateAutomationDefinition(
     & { status?: "active" | "paused" | "disabled" | "archived" },
 ) {
   requireRole(scope, "admin");
-  const update: Record<string, unknown> = {};
+  const update: TablesUpdate<"automation_definitions"> = {};
   if (patch.name !== undefined) update.name = patch.name;
   if (patch.enabled !== undefined) update.enabled = patch.enabled;
   if (patch.status !== undefined) update.status = patch.status;
