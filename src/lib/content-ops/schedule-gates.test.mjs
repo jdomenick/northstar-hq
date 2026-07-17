@@ -47,7 +47,7 @@ test("blocks unapproved items", () => {
 
 test("blocks when emergency pause is on", () => {
   const r = gates.evaluateScheduleGates(baseCtx({ autonomy: { emergency_pause: true, platform_pauses: {}, mode: "approval_required" } }));
-  assert.ok(r.failures.some((f) => f.gate === "venture_autonomy"));
+  assert.ok(r.failures.some((f) => f.gate === "emergency_pause"));
 });
 
 test("connector_ready failure downgrades to editorial_only when platform not wired", () => {
@@ -60,17 +60,17 @@ test("connector_ready failure downgrades to editorial_only when platform not wir
 
 test("blocks duplicates", () => {
   const r = gates.evaluateScheduleGates(baseCtx({ duplicateExists: true }));
-  assert.ok(r.failures.some((f) => f.gate === "no_duplicate"));
+  assert.ok(r.failures.some((f) => f.gate === "duplicate_fingerprint"));
 });
 
 test("blocks past-in-time schedules", () => {
   const r = gates.evaluateScheduleGates(baseCtx({ desiredScheduledFor: new Date(Date.now() - 60_000) }));
-  assert.ok(r.failures.some((f) => f.gate === "future_scheduled_for"));
+  assert.ok(r.failures.some((f) => f.gate === "schedule_time_future"));
 });
 
 test("blocks far-future beyond horizon", () => {
   const r = gates.evaluateScheduleGates(baseCtx({ desiredScheduledFor: new Date(Date.now() + 365 * 86400_000) }));
-  assert.ok(r.failures.some((f) => f.gate === "within_max_horizon"));
+  assert.ok(r.failures.some((f) => f.gate === "schedule_time_within_horizon"));
 });
 
 test("retryEligibility respects attempt cap", () => {
