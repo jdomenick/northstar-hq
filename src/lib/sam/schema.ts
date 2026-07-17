@@ -10,6 +10,8 @@ export const CitationEntityType = z.enum([
   "knowledge_record",
   "document",
   "activity_event",
+  "memory_item",
+  "graph_edge",
 ]);
 
 export const CitationKind = z.enum(["direct", "supporting", "assumption", "inference"]);

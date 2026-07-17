@@ -22,6 +22,10 @@ export function citationHref(entityType: SamCitation["entity_type"], id: string)
       return `/documents/${id}`;
     case "activity_event":
       return null;
+    case "memory_item":
+      return `/sam/memory#${id}`;
+    case "graph_edge":
+      return null;
     default:
       return null;
   }
@@ -46,6 +50,8 @@ export function verifyCitations(response: SamResponse, context: AssembledContext
   context.commitments.forEach((c) => add("commitment", c.id));
   context.knowledge.forEach((k) => add("knowledge_record", k.id));
   context.documents.forEach((d) => add("document", d.id));
+  (context.memory?.trusted ?? []).forEach((m) => add("memory_item", m.id));
+  (context.memory?.uncertain ?? []).forEach((m) => add("memory_item", m.id));
 
   return response.citations.filter((c) => allowed.get(c.entity_type)?.has(c.entity_id));
 }

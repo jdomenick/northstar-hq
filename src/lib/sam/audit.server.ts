@@ -4,9 +4,14 @@ import {
   CONSTITUTION_VERSION,
   PIPELINE_VERSION,
   PROMPT_VERSION,
-  CONFIDENCE_METHOD,
   WEIGHTS_VERSION,
 } from "./constitution";
+import { CONFIDENCE_METHOD } from "./confidence";
+import {
+  MEMORY_FRAMEWORK_VERSION,
+  CONFIDENCE_FRAMEWORK_VERSION,
+  MEMORY_PRECEDENCE_VERSION,
+} from "@/lib/constants";
 import type { AssembledContext } from "./context-builder.server";
 import type { ConfidenceObject } from "./confidence";
 import type { SamCitation } from "./schema";
@@ -28,6 +33,8 @@ export interface AuditWriteInput {
   outputTokens?: number;
   status: "ok" | "error";
   errorCode?: string | null;
+  learningEventIds?: string[];
+  citationLineage?: unknown[];
 }
 
 export async function writeAudit(
@@ -64,6 +71,15 @@ export async function writeAudit(
       citation_count: input.citations.length,
       context_counts: input.context.counts,
       truncations: input.context.truncations,
+      memory_considered_ids: input.context.memory?.considered_ids ?? [],
+      memory_selected_ids: input.context.memory?.selected_ids ?? [],
+      memory_excluded_ids: input.context.memory?.excluded_ids ?? [],
+      conflict_count: input.context.memory?.conflict_count ?? 0,
+      precedence_version: MEMORY_PRECEDENCE_VERSION,
+      memory_framework_version: MEMORY_FRAMEWORK_VERSION,
+      confidence_framework_version: CONFIDENCE_FRAMEWORK_VERSION,
+      citation_lineage: (input.citationLineage ?? []) as never,
+      learning_event_ids: input.learningEventIds ?? [],
       latency_ms: input.latencyMs,
       input_tokens: input.inputTokens ?? null,
       output_tokens: input.outputTokens ?? null,
