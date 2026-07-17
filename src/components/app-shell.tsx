@@ -243,9 +243,30 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground">
               <Bell className="h-4 w-4" strokeWidth={1.75} />
             </Button>
-            <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[12px] font-medium">
-              JC
-            </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[12px] font-medium text-foreground hover:opacity-90">
+                {initials || "N"}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-56">
+              <DropdownMenuLabel className="flex flex-col gap-0.5">
+                <span className="truncate text-[13px] text-foreground">
+                  {user?.email}
+                </span>
+                {activeMembership?.organizations?.name && (
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    {activeMembership.organizations.name} · {activeMembership.role}
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           </div>
         </header>
 
