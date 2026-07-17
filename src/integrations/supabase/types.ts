@@ -1154,6 +1154,86 @@ export type Database = {
           },
         ]
       }
+      content_ops_schedule_audit: {
+        Row: {
+          action: string
+          actor_type: string
+          actor_user_id: string | null
+          automation_job_id: string | null
+          content_item_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          new_value: Json | null
+          old_value: Json | null
+          organization_id: string
+          policy_version: string
+          reason: string | null
+          venture_id: string
+        }
+        Insert: {
+          action: string
+          actor_type?: string
+          actor_user_id?: string | null
+          automation_job_id?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id: string
+          policy_version?: string
+          reason?: string | null
+          venture_id: string
+        }
+        Update: {
+          action?: string
+          actor_type?: string
+          actor_user_id?: string | null
+          automation_job_id?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string
+          policy_version?: string
+          reason?: string | null
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_ops_schedule_audit_automation_job_id_fkey"
+            columns: ["automation_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_ops_schedule_audit_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_ops_schedule_audit_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_ops_schedule_audit_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_messages: {
         Row: {
           content: string
