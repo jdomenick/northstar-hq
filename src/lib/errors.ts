@@ -32,6 +32,20 @@ export type SamErrorCode =
   | "graph_cross_org"
   | "graph_entity_missing"
   | "graph_traversal_limit"
+  | "workflow_unavailable"
+  | "workflow_not_implemented"
+  | "workflow_already_running"
+  | "invalid_workflow_scope"
+  | "venture_required"
+  | "invalid_date_range"
+  | "insufficient_data"
+  | "deterministic_analysis_failed"
+  | "provider_synthesis_failed"
+  | "structured_output_invalid"
+  | "citation_validation_failed"
+  | "workflow_persistence_failed"
+  | "workflow_not_found"
+  | "workflow_access_denied"
   | "unknown_error";
 
 export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
@@ -65,6 +79,20 @@ export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
   graph_cross_org: "That relationship crosses an organization boundary.",
   graph_entity_missing: "One of the entities in that relationship no longer exists.",
   graph_traversal_limit: "The relationship graph is too large to display here.",
+  workflow_unavailable: "That workflow is not available right now.",
+  workflow_not_implemented: "That workflow isn't ready yet.",
+  workflow_already_running: "A run for this workflow is already in progress.",
+  invalid_workflow_scope: "That workflow scope is not valid.",
+  venture_required: "This workflow needs a venture selected.",
+  invalid_date_range: "The date range for this workflow is not valid.",
+  insufficient_data: "There isn't enough information yet for this workflow.",
+  deterministic_analysis_failed: "SAM couldn't complete this workflow's analysis.",
+  provider_synthesis_failed: "SAM couldn't synthesize the narrative for this workflow.",
+  structured_output_invalid: "SAM returned an incomplete workflow result. Please retry.",
+  citation_validation_failed: "SAM couldn't verify the citations for this workflow.",
+  workflow_persistence_failed: "SAM couldn't save this workflow run. Please retry.",
+  workflow_not_found: "That workflow run is no longer available.",
+  workflow_access_denied: "You don't have access to that workflow run.",
   unknown_error: "Something went wrong. Please retry.",
 };
 
