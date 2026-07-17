@@ -900,6 +900,325 @@ export type Database = {
           },
         ]
       }
+      content_media_assets: {
+        Row: {
+          alt_text: string | null
+          approved_at: string | null
+          approved_by: string | null
+          archived: boolean
+          aspect_ratio: string | null
+          campaign_id: string | null
+          caption: string | null
+          checksum_sha256: string | null
+          created_at: string
+          creative_brief: string | null
+          creative_notes: string | null
+          credit: string | null
+          deleted_at: string | null
+          display_name: string | null
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          generated_at: string | null
+          generation_model: string | null
+          generation_negative_prompt: string | null
+          generation_parameters: Json | null
+          generation_prompt: string | null
+          generation_seed: string | null
+          generation_version: number | null
+          height_px: number | null
+          id: string
+          last_used_at: string | null
+          media_type: string
+          mime_type: string | null
+          organization_id: string
+          original_filename: string | null
+          review_state: string
+          source: string
+          status: string
+          storage_bucket: string
+          storage_path: string | null
+          suggested_alt_text: string | null
+          tags: string[]
+          updated_at: string
+          upload_error: string | null
+          upload_started_at: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+          venture_id: string
+          width_px: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived?: boolean
+          aspect_ratio?: string | null
+          campaign_id?: string | null
+          caption?: string | null
+          checksum_sha256?: string | null
+          created_at?: string
+          creative_brief?: string | null
+          creative_notes?: string | null
+          credit?: string | null
+          deleted_at?: string | null
+          display_name?: string | null
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          generated_at?: string | null
+          generation_model?: string | null
+          generation_negative_prompt?: string | null
+          generation_parameters?: Json | null
+          generation_prompt?: string | null
+          generation_seed?: string | null
+          generation_version?: number | null
+          height_px?: number | null
+          id?: string
+          last_used_at?: string | null
+          media_type: string
+          mime_type?: string | null
+          organization_id: string
+          original_filename?: string | null
+          review_state?: string
+          source?: string
+          status?: string
+          storage_bucket?: string
+          storage_path?: string | null
+          suggested_alt_text?: string | null
+          tags?: string[]
+          updated_at?: string
+          upload_error?: string | null
+          upload_started_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          venture_id: string
+          width_px?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived?: boolean
+          aspect_ratio?: string | null
+          campaign_id?: string | null
+          caption?: string | null
+          checksum_sha256?: string | null
+          created_at?: string
+          creative_brief?: string | null
+          creative_notes?: string | null
+          credit?: string | null
+          deleted_at?: string | null
+          display_name?: string | null
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          generated_at?: string | null
+          generation_model?: string | null
+          generation_negative_prompt?: string | null
+          generation_parameters?: Json | null
+          generation_prompt?: string | null
+          generation_seed?: string | null
+          generation_version?: number | null
+          height_px?: number | null
+          id?: string
+          last_used_at?: string | null
+          media_type?: string
+          mime_type?: string | null
+          organization_id?: string
+          original_filename?: string | null
+          review_state?: string
+          source?: string
+          status?: string
+          storage_bucket?: string
+          storage_path?: string | null
+          suggested_alt_text?: string | null
+          tags?: string[]
+          updated_at?: string
+          upload_error?: string | null
+          upload_started_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          venture_id?: string
+          width_px?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_media_assets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_assets_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_media_attachments: {
+        Row: {
+          content_item_id: string
+          content_version_id: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          media_asset_id: string
+          organization_id: string
+          role: string
+          venture_id: string
+        }
+        Insert: {
+          content_item_id: string
+          content_version_id: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          media_asset_id: string
+          organization_id: string
+          role?: string
+          venture_id: string
+        }
+        Update: {
+          content_item_id?: string
+          content_version_id?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          media_asset_id?: string
+          organization_id?: string
+          role?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_media_attachments_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_attachments_content_version_id_fkey"
+            columns: ["content_version_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_attachments_media_asset_id_fkey"
+            columns: ["media_asset_id"]
+            isOneToOne: false
+            referencedRelation: "content_media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_attachments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_attachments_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_media_audit: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          content_item_id: string | null
+          content_version_id: string | null
+          created_at: string
+          detail: Json | null
+          id: string
+          media_asset_id: string | null
+          new_state: Json | null
+          organization_id: string
+          previous_state: Json | null
+          venture_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          content_item_id?: string | null
+          content_version_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          id?: string
+          media_asset_id?: string | null
+          new_state?: Json | null
+          organization_id: string
+          previous_state?: Json | null
+          venture_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          content_item_id?: string | null
+          content_version_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          id?: string
+          media_asset_id?: string | null
+          new_state?: Json | null
+          organization_id?: string
+          previous_state?: Json | null
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_media_audit_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_audit_content_version_id_fkey"
+            columns: ["content_version_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_audit_media_asset_id_fkey"
+            columns: ["media_asset_id"]
+            isOneToOne: false
+            referencedRelation: "content_media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_audit_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_audit_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_ops_approvals: {
         Row: {
           action: string
