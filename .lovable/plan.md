@@ -3,6 +3,19 @@
 
 ## Phase 3 Prep — Internal SAM route rename plan
 
+## Phase 2.5 — SAM Intelligence Architecture (docs only)
+
+Architecture blueprint for SAM lives under `docs/sam/`. No production
+code or UI was changed in this phase. Provider integration, embeddings,
+chat UI, autonomous actions, and document parsing are explicitly out of
+scope here and belong to Phase 3+.
+
+Read in order: `docs/sam/README.md` → `01-pipeline.md` through
+`10-audit-trail.md` → `adr/`. Every future non-obvious decision gets a
+new numbered ADR.
+
+---
+
 All user-facing text already says "SAM". Internals still use `operator` so the
 cutover is one deliberate migration.
 
