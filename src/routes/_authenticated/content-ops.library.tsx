@@ -3,13 +3,13 @@
 // on the right. All operations flow through asset-library.functions.ts.
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   ChevronRight, ChevronDown, Folder, FolderPlus, Star, StarOff, Archive,
-  Trash2, Search, LayoutGrid, List, Upload, MoveRight, Tag, RotateCcw,
+  Trash2, Search, LayoutGrid, List, Upload, MoveRight, RotateCcw, Copy, Files,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBody, PageHeader } from "@/components/page-header";
@@ -24,9 +24,13 @@ import {
   listLibraryAssets, moveMediaAssets, archiveMediaAssets, deleteMediaAssets,
   renameMediaAsset, setMediaAssetTags,
   listAssetFavorites, setAssetFavorite,
+  copyMediaAssets, duplicateMediaAssets,
 } from "@/lib/content-ops/asset-library.functions";
 import { createMediaUpload, finalizeMediaUpload, markMediaUploadFailed, createMediaPreviewUrl } from "@/lib/content-ops/media.functions";
 import type { FolderNode } from "@/lib/content-ops/asset-library";
+import { summarizeCopyResult } from "@/lib/content-ops/asset-copy";
+
+const PAGE_SIZE = 60;
 
 export const Route = createFileRoute("/_authenticated/content-ops/library")({
   component: LibraryPage,
@@ -85,13 +89,22 @@ function LibraryPage() {
   });
 
   const listFn = useServerFn(listLibraryAssets);
-  const assetsQ = useQuery({
+  const assetsQ = useInfiniteQuery({
     queryKey: ["asset-library", "assets", activeOrgId, activeVenture, folderId, view, query, sort],
     enabled: Boolean(activeOrgId && activeVenture),
-    queryFn: () => listFn({ data: {
-      organizationId: activeOrgId!, ventureId: activeVenture!,
-      folderId, view, query: query.trim() || undefined, sort, limit: 100, offset: 0,
-    } }),
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const res = await listFn({ data: {
+        organizationId: activeOrgId!, ventureId: activeVenture!,
+        folderId, view, query: query.trim() || undefined, sort,
+        limit: PAGE_SIZE, offset: pageParam as number,
+      } });
+      return { ...res, offset: pageParam as number };
+    },
+    getNextPageParam: (last) => {
+      const nextOffset = last.offset + (last.assets?.length ?? 0);
+      return nextOffset < (last.total ?? 0) && (last.assets?.length ?? 0) > 0 ? nextOffset : undefined;
+    },
   });
 
   const favFn = useServerFn(listAssetFavorites);
@@ -108,6 +121,13 @@ function LibraryPage() {
   const invalidateAll = useCallback(() => {
     qc.invalidateQueries({ queryKey: ["asset-library"] });
   }, [qc]);
+
+  // Clear selection whenever the active view / filter / venture changes so
+  // selection never leaks between contexts.
+  useEffect(() => {
+    setSelected(new Set());
+    setPreview(null);
+  }, [activeOrgId, activeVenture, folderId, view, query, sort]);
 
   // ---- Mutations ------------------------------------------------------------
   const createFolderFn = useServerFn(createAssetFolder);
@@ -165,6 +185,31 @@ function LibraryPage() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
+  const copyAssetsFn = useServerFn(copyMediaAssets);
+  const duplicateAssetsFn = useServerFn(duplicateMediaAssets);
+
+  const bulkDuplicate = useMutation({
+    mutationFn: () => duplicateAssetsFn({ data: {
+      organizationId: activeOrgId!, mediaAssetIds: [...selected],
+    } }),
+    onSuccess: (r) => {
+      toast.success(summarizeCopyResult(r));
+      setSelected(new Set()); invalidateAll();
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+
+  const bulkCopyTo = useMutation({
+    mutationFn: (targetFolderId: string | null) => copyAssetsFn({ data: {
+      organizationId: activeOrgId!, mediaAssetIds: [...selected], targetFolderId,
+    } }),
+    onSuccess: (r) => {
+      toast.success(summarizeCopyResult(r));
+      setSelected(new Set()); invalidateAll();
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+
   const moveTo = useMutation({
     mutationFn: (targetFolderId: string | null) => moveAssetsFn({ data: {
       organizationId: activeOrgId!, mediaAssetIds: [...selected], targetFolderId,
@@ -201,13 +246,13 @@ function LibraryPage() {
             .upload(row.storagePath, file, { contentType: file.type || undefined, upsert: true });
           if (upErr) throw upErr;
           await finalizeFn({ data: {
-            organizationId: activeOrgId, mediaAssetId: row.assetId,
-            fileSizeBytes: file.size, mimeType: file.type || null,
+            organizationId: activeOrgId, assetId: row.assetId,
+            fileSizeBytes: file.size, mimeType: file.type || undefined,
           } });
         } catch (err) {
           await failFn({ data: {
-            organizationId: activeOrgId, mediaAssetId: row.assetId,
-            error: err instanceof Error ? err.message : "upload failed",
+            organizationId: activeOrgId, assetId: row.assetId,
+            errorMessage: err instanceof Error ? err.message : "upload failed",
           } }).catch(() => {});
           throw err;
         }
@@ -224,7 +269,12 @@ function LibraryPage() {
   if (!activeOrgId) return null;
 
   const folderTree = (foldersQ.data?.tree ?? []) as FolderNode[];
-  const assets = ((assetsQ.data?.assets ?? []) as unknown) as LibraryAsset[];
+  const rawAssets = ((assetsQ.data?.pages.flatMap((p) => p.assets) ?? []) as unknown) as LibraryAsset[];
+  // Truthful de-duplication in case concurrent updates cause overlap between pages.
+  const seenIds = new Set<string>();
+  const assets: LibraryAsset[] = [];
+  for (const a of rawAssets) { if (!seenIds.has(a.id)) { seenIds.add(a.id); assets.push(a); } }
+  const totalAssets = assetsQ.data?.pages[0]?.total ?? assets.length;
 
   return (
     <div>
@@ -347,6 +397,15 @@ function LibraryPage() {
                   const target = window.prompt("Target folder id (blank for root)")?.trim() || null;
                   moveTo.mutate(target);
                 }} className="inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-secondary"><MoveRight className="h-3.5 w-3.5" /> Move</button>
+                <button onClick={() => bulkDuplicate.mutate()} className="inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-secondary">
+                  <Copy className="h-3.5 w-3.5" /> Duplicate
+                </button>
+                <button onClick={() => {
+                  const target = window.prompt("Copy to folder id (blank for root)")?.trim() || null;
+                  bulkCopyTo.mutate(target);
+                }} className="inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-secondary">
+                  <Files className="h-3.5 w-3.5" /> Copy to...
+                </button>
                 <button onClick={() => bulkArchive.mutate(view !== "archived")} className="inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-secondary">
                   {view === "archived" ? <><RotateCcw className="h-3.5 w-3.5" />Restore</> : <><Archive className="h-3.5 w-3.5" />Archive</>}
                 </button>
@@ -364,7 +423,9 @@ function LibraryPage() {
                 <div className="py-16 text-center text-[13.5px] text-muted-foreground">
                   {query || folderId || view !== "all" ? "No assets match this view." : "No assets yet. Upload your first file."}
                 </div>
-              ) : mode === "grid" ? (
+              ) : (
+                <>
+                {mode === "grid" ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
                   {assets.map((a) => (
                     <AssetCard key={a.id} a={a}
@@ -388,8 +449,19 @@ function LibraryPage() {
                     />
                   ))}
                 </div>
-              )
-            }
+                )}
+                <div className="mt-4 flex items-center justify-center gap-3 text-[11.5px] text-muted-foreground">
+                  <span>{assets.length} of {totalAssets}</span>
+                  {assetsQ.hasNextPage && (
+                    <button type="button" onClick={() => assetsQ.fetchNextPage()}
+                      disabled={assetsQ.isFetchingNextPage}
+                      className="rounded-md border border-border/60 px-3 py-1.5 hover:bg-secondary/40 disabled:opacity-50">
+                      {assetsQ.isFetchingNextPage ? "Loading..." : "Load more"}
+                    </button>
+                  )}
+                </div>
+                </>
+              )}
           </main>
 
           {/* Preview panel (desktop) */}
