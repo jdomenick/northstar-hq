@@ -40,7 +40,7 @@ const SECTIONS = [
   { value: "profile", label: "Founder Profile" },
   { value: "organization", label: "Organization" },
   { value: "members", label: "Members" },
-  { value: "operator", label: "SAM" },
+  { value: "sam", label: "SAM" },
   { value: "accountability", label: "Accountability" },
   { value: "notifications", label: "Notifications" },
   { value: "security", label: "Security" },
@@ -66,12 +66,11 @@ function SettingsPage() {
           <TabsContent value="organization"><OrganizationTab /></TabsContent>
           <TabsContent value="members"><MembersTab /></TabsContent>
           <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
-          {["operator","accountability","notifications","security","integrations","appearance"].map((v) => (
+          <TabsContent value="sam"><SamSettingsTab /></TabsContent>
+          {["accountability","notifications","security","integrations","appearance"].map((v) => (
             <TabsContent key={v} value={v}>
               <p className="text-[13.5px] text-muted-foreground">
-                {v === "operator"
-                  ? "SAM preferences will be available once SAM intelligence activates in Phase 3."
-                  : "This section connects in a future phase."}
+                This section connects in a future phase.
               </p>
             </TabsContent>
           ))}
