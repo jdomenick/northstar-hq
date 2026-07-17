@@ -9,7 +9,14 @@ export type MediaAuditAction =
   | "replace" | "delete" | "archive" | "restore"
   | "attach" | "detach" | "reorder"
   | "approve" | "reject" | "revision"
-  | "publication_recorded" | "metadata_updated";
+  | "publication_recorded" | "metadata_updated"
+  | "rename" | "move" | "copy" | "duplicate"
+  | "favorite" | "unfavorite" | "tag_added" | "tag_removed"
+  | "folder_created" | "folder_renamed" | "folder_moved"
+  | "folder_archived" | "folder_restored" | "folder_deleted"
+  | "collection_created" | "collection_updated" | "collection_deleted"
+  | "added_to_collection" | "removed_from_collection"
+  | "bulk_move" | "bulk_archive" | "bulk_delete" | "bulk_tag";
 
 export interface MediaAuditEntry {
   organizationId: string;
