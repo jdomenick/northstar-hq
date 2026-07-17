@@ -19,6 +19,13 @@ export type TaskStatus = Database["public"]["Enums"]["task_status"];
 export type DecisionStatus = Database["public"]["Enums"]["decision_status"];
 export type CommitmentStatus = Database["public"]["Enums"]["commitment_status"];
 export type GoalStatus = Database["public"]["Enums"]["goal_status"];
+export type KnowledgeRecord = Database["public"]["Tables"]["knowledge_records"]["Row"];
+export type KnowledgeType = Database["public"]["Enums"]["knowledge_type"];
+export type VerificationStatus = Database["public"]["Enums"]["verification_status"];
+export type DocumentRow = Database["public"]["Tables"]["documents"]["Row"];
+export type DocumentProcessingStatus = Database["public"]["Enums"]["document_processing_status"];
+export type OrgRole = Database["public"]["Enums"]["org_role"];
+export type MemberStatus = Database["public"]["Enums"]["member_status"];
 
 export function useVentures(orgId: string | null) {
   return useQuery({
