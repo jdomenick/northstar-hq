@@ -584,6 +584,19 @@ function NewProjectDialog({
               />
             </Field>
           </div>
+          <Field label="Linked goal (optional)">
+            <select
+              value={goalId}
+              onChange={(e) => setGoalId(e.target.value)}
+              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+            >
+              <option value="">— None —</option>
+              {(goalsQ.data ?? [])
+                .filter((g) => g.venture_id === ventureId || g.venture_id == null)
+                .filter((g) => g.status !== "archived")
+                .map((g) => (<option key={g.id} value={g.id}>{g.title}</option>))}
+            </select>
+          </Field>
         </div>
         <div className="mt-8 flex items-center justify-end gap-2">
           <button
