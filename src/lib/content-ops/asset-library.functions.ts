@@ -45,7 +45,7 @@ export const listAssetFolders = createServerFn({ method: "GET" })
     else q = q.is("venture_id", null);
     if (!data.includeArchived) q = q.eq("archived", false);
     const { data: rows, error } = await q.order("sort_order", { ascending: true });
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     const nodes: FolderNodeInput[] = (rows ?? []).map((r) => ({
       id: r.id, parent_folder_id: r.parent_folder_id, name: r.name,
       archived: r.archived, sort_order: r.sort_order,
@@ -87,7 +87,7 @@ export const createAssetFolder = createServerFn({ method: "POST" })
       })
       .select("id, parent_folder_id, name")
       .single();
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: data.ventureId ?? null,
       actorUserId: context.userId, action: "folder_created",
@@ -110,7 +110,7 @@ export const renameAssetFolder = createServerFn({ method: "POST" })
     if (!prev) throw new ContentOpsError("not_found", "folder not found");
     const { error } = await context.supabase.from("asset_folders")
       .update({ name }).eq("id", data.folderId).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: prev.venture_id, actorUserId: context.userId,
       action: "folder_renamed", previousState: { name: prev.name }, newState: { name },
@@ -131,7 +131,7 @@ export const moveAssetFolder = createServerFn({ method: "POST" })
       .from("asset_folders")
       .select("id, parent_folder_id, name, archived, sort_order, venture_id")
       .eq("organization_id", data.organizationId).is("deleted_at", null);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     const guard = canMoveFolder(siblings ?? [], data.folderId, data.targetParentId);
     if (!guard.ok) throw new ContentOpsError("invalid_input", guard.reason ?? "invalid move");
     const current = (siblings ?? []).find((s) => s.id === data.folderId);
@@ -146,7 +146,7 @@ export const moveAssetFolder = createServerFn({ method: "POST" })
     const { error: upErr } = await context.supabase.from("asset_folders")
       .update({ parent_folder_id: data.targetParentId }).eq("id", data.folderId)
       .eq("organization_id", data.organizationId);
-    if (upErr) throw new ContentOpsError("server_error", upErr.message);
+    if (upErr) throw new ContentOpsError("unknown", upErr.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: current.venture_id, actorUserId: context.userId,
       action: "folder_moved",
@@ -171,7 +171,7 @@ export const archiveAssetFolder = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("asset_folders")
       .update({ archived: data.archived }).eq("id", data.folderId)
       .eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: prev.venture_id, actorUserId: context.userId,
       action: data.archived ? "folder_archived" : "folder_restored",
@@ -195,7 +195,7 @@ export const deleteAssetFolder = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("asset_folders")
       .update({ deleted_at: new Date().toISOString(), archived: true })
       .eq("id", data.folderId).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: prev.venture_id, actorUserId: context.userId,
       action: "folder_deleted", detail: { folderId: data.folderId },
@@ -224,7 +224,7 @@ export const renameMediaAsset = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("content_media_assets")
       .update({ display_name: data.displayName.trim() })
       .eq("id", data.mediaAssetId).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: prev.venture_id, mediaAssetId: data.mediaAssetId,
       actorUserId: context.userId, action: "rename",
@@ -250,7 +250,7 @@ export const moveMediaAssets = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("content_media_assets")
       .update({ folder_id: data.targetFolderId })
       .in("id", data.mediaAssetIds).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, actorUserId: context.userId,
       action: data.mediaAssetIds.length > 1 ? "bulk_move" : "move",
@@ -275,7 +275,7 @@ export const setMediaAssetTags = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("content_media_assets")
       .update({ tags: clean }).eq("id", data.mediaAssetId)
       .eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: prev.venture_id, mediaAssetId: data.mediaAssetId,
       actorUserId: context.userId, action: "tag_added",
@@ -294,7 +294,7 @@ export const archiveMediaAssets = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("content_media_assets")
       .update({ archived: data.archived })
       .in("id", data.mediaAssetIds).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, actorUserId: context.userId,
       action: data.mediaAssetIds.length > 1
@@ -315,7 +315,7 @@ export const deleteMediaAssets = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("content_media_assets")
       .update({ deleted_at: new Date().toISOString(), archived: true })
       .in("id", data.mediaAssetIds).eq("organization_id", data.organizationId);
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, actorUserId: context.userId,
       action: data.mediaAssetIds.length > 1 ? "bulk_delete" : "delete",
@@ -337,7 +337,7 @@ export const listAssetFavorites = createServerFn({ method: "GET" })
       .select("media_asset_id, created_at")
       .eq("organization_id", data.organizationId).eq("user_id", context.userId)
       .order("created_at", { ascending: false });
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     return { favorites: rows ?? [] };
   });
 
@@ -356,12 +356,12 @@ export const setAssetFavorite = createServerFn({ method: "POST" })
       });
       // Unique violation on re-favorite is a no-op.
       if (error && !/duplicate key|unique/i.test(error.message)) {
-        throw new ContentOpsError("server_error", error.message);
+        throw new ContentOpsError("unknown", error.message);
       }
     } else {
       const { error } = await context.supabase.from("asset_favorites")
         .delete().eq("user_id", context.userId).eq("media_asset_id", data.mediaAssetId);
-      if (error) throw new ContentOpsError("server_error", error.message);
+      if (error) throw new ContentOpsError("unknown", error.message);
     }
     await recordMediaAudit({
       organizationId: data.organizationId, mediaAssetId: data.mediaAssetId,
@@ -389,7 +389,7 @@ export const listAssetCollections = createServerFn({ method: "GET" })
     if (data.ventureId) q = q.eq("venture_id", data.ventureId);
     if (!data.includeArchived) q = q.eq("archived", false);
     const { data: rows, error } = await q.order("updated_at", { ascending: false });
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     return { collections: rows ?? [] };
   });
 
@@ -412,7 +412,7 @@ export const createAssetCollection = createServerFn({ method: "POST" })
         created_by: context.userId,
       })
       .select("id, name").single();
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, ventureId: data.ventureId ?? null,
       actorUserId: context.userId, action: "collection_created",
@@ -436,7 +436,7 @@ export const addAssetsToCollection = createServerFn({ method: "POST" })
     }));
     const { error } = await context.supabase.from("asset_collection_items")
       .upsert(rows, { onConflict: "collection_id,media_asset_id", ignoreDuplicates: true });
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     await recordMediaAudit({
       organizationId: data.organizationId, actorUserId: context.userId,
       action: "added_to_collection",
@@ -514,6 +514,6 @@ export const listLibraryAssets = createServerFn({ method: "GET" })
 
     q = q.range(data.offset, data.offset + data.limit - 1);
     const { data: rows, count, error } = await q;
-    if (error) throw new ContentOpsError("server_error", error.message);
+    if (error) throw new ContentOpsError("unknown", error.message);
     return { assets: rows ?? [], total: count ?? (rows?.length ?? 0) };
   });
