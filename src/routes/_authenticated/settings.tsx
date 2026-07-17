@@ -1,46 +1,314 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/auth-context";
+import { useOrg } from "@/lib/org-context";
+import { can } from "@/lib/permissions";
+import { actorName } from "@/lib/actor-names";
+import {
+  useOrganization,
+  useOrgMembersFull,
+  useProfile,
+  useUpdateMemberRole,
+  useUpdateMemberStatus,
+  useUpdateOrganization,
+  useUpdateProfile,
+  type MemberStatus,
+  type OrgMemberFull,
+  type OrgRole,
+} from "@/lib/data-hooks";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({
     meta: [
       { title: "Settings — Northstar" },
-      { name: "description", content: "Personal, workspace, and Operator preferences." },
+      { name: "description", content: "Founder, organization, and member preferences." },
     ],
   }),
 });
 
+const SECTIONS = [
+  { value: "profile", label: "Founder Profile" },
+  { value: "organization", label: "Organization" },
+  { value: "members", label: "Members" },
+  { value: "operator", label: "Operator" },
+  { value: "accountability", label: "Accountability" },
+  { value: "notifications", label: "Notifications" },
+  { value: "security", label: "Security" },
+  { value: "data", label: "Data & Privacy" },
+  { value: "integrations", label: "Integrations" },
+  { value: "appearance", label: "Appearance" },
+];
+
 function SettingsPage() {
   return (
     <div>
-      <PageHeader eyebrow="Settings" title="Preferences" description="Tune how Northstar and Operator work for you." />
+      <PageHeader eyebrow="Settings" title="Preferences" description="Tune how Northstar works for you and your team." />
       <PageBody>
-        <Section title="Profile">
-          <Row label="Name" value="Jeff Carter" />
-          <Row label="Email" value="jeff@northstar.app" />
-          <Row label="Role" value="Founder" />
-        </Section>
-        <Section title="Operator">
-          <Row label="Daily briefing" value="Every morning at 6:30 AM" />
-          <Row label="Tone" value="Direct. No filler." />
-          <Row label="Autonomy" value="Draft only — never send" />
-        </Section>
-        <Section title="Workspace">
-          <Row label="Ventures" value="4 active" />
-          <Row label="Members" value="7" />
-          <Row label="Plan" value="Executive" />
-        </Section>
+        <Tabs defaultValue="profile">
+          <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
+            {SECTIONS.map((s) => (
+              <TabsTrigger key={s.value} value={s.value} className="relative rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[12.5px] text-muted-foreground hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value="profile"><ProfileTab /></TabsContent>
+          <TabsContent value="organization"><OrganizationTab /></TabsContent>
+          <TabsContent value="members"><MembersTab /></TabsContent>
+          {["operator","accountability","notifications","security","data","integrations","appearance"].map((v) => (
+            <TabsContent key={v} value={v}>
+              <p className="text-[13.5px] text-muted-foreground">This section connects in a future phase.</p>
+            </TabsContent>
+          ))}
+        </Tabs>
       </PageBody>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function ProfileTab() {
+  const { user } = useAuth();
+  const { activeOrgId, activeMembership } = useOrg();
+  const profileQ = useProfile(user?.id);
+  const update = useUpdateProfile(activeOrgId);
+  const [form, setForm] = useState<{ full_name: string; preferred_name: string; title: string; avatar_url: string; timezone: string } | null>(null);
+
+  useEffect(() => {
+    if (!profileQ.data) return;
+    setForm({
+      full_name: profileQ.data.full_name ?? "",
+      preferred_name: profileQ.data.preferred_name ?? "",
+      title: profileQ.data.title ?? "",
+      avatar_url: profileQ.data.avatar_url ?? "",
+      timezone: profileQ.data.timezone ?? "UTC",
+    });
+  }, [profileQ.data]);
+
+  async function save() {
+    if (!form || !user) return;
+    try {
+      await update.mutateAsync({
+        userId: user.id,
+        patch: {
+          full_name: form.full_name || null,
+          preferred_name: form.preferred_name || null,
+          title: form.title || null,
+          avatar_url: form.avatar_url || null,
+          timezone: form.timezone || "UTC",
+        },
+      });
+      toast.success("Profile saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  if (!form) return <div className="h-40 animate-pulse rounded-2xl bg-card/30" />;
+
   return (
-    <div className="grid grid-cols-[minmax(0,200px)_1fr] items-center gap-8 border-b border-border/60 py-5 text-[14px] last:border-0">
-      <div className="text-muted-foreground">{label}</div>
-      <div className="text-foreground">{value}</div>
+    <div className="max-w-2xl space-y-6">
+      <Section title="You">
+        <div className="grid grid-cols-2 gap-4 text-[13.5px]">
+          <Fld label="Full name"><input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Preferred name"><input value={form.preferred_name} onChange={(e) => setForm({ ...form, preferred_name: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Title"><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Timezone"><input value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })} placeholder="e.g. America/New_York" className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Avatar URL"><input value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} placeholder="https://" className="w-full bg-transparent outline-none" /></Fld>
+        </div>
+      </Section>
+      <Section title="Account">
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
+          <div className="text-muted-foreground">Email</div>
+          <div className="text-foreground">{user?.email}</div>
+        </div>
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
+          <div className="text-muted-foreground">Current organization</div>
+          <div className="text-foreground">{activeMembership?.organizations?.name ?? "—"}</div>
+        </div>
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
+          <div className="text-muted-foreground">Role</div>
+          <div className="text-foreground capitalize">{activeMembership?.role ?? "—"}</div>
+        </div>
+        <p className="mt-3 text-[12px] text-muted-foreground">Email changes will be handled by a secure flow in a future phase.</p>
+      </Section>
+      <div className="flex justify-end">
+        <button onClick={save} disabled={update.isPending} className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
+          {update.isPending ? "Saving…" : "Save profile"}
+        </button>
+      </div>
     </div>
+  );
+}
+
+function OrganizationTab() {
+  const { activeOrgId, activeMembership } = useOrg();
+  const orgQ = useOrganization(activeOrgId);
+  const update = useUpdateOrganization(activeOrgId);
+  const canManage = can.manageOrg(activeMembership?.role);
+  const [form, setForm] = useState<{ name: string; slug: string; description: string; industry: string; timezone: string; logo_url: string } | null>(null);
+
+  useEffect(() => {
+    if (!orgQ.data) return;
+    setForm({
+      name: orgQ.data.name,
+      slug: orgQ.data.slug ?? "",
+      description: orgQ.data.description ?? "",
+      industry: orgQ.data.industry ?? "",
+      timezone: orgQ.data.timezone ?? "UTC",
+      logo_url: orgQ.data.logo_url ?? "",
+    });
+  }, [orgQ.data]);
+
+  async function save() {
+    if (!form) return;
+    if (!form.name.trim()) return toast.error("Name required");
+    try {
+      await update.mutateAsync({
+        patch: {
+          name: form.name.trim(),
+          slug: form.slug.trim() || null,
+          description: form.description || null,
+          industry: form.industry || null,
+          timezone: form.timezone || "UTC",
+          logo_url: form.logo_url || null,
+        },
+      });
+      toast.success("Organization saved");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Save failed";
+      if (msg.toLowerCase().includes("duplicate") || msg.includes("organizations_slug")) toast.error("That slug is already taken.");
+      else if (msg.toLowerCase().includes("invalid slug")) toast.error("Slug must use lowercase letters, digits, and hyphens.");
+      else toast.error(msg);
+    }
+  }
+
+  if (!form) return <div className="h-40 animate-pulse rounded-2xl bg-card/30" />;
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <Section title="Organization">
+        {!canManage && <p className="mb-4 text-[12.5px] text-muted-foreground">Only owners and admins can change these fields.</p>}
+        <div className="grid grid-cols-2 gap-4 text-[13.5px]">
+          <Fld label="Name"><input disabled={!canManage} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full bg-transparent outline-none disabled:opacity-70" /></Fld>
+          <Fld label="Slug"><input disabled={!canManage} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase() })} placeholder="northstar" className="w-full bg-transparent outline-none disabled:opacity-70" /></Fld>
+          <Fld label="Industry"><input disabled={!canManage} value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} className="w-full bg-transparent outline-none disabled:opacity-70" /></Fld>
+          <Fld label="Timezone"><input disabled={!canManage} value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })} className="w-full bg-transparent outline-none disabled:opacity-70" /></Fld>
+          <Fld label="Logo URL"><input disabled={!canManage} value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://" className="w-full bg-transparent outline-none disabled:opacity-70" /></Fld>
+        </div>
+        <div className="mt-4">
+          <Fld label="Description"><textarea disabled={!canManage} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full resize-none bg-transparent outline-none disabled:opacity-70" /></Fld>
+        </div>
+      </Section>
+      {canManage && (
+        <div className="flex justify-end">
+          <button onClick={save} disabled={update.isPending} className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
+            {update.isPending ? "Saving…" : "Save organization"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ROLE_ORDER: OrgRole[] = ["owner", "admin", "executive", "member", "viewer"];
+
+function MembersTab() {
+  const { activeOrgId, activeMembership } = useOrg();
+  const membersQ = useOrgMembersFull(activeOrgId);
+  const updateRole = useUpdateMemberRole(activeOrgId);
+  const updateStatus = useUpdateMemberStatus(activeOrgId);
+  const canManage = can.manageMembers(activeMembership?.role);
+  const iAmOwner = activeMembership?.role === "owner";
+
+  const members = membersQ.data ?? [];
+  const activeOwners = members.filter((m) => m.role === "owner" && m.status === "active");
+
+  function canEditRoleOf(m: OrgMemberFull): boolean {
+    if (!canManage) return false;
+    if (m.role === "owner" && activeOwners.length <= 1) return false;
+    if (m.role === "owner" && !iAmOwner) return false;
+    return true;
+  }
+
+  function canRemove(m: OrgMemberFull): boolean {
+    if (!canManage) return false;
+    if (m.role === "owner" && activeOwners.length <= 1) return false;
+    if (m.role === "owner" && !iAmOwner) return false;
+    return true;
+  }
+
+  return (
+    <div className="space-y-6">
+      <Section title="Members">
+        <p className="mb-4 text-[12.5px] text-muted-foreground">Member invitations will be activated in a future phase.</p>
+        {membersQ.isLoading ? (
+          <div className="h-32 animate-pulse rounded-2xl bg-card/30" />
+        ) : members.length === 0 ? (
+          <p className="text-[13.5px] text-muted-foreground">No members yet.</p>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {members.map((m) => (
+              <li key={m.id} className="flex items-center gap-4 py-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[11.5px] font-medium text-foreground">
+                  {(actorName(m.profile)[0] ?? "?").toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] text-foreground">{actorName(m.profile)}</div>
+                  <div className="truncate text-[11.5px] text-muted-foreground">
+                    {m.profile?.email ?? "—"}
+                    {m.profile?.title && ` · ${m.profile.title}`}
+                    {m.joined_at && ` · joined ${m.joined_at.slice(0, 10)}`}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[11px] capitalize text-muted-foreground">{m.status}</span>
+                  {canEditRoleOf(m) ? (
+                    <select
+                      value={m.role}
+                      onChange={(e) => {
+                        const next = e.target.value as OrgRole;
+                        if (next === m.role) return;
+                        if (!confirm(`Change ${actorName(m.profile)}'s role to ${next}?`)) return;
+                        updateRole.mutate(
+                          { membershipId: m.id, role: next, prevRole: m.role, memberName: actorName(m.profile) },
+                          { onError: (err) => toast.error(err instanceof Error ? (err.message.includes("final owner") ? "Cannot demote the final owner." : err.message) : "Failed") },
+                        );
+                      }}
+                      className="rounded-md bg-secondary/40 px-2 py-1 text-[12px] capitalize outline-none hover:bg-secondary/60"
+                    >
+                      {ROLE_ORDER.map((r) => (<option key={r} value={r}>{r}</option>))}
+                    </select>
+                  ) : (
+                    <span className="rounded-md bg-secondary/40 px-2 py-1 text-[12px] capitalize text-muted-foreground">{m.role}</span>
+                  )}
+                  {canManage && m.status === "active" && canRemove(m) && (
+                    <button onClick={() => { if (confirm(`Suspend ${actorName(m.profile)}?`)) updateStatus.mutate({ membershipId: m.id, status: "suspended" as MemberStatus, memberName: actorName(m.profile) }, { onError: (err) => toast.error(err instanceof Error ? err.message : "Failed") }); }} className="rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground">Suspend</button>
+                  )}
+                  {canManage && m.status === "suspended" && (
+                    <button onClick={() => updateStatus.mutate({ membershipId: m.id, status: "active" as MemberStatus, memberName: actorName(m.profile) })} className="rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground">Reactivate</button>
+                  )}
+                  {canManage && m.status !== "removed" && canRemove(m) && (
+                    <button onClick={() => { if (confirm(`Remove ${actorName(m.profile)} from the organization?`)) updateStatus.mutate({ membershipId: m.id, status: "removed" as MemberStatus, memberName: actorName(m.profile) }, { onError: (err) => toast.error(err instanceof Error ? (err.message.includes("final owner") ? "Cannot remove the final owner." : err.message) : "Failed") }); }} className="rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground">Remove</button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+    </div>
+  );
+}
+
+function Fld({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block rounded-lg bg-secondary/40 px-3 py-2.5">
+      <div className="mb-1 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">{label}</div>
+      {children}
+    </label>
   );
 }
