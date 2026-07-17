@@ -163,6 +163,7 @@ export type Database = {
           metadata: Json | null
           organization_id: string
           role: Database["public"]["Enums"]["conversation_message_role"]
+          status: string
         }
         Insert: {
           content: string
@@ -173,6 +174,7 @@ export type Database = {
           metadata?: Json | null
           organization_id: string
           role: Database["public"]["Enums"]["conversation_message_role"]
+          status?: string
         }
         Update: {
           content?: string
@@ -183,6 +185,7 @@ export type Database = {
           metadata?: Json | null
           organization_id?: string
           role?: Database["public"]["Enums"]["conversation_message_role"]
+          status?: string
         }
         Relationships: [
           {
@@ -915,6 +918,302 @@ export type Database = {
             columns: ["venture_id"]
             isOneToOne: false
             referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_invocation_context_refs: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          invocation_id: string
+          organization_id: string
+          role: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          invocation_id: string
+          organization_id: string
+          role?: string
+          source: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          invocation_id?: string
+          organization_id?: string
+          role?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_invocation_context_refs_invocation_id_fkey"
+            columns: ["invocation_id"]
+            isOneToOne: false
+            referencedRelation: "sam_invocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_invocation_context_refs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_invocation_provider_calls: {
+        Row: {
+          created_at: string
+          error_code: string | null
+          id: string
+          input_tokens: number | null
+          invocation_id: string
+          latency_ms: number | null
+          model_id: string
+          organization_id: string
+          output_tokens: number | null
+          prompt_version: string
+          provider_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          input_tokens?: number | null
+          invocation_id: string
+          latency_ms?: number | null
+          model_id: string
+          organization_id: string
+          output_tokens?: number | null
+          prompt_version: string
+          provider_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          input_tokens?: number | null
+          invocation_id?: string
+          latency_ms?: number | null
+          model_id?: string
+          organization_id?: string
+          output_tokens?: number | null
+          prompt_version?: string
+          provider_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_invocation_provider_calls_invocation_id_fkey"
+            columns: ["invocation_id"]
+            isOneToOne: false
+            referencedRelation: "sam_invocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_invocation_provider_calls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_invocations: {
+        Row: {
+          actor_user_id: string | null
+          citation_count: number
+          confidence_method: string
+          constitution_version: string
+          context_counts: Json
+          conversation_id: string | null
+          created_at: string
+          error_code: string | null
+          finished_at: string | null
+          id: string
+          input_tokens: number | null
+          intent: string
+          latency_ms: number | null
+          message_id: string | null
+          organization_id: string
+          output_tokens: number | null
+          pipeline_version: string
+          prompt_version: string
+          rollup_confidence: number | null
+          rollup_confidence_band: string | null
+          scope: Json
+          started_at: string
+          status: string
+          strategy: string
+          surface: string
+          truncations: Json
+          weights_version: string
+          workflow_key: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          citation_count?: number
+          confidence_method: string
+          constitution_version: string
+          context_counts?: Json
+          conversation_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          finished_at?: string | null
+          id?: string
+          input_tokens?: number | null
+          intent: string
+          latency_ms?: number | null
+          message_id?: string | null
+          organization_id: string
+          output_tokens?: number | null
+          pipeline_version: string
+          prompt_version: string
+          rollup_confidence?: number | null
+          rollup_confidence_band?: string | null
+          scope?: Json
+          started_at?: string
+          status?: string
+          strategy?: string
+          surface?: string
+          truncations?: Json
+          weights_version: string
+          workflow_key?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          citation_count?: number
+          confidence_method?: string
+          constitution_version?: string
+          context_counts?: Json
+          conversation_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          finished_at?: string | null
+          id?: string
+          input_tokens?: number | null
+          intent?: string
+          latency_ms?: number | null
+          message_id?: string | null
+          organization_id?: string
+          output_tokens?: number | null
+          pipeline_version?: string
+          prompt_version?: string
+          rollup_confidence?: number | null
+          rollup_confidence_band?: string | null
+          scope?: Json
+          started_at?: string
+          status?: string
+          strategy?: string
+          surface?: string
+          truncations?: Json
+          weights_version?: string
+          workflow_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_invocations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_invocations_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_invocations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_rate_counters: {
+        Row: {
+          count: number
+          day: string
+          organization_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day: string
+          organization_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_rate_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_settings: {
+        Row: {
+          challenge_level: string
+          enabled: boolean
+          include_citations: boolean
+          organization_id: string
+          response_style: string
+          show_confidence: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          challenge_level?: string
+          enabled?: boolean
+          include_citations?: boolean
+          organization_id: string
+          response_style?: string
+          show_confidence?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          challenge_level?: string
+          enabled?: boolean
+          include_citations?: boolean
+          organization_id?: string
+          response_style?: string
+          show_confidence?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
