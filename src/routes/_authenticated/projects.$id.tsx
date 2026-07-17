@@ -621,3 +621,17 @@ function TaskList({
     </div>
   );
 }
+type RelatedTo = "/decisions/$id" | "/commitments/$id" | "/goals/$id";
+function RelatedSimple({ items, empty }: { items: { id: string; title: string; sub: string; to: RelatedTo }[]; empty: string }) {
+  if (items.length === 0) return <p className="text-[13.5px] text-muted-foreground">{empty}</p>;
+  return (
+    <ul className="divide-y divide-border/60">
+      {items.map((it) => (
+        <li key={it.id} className="py-4">
+          <Link to={it.to} params={{ id: it.id }} className="text-[14px] text-foreground hover:underline">{it.title}</Link>
+          <div className="text-[12px] text-muted-foreground">{it.sub}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
