@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
-import { useNavigate as _navHook } from "@tanstack/react-router";
 import {
   CommandDialog,
   CommandEmpty,
