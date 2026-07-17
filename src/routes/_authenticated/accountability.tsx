@@ -44,6 +44,7 @@ const STATUS_LABEL: Record<CommitmentStatus, string> = {
   open: "Open",
   in_progress: "In progress",
   waiting: "Waiting",
+  overdue: "Overdue",
   completed: "Completed",
   canceled: "Canceled",
 };
@@ -52,6 +53,7 @@ const STATUS_TONE: Record<CommitmentStatus, StatusTone> = {
   open: "neutral",
   in_progress: "attention",
   waiting: "muted",
+  overdue: "critical",
   completed: "positive",
   canceled: "muted",
 };
