@@ -53,13 +53,10 @@ export function isGoalAtRisk(g: Goal): boolean {
 }
 
 export function isDecisionWaiting(d: Decision, userId?: string | null): boolean {
-  if (d.status === "closed" || d.status === "decided") {
-    // still surface if review date passed for a decided one?
-    if (d.status === "closed") return false;
-  }
+  if (d.status === "closed" || d.status === "decided") return false;
   if (d.status === "waiting_for_founder") return true;
   if (d.status === "under_review" && userId && d.owner_user_id === userId) return true;
-  if (d.review_date && d.review_date <= isoToday() && d.status !== "closed") return true;
+  if (d.review_date && d.review_date <= isoToday()) return true;
   return false;
 }
 
