@@ -15,13 +15,17 @@ export type ValidationField =
   | "newsletterSubject" | "newsletterPreview"
   | "duplicate" | "structure";
 
+// JSON-only detail so validation results can round-trip through
+// createServerFn's serialization boundary.
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
+
 export interface ValidationIssue {
   id: string;
   field: ValidationField;
   severity: ValidationSeverity;
   message: string;
   ruleId: string;
-  detail?: Record<string, unknown>;
+  detail?: { [k: string]: JsonValue };
 }
 
 export interface ValidationInput {
@@ -60,7 +64,7 @@ function issue(
   severity: ValidationSeverity,
   message: string,
   ruleId: string,
-  detail?: Record<string, unknown>,
+  detail?: { [k: string]: JsonValue },
 ): ValidationIssue {
   return { id, field, severity, message, ruleId, detail };
 }
@@ -262,7 +266,7 @@ export function validateVariant(input: ValidationInput): ValidationResult {
     if (cfg.mediaFormats.length && !cfg.mediaFormats.includes(m.mimeType)) {
       issues.push(issue(`media_format:${m.storageRef}`, "media", "error",
         `${cfg.displayName} does not accept ${m.mimeType}.`, "media.format",
-        { accepted: cfg.mediaFormats }));
+        { accepted: [...cfg.mediaFormats] }));
     }
     if (cfg.fields.altText === "supported" && !m.altText) {
       issues.push(issue(`media_alt:${m.storageRef}`, "altText", "warning",
@@ -306,7 +310,7 @@ export function validateVariant(input: ValidationInput): ValidationResult {
     issues.push(issue("contenttype_bad", "structure", "error",
       `${cfg.displayName} does not accept content type "${input.contentType}".`,
       "contentType.unsupported",
-      { accepted: cfg.contentTypes }));
+      { accepted: [...cfg.contentTypes] }));
   }
 
   // ---- duplicate ----------------------------------------------------------
