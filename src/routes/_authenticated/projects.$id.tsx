@@ -8,7 +8,10 @@ import { useOrg } from "@/lib/org-context";
 import {
   useArchiveProject,
   useActivity,
+  useCommitments,
   useCreateTask,
+  useDecisions,
+  useGoals,
   useProject,
   useTasks,
   useUpdateProject,
@@ -22,6 +25,7 @@ import {
 } from "@/lib/data-hooks";
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { isCommitmentOverdue } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -46,6 +50,9 @@ function ProjectDetail() {
   const venturesQ = useVentures(activeOrgId);
   const tasksQ = useTasks({ orgId: activeOrgId, projectId: id });
   const activityQ = useActivity(activeOrgId, 30);
+  const decisionsQ = useDecisions(activeOrgId);
+  const commitmentsQ = useCommitments(activeOrgId);
+  const goalsQ = useGoals(activeOrgId);
   const update = useUpdateProject(activeOrgId);
   const archive = useArchiveProject(activeOrgId);
   const canWrite = can.writeContent(activeMembership?.role);
