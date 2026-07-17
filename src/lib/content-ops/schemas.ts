@@ -153,12 +153,22 @@ export const ApproveContentInput = z.object({
 });
 export type ApproveContentInput = z.infer<typeof ApproveContentInput>;
 
+export const RejectContentInput = z.object({
+  ...orgVenture,
+  contentItemId: uuid,
+  reason: z.string().min(3).max(2000),
+});
+export type RejectContentInput = z.infer<typeof RejectContentInput>;
+
 export const BatchApprovalInput = z.object({
   ...orgVenture,
   contentItemIds: z.array(uuid).min(1).max(CONTENT_OPS_LIMITS.maxBatchApprovalSize),
   notes: z.string().max(2000).optional(),
+  confirmationToken: z.string().min(8).max(200),
 });
 export type BatchApprovalInput = z.infer<typeof BatchApprovalInput>;
+export const BatchApproveInput = BatchApprovalInput;
+export type BatchApproveInput = BatchApprovalInput;
 
 /* Scheduling ---------------------------------------------------------- */
 
