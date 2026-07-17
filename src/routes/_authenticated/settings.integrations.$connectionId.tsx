@@ -1,250 +1,419 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Archive, ChevronLeft, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { PageBody, PageHeader, Section } from "@/components/page-header";
+import { PageBody, PageHeader } from "@/components/page-header";
+import {
+  EditorialSkeleton,
+  EmptyEditorialState,
+  ErrorLine,
+  HairlineSection,
+  Ledger,
+  MetadataRow,
+  SectionLabel,
+  StatusLine,
+  type StatusTone,
+} from "@/components/editorial";
 import { useOrg } from "@/lib/org-context";
 import {
+  archiveWebsiteConnection,
   getWebsiteConnection,
   runWebsiteDiscoveryNow,
   updateConnectionAutomation,
 } from "@/lib/integrations/website.functions";
-import {
-  enqueueWebsiteSyncJob,
-  listAutomationJobs,
-} from "@/lib/automation/job.functions";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations/$connectionId")({
   component: ConnectionDetail,
-  head: () => ({
-    meta: [
-      { title: "Website connection  -  Northstar" },
-      { name: "description", content: "Review discovered pages and manage this website connection." },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Connection - Automation - Northstar" }] }),
 });
+
+const DISCOVERY_TONE: Record<string, StatusTone> = {
+  pending: "muted",
+  running: "attention",
+  completed: "positive",
+  failed: "critical",
+};
+
+const RUN_TONE: Record<string, StatusTone> = {
+  running: "attention",
+  succeeded: "positive",
+  failed: "critical",
+  canceled: "muted",
+};
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return "-";
+  return new Date(iso).toLocaleString();
+}
+
+function formatDuration(ms: number | null): string {
+  if (!ms || ms <= 0) return "-";
+  if (ms < 1000) return `${ms}ms`;
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rs = s % 60;
+  return `${m}m ${rs}s`;
+}
 
 function ConnectionDetail() {
   const { connectionId } = Route.useParams();
   const { activeOrgId } = useOrg();
+  const nav = useNavigate();
   const qc = useQueryClient();
-  const get = useServerFn(getWebsiteConnection);
-  const runNow = useServerFn(runWebsiteDiscoveryNow);
-  const updateMode = useServerFn(updateConnectionAutomation);
-  const enqueueSync = useServerFn(enqueueWebsiteSyncJob);
-  const listJobs = useServerFn(listAutomationJobs);
 
-  const { data, isLoading, refetch } = useQuery({
+  const getFn = useServerFn(getWebsiteConnection);
+  const runFn = useServerFn(runWebsiteDiscoveryNow);
+  const modeFn = useServerFn(updateConnectionAutomation);
+  const archiveFn = useServerFn(archiveWebsiteConnection);
+
+  const q = useQuery({
     enabled: !!activeOrgId,
     queryKey: ["website-connection", activeOrgId, connectionId],
-    queryFn: () => get({ data: { organizationId: activeOrgId!, connectionId } }),
-  });
-
-  const jobsQuery = useQuery({
-    enabled: !!activeOrgId,
-    queryKey: ["automation-jobs", activeOrgId, connectionId],
     queryFn: () =>
-      listJobs({ data: { organizationId: activeOrgId!, connectionId, jobType: "website_sync", limit: 10 } }),
-    refetchInterval: (q) => {
-      const rows = q.state.data as Array<{ status: string }> | undefined;
-      const active = (rows ?? []).some((r) =>
-        ["queued", "scheduled", "blocked", "running", "retrying"].includes(r.status),
-      );
-      return active ? 3000 : false;
-    },
+      getFn({ data: { organizationId: activeOrgId!, connectionId } }),
   });
 
-  const syncMutation = useMutation({
-    mutationFn: (sourceId: string) =>
-      enqueueSync({ data: { organizationId: activeOrgId!, connectionId, sourceId } }),
+  const runNow = useMutation({
+    mutationFn: () =>
+      runFn({ data: { organizationId: activeOrgId!, connectionId } }),
     onSuccess: () => {
-      toast.success("Sync queued");
-      qc.invalidateQueries({ queryKey: ["automation-jobs", activeOrgId, connectionId] });
+      toast.success("Discovery started");
+      qc.invalidateQueries({ queryKey: ["website-connection", activeOrgId, connectionId] });
+      qc.invalidateQueries({ queryKey: ["website-connections", activeOrgId] });
     },
-    onError: (err: unknown) => {
-      const code = (err as { code?: string; message?: string })?.code ?? (err as { message?: string })?.message ?? "Enqueue failed";
-      toast.error(String(code));
-    },
+    onError: (err: unknown) =>
+      toast.error(err instanceof Error ? err.message : "Failed to run"),
   });
 
-  const runMutation = useMutation({
-    mutationFn: () => runNow({ data: { organizationId: activeOrgId!, connectionId } }),
-    onSuccess: (res) => {
-      toast.success(`Discovery complete. ${res.totalCreated} sources catalogued.`);
-      qc.invalidateQueries({ queryKey: ["website-connection"] });
-      qc.invalidateQueries({ queryKey: ["website-connections"] });
-    },
-    onError: (err: unknown) => {
-      const code = (err as { code?: string; message?: string })?.code ?? (err as { message?: string })?.message ?? "Discovery failed";
-      toast.error(String(code));
-      refetch();
-    },
-  });
-
-  const modeMutation = useMutation({
-    mutationFn: (mode: "suggest" | "auto_accept" | "off") =>
-      updateMode({ data: { organizationId: activeOrgId!, connectionId, automationMode: mode } }),
+  const setMode = useMutation({
+    mutationFn: (mode: string) =>
+      modeFn({
+        data: {
+          organizationId: activeOrgId!,
+          connectionId,
+          automationMode: mode as "manual" | "scheduled" | "paused",
+        },
+      }),
     onSuccess: () => {
-      toast.success("Automation mode updated");
-      qc.invalidateQueries({ queryKey: ["website-connection"] });
+      toast.success("Automation updated");
+      qc.invalidateQueries({ queryKey: ["website-connection", activeOrgId, connectionId] });
     },
+    onError: (err: unknown) =>
+      toast.error(err instanceof Error ? err.message : "Failed"),
   });
 
-  if (!activeOrgId || isLoading || !data) {
+  const archive = useMutation({
+    mutationFn: () =>
+      archiveFn({ data: { organizationId: activeOrgId!, connectionId } }),
+    onSuccess: () => {
+      toast.success("Archived");
+      nav({ to: "/settings/integrations" });
+    },
+    onError: (err: unknown) =>
+      toast.error(err instanceof Error ? err.message : "Failed"),
+  });
+
+  if (q.isLoading) {
     return (
-      <div>
-        <PageHeader eyebrow="Settings / Integrations" title="Loading..." />
-      </div>
+      <PageBody>
+        <EditorialSkeleton rows={4} />
+      </PageBody>
+    );
+  }
+  if (q.error) {
+    return (
+      <PageBody>
+        <ErrorLine message={(q.error as Error).message} />
+      </PageBody>
+    );
+  }
+  if (!q.data) {
+    return (
+      <PageBody>
+        <p className="text-[14px] italic text-foreground/70">Connection not found.</p>
+      </PageBody>
     );
   }
 
-  const c = data.connection;
+  const { connection, sources, runs } = q.data;
+  const lastRun = runs[0];
+  const successfulRuns = runs.filter((r) => r.status === "succeeded").length;
+  const failedRuns = runs.filter((r) => r.status === "failed").length;
+  const isRunning = connection.discovery_status === "running";
+
   return (
     <div>
+      <div className="px-6 pt-10 md:px-14">
+        <div className="mx-auto max-w-6xl">
+          <Link
+            to="/settings/integrations"
+            className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> Automation
+          </Link>
+        </div>
+      </div>
       <PageHeader
-        eyebrow="Settings / Integrations"
-        title={c.display_name}
-        description={c.homepage_url ?? undefined}
+        eyebrow="Connection"
+        title={connection.display_name}
+        description={connection.homepage_url ?? "No homepage recorded."}
         actions={
-          <div className="flex items-center gap-2">
-            <Link
-              to="/settings/integrations"
-              className="rounded-md px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-            >
-              Back
-            </Link>
+          <div className="flex items-center gap-3">
             <button
-              disabled={runMutation.isPending || c.discovery_status === "running"}
-              onClick={() => runMutation.mutate()}
-              className="rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90 disabled:opacity-50"
+              onClick={() => runNow.mutate()}
+              disabled={isRunning || runNow.isPending}
+              className="inline-flex items-center gap-2 border border-foreground bg-foreground px-4 py-2 text-[11.5px] uppercase tracking-[0.2em] text-background hover:bg-foreground/90 disabled:cursor-not-allowed disabled:border-foreground/30 disabled:bg-foreground/30"
             >
-              {runMutation.isPending || c.discovery_status === "running" ? "Discovering..." : "Run discovery now"}
+              <RefreshCw
+                className={cn("h-3.5 w-3.5", (isRunning || runNow.isPending) && "animate-spin")}
+                strokeWidth={1.5}
+              />
+              {isRunning ? "Running." : "Run discovery"}
+            </button>
+            <button
+              onClick={() => {
+                if (!confirm("Archive this connection?")) return;
+                archive.mutate();
+              }}
+              className="inline-flex items-center gap-1.5 border border-foreground/25 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-foreground/70 hover:border-foreground hover:text-foreground"
+            >
+              <Archive className="h-3.5 w-3.5" strokeWidth={1.5} /> Archive
             </button>
           </div>
         }
       />
       <PageBody>
-        <Section title="Status">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <StatusCard label="Discovery" value={c.discovery_status} />
-            <StatusCard label="Automation" value={c.automation_mode} />
-            <StatusCard label="Last successful sync" value={c.last_successful_sync_at ? new Date(c.last_successful_sync_at).toLocaleString() : "Never"} />
-          </div>
-          {c.discovery_error_code && (
-            <div className="mt-3 rounded-md bg-destructive/10 px-4 py-3 text-[12.5px] text-destructive">
-              Last error: {c.discovery_error_code}
-            </div>
+        <div className="mb-10 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <StatusLine tone={DISCOVERY_TONE[connection.discovery_status] ?? "neutral"}>
+            Discovery {connection.discovery_status}
+          </StatusLine>
+          <StatusLine tone={connection.status === "archived" ? "muted" : "positive"}>
+            {connection.status}
+          </StatusLine>
+          <span className="text-[11px] uppercase tracking-[0.22em] text-foreground/55">
+            Mode - {connection.automation_mode}
+          </span>
+          {connection.discovery_error_code && (
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[oklch(0.5_0.18_27)]">
+              Last error - {connection.discovery_error_code}
+            </span>
           )}
-        </Section>
+        </div>
 
-        <Section title="Automation mode">
-          <div className="flex flex-wrap gap-2">
-            {(["suggest", "auto_accept", "off"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => modeMutation.mutate(m)}
-                disabled={modeMutation.isPending}
-                className={
-                  c.automation_mode === m
-                    ? "rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background"
-                    : "rounded-md bg-secondary/60 px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary"
-                }
+        <HairlineSection label="Health">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <StatBlock label="Sources discovered" value={sources.length} />
+            <StatBlock label="Total runs" value={runs.length} />
+            <StatBlock label="Successful" value={successfulRuns} tone="positive" />
+            <StatBlock
+              label="Failed"
+              value={failedRuns}
+              tone={failedRuns > 0 ? "critical" : "muted"}
+            />
+          </div>
+        </HairlineSection>
+
+        <HairlineSection label="Schedule">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <label className="block">
+              <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">
+                Automation mode
+              </div>
+              <select
+                value={connection.automation_mode}
+                onChange={(e) => setMode.mutate(e.target.value)}
+                disabled={setMode.isPending}
+                className="w-full border-b border-foreground/30 bg-transparent px-1 py-2 text-[14px] text-foreground focus:border-foreground focus:outline-none disabled:opacity-60"
               >
-                {m}
-              </button>
-            ))}
-          </div>
-          <p className="mt-3 text-[12.5px] text-muted-foreground">
-            Automation applies to future phases. Right now discovery is manual and no operational records are created.
-          </p>
-        </Section>
-
-        <Section title={`Discovered pages (${data.sources.length})`}>
-          {data.sources.length === 0 ? (
-            <div className="rounded-xl bg-card/40 p-6 text-[13px] text-muted-foreground">
-              No pages discovered yet. Click Run discovery now to begin.
+                <option value="manual">Manual - never runs on its own</option>
+                <option value="scheduled">Scheduled - runs periodically</option>
+                <option value="paused">Paused - held until resumed</option>
+              </select>
+            </label>
+            <div>
+              <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">
+                Last successful sync
+              </div>
+              <div className="border-b border-foreground/25 py-2 text-[14px] tabular-nums text-foreground">
+                {formatDateTime(connection.last_successful_sync_at)}
+              </div>
             </div>
+            <div>
+              <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">
+                Discovery completed
+              </div>
+              <div className="border-b border-foreground/25 py-2 text-[14px] tabular-nums text-foreground">
+                {formatDateTime(connection.discovery_completed_at)}
+              </div>
+            </div>
+          </div>
+          {isRunning && (
+            <p className="mt-6 text-[13px] italic text-foreground/70">
+              Discovery is running now. Refresh in a moment to see results.
+            </p>
+          )}
+        </HairlineSection>
+
+        <HairlineSection label="Run history" action={<span>{runs.length}</span>}>
+          {runs.length === 0 ? (
+            <p className="text-[13.5px] italic text-foreground/60">
+              No runs recorded. Start one from the header to discover sources.
+            </p>
           ) : (
-            <div className="divide-y divide-border/40 overflow-hidden rounded-xl bg-card/40">
-              {data.sources.map((s) => (
-                <div key={s.id} className="flex items-center justify-between gap-4 px-5 py-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-[13px] text-foreground">{s.title}</div>
-                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{s.source_url}</div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="rounded bg-secondary/60 px-1.5 py-0.5">{s.page_type ?? "other"}</span>
-                    <span className="rounded bg-secondary/60 px-1.5 py-0.5">{s.category ?? " - "}</span>
-                    <span className="tabular-nums">{Number(s.relevance_score ?? 0).toFixed(2)}</span>
-                    <button
-                      disabled={syncMutation.isPending}
-                      onClick={() => syncMutation.mutate(s.id)}
-                      className="rounded bg-foreground px-2 py-0.5 text-[10.5px] text-background hover:opacity-90 disabled:opacity-50"
-                    >
-                      Sync now
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-t border-foreground/15 text-[13px]">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-[0.22em] text-foreground/55">
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-left font-medium">Started</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-left font-medium">Trigger</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-left font-medium">Status</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-right font-medium">Duration</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-right font-medium">Found</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-right font-medium">Created</th>
+                    <th className="border-b border-foreground/15 py-2 pr-6 text-right font-medium">Skipped</th>
+                    <th className="border-b border-foreground/15 py-2 text-left font-medium">Failure</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runs.map((r) => (
+                    <tr key={r.id} className="border-b border-foreground/10">
+                      <td className="py-3 pr-6 tabular-nums text-foreground/85">
+                        {formatDateTime(r.started_at)}
+                      </td>
+                      <td className="py-3 pr-6 text-foreground/70">{r.trigger_type}</td>
+                      <td className="py-3 pr-6">
+                        <StatusLine tone={RUN_TONE[r.status] ?? "neutral"}>{r.status}</StatusLine>
+                      </td>
+                      <td className="py-3 pr-6 text-right tabular-nums text-foreground/70">
+                        {formatDuration(r.duration_ms)}
+                      </td>
+                      <td className="py-3 pr-6 text-right tabular-nums text-foreground/70">
+                        {r.records_discovered ?? 0}
+                      </td>
+                      <td className="py-3 pr-6 text-right tabular-nums text-foreground/70">
+                        {r.records_created ?? 0}
+                      </td>
+                      <td className="py-3 pr-6 text-right tabular-nums text-foreground/70">
+                        {r.records_skipped ?? 0}
+                      </td>
+                      <td className="py-3 text-[12px] text-[oklch(0.5_0.18_27)]">
+                        {r.failure_code ?? ""}
+                        {r.failure_message ? ` - ${r.failure_message}` : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </Section>
+        </HairlineSection>
 
-        <Section title="Recent sync jobs">
-          {(jobsQuery.data ?? []).length === 0 ? (
-            <div className="rounded-xl bg-card/40 p-6 text-[13px] text-muted-foreground">No sync jobs yet.</div>
+        <HairlineSection label="Discovered sources" action={<span>{sources.length}</span>}>
+          {sources.length === 0 ? (
+            <EmptyEditorialState
+              eyebrow="Nothing yet"
+              title="No sources discovered."
+              description="Run discovery to catalog pages from this connection."
+            />
           ) : (
-            <div className="divide-y divide-border/40 overflow-hidden rounded-xl bg-card/40">
-              {(jobsQuery.data ?? []).map((j) => (
-                <div key={j.id} className="flex items-center justify-between px-5 py-3 text-[12px]">
-                  <div className="min-w-0">
-                    <div className="text-foreground">{j.status}</div>
-                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                      {j.trigger_type} · attempt {j.attempt_number}/{j.max_attempts}
-                      {j.error_code ? ` · ${j.error_code}` : ""}
+            <Ledger className="border-t border-foreground/15">
+              {sources.map((s, i) => (
+                <li key={s.id} className="py-4">
+                  <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-start gap-4 md:gap-6">
+                    <span className="pt-1 font-display text-[14px] leading-none text-foreground/40 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/55">
+                        {s.page_type ?? "page"}
+                        {s.category ? ` - ${s.category}` : ""}
+                      </div>
+                      <div className="mt-1 truncate text-[14.5px] text-foreground">
+                        {s.title ?? s.source_url}
+                      </div>
+                      <a
+                        href={s.source_url ?? undefined}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 block truncate text-[12px] italic text-foreground/60 underline-offset-4 hover:underline"
+                      >
+                        {s.source_url}
+                      </a>
+                    </div>
+                    <div className="shrink-0 text-right text-[11px] uppercase tracking-[0.18em] text-foreground/60">
+                      <div className="tabular-nums">
+                        Relevance {(s.relevance_score ?? 0).toFixed(2)}
+                      </div>
+                      <div className="mt-1 tabular-nums text-foreground/45">
+                        HTTP {s.http_status ?? "-"}
+                      </div>
+                      <div className="mt-1 text-foreground/45">
+                        {s.sync_enabled ? "Sync on" : "Sync off"}
+                      </div>
                     </div>
                   </div>
-                  <div className="shrink-0 text-muted-foreground">
-                    {j.completed_at
-                      ? new Date(j.completed_at).toLocaleString()
-                      : (j.started_at ? new Date(j.started_at).toLocaleString() : new Date(j.scheduled_for).toLocaleString())}
-                  </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </Ledger>
           )}
-        </Section>
+        </HairlineSection>
 
-        <Section title="Recent discovery runs">
-          {data.runs.length === 0 ? (
-            <div className="rounded-xl bg-card/40 p-6 text-[13px] text-muted-foreground">No runs yet.</div>
+        <HairlineSection label="Last run detail">
+          {!lastRun ? (
+            <p className="text-[13.5px] italic text-foreground/60">No runs yet.</p>
           ) : (
-            <div className="divide-y divide-border/40 overflow-hidden rounded-xl bg-card/40">
-              {data.runs.map((r) => (
-                <div key={r.id} className="flex items-center justify-between px-5 py-3 text-[12px]">
-                  <div className="text-foreground">{r.status}</div>
-                  <div className="text-muted-foreground">
-                    {r.completed_at ? new Date(r.completed_at).toLocaleString() : (r.started_at ? new Date(r.started_at).toLocaleString() : " - ")}
-                    {r.records_created != null && (
-                      <span className="ml-3">{r.records_created} created / {r.records_discovered} discovered</span>
-                    )}
-                    {r.failure_code && <span className="ml-3 text-destructive">{r.failure_code}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MetadataRow
+              items={[
+                { label: "Started", value: formatDateTime(lastRun.started_at) },
+                { label: "Completed", value: formatDateTime(lastRun.completed_at) },
+                { label: "Duration", value: formatDuration(lastRun.duration_ms) },
+                {
+                  label: "Status",
+                  value: (
+                    <StatusLine tone={RUN_TONE[lastRun.status] ?? "neutral"}>
+                      {lastRun.status}
+                    </StatusLine>
+                  ),
+                },
+              ]}
+            />
           )}
-        </Section>
+        </HairlineSection>
       </PageBody>
     </div>
   );
 }
 
-function StatusCard({ label, value }: { label: string; value: string }) {
+function StatBlock({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: StatusTone;
+}) {
+  const toneClass =
+    tone === "critical"
+      ? "text-[oklch(0.5_0.18_27)]"
+      : tone === "positive"
+        ? "text-[oklch(0.5_0.14_150)]"
+        : tone === "attention"
+          ? "text-[oklch(0.55_0.14_65)]"
+          : tone === "muted"
+            ? "text-foreground/40"
+            : "text-foreground";
   return (
-    <div className="rounded-xl bg-card/40 px-5 py-4">
-      <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground/80">{label}</div>
-      <div className="mt-1 text-[13.5px] text-foreground">{value}</div>
+    <div>
+      <div className="text-[10px] font-medium uppercase tracking-[0.24em] text-foreground/55">
+        {label}
+      </div>
+      <div className={`mt-3 font-display text-[36px] leading-none tabular-nums ${toneClass}`}>
+        {value}
+      </div>
     </div>
   );
 }
