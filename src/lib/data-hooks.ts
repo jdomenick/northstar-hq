@@ -1037,3 +1037,771 @@ export function useArchiveGoal(orgId: string | null) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["goals", orgId] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// Ventures (update + settings)
+// ─────────────────────────────────────────────────────────────
+
+export function useUpdateVenture(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      patch: Database["public"]["Tables"]["ventures"]["Update"];
+    }) => {
+      const { data, error } = await supabase
+        .from("ventures")
+        .update(input.patch)
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: data.id,
+          entityType: "venture",
+          entityId: data.id,
+          action: "venture.updated",
+          summary: `${data.name} was updated.`,
+        });
+      }
+      return data;
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ["ventures", orgId] });
+      qc.invalidateQueries({ queryKey: ["venture", d.id] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Knowledge
+// ─────────────────────────────────────────────────────────────
+
+const KNOWLEDGE_MATERIAL_FIELDS: (keyof KnowledgeRecord)[] = [
+  "title",
+  "knowledge_type",
+  "venture_id",
+  "content",
+  "source",
+  "source_url",
+  "effective_date",
+  "expiration_date",
+];
+
+export function knowledgeMaterialChanged(
+  prev: KnowledgeRecord,
+  patch: Database["public"]["Tables"]["knowledge_records"]["Update"],
+): boolean {
+  return KNOWLEDGE_MATERIAL_FIELDS.some(
+    (k) => k in patch && (patch as Record<string, unknown>)[k as string] !== prev[k],
+  );
+}
+
+export function useKnowledge(orgId: string | null, opts?: { ventureId?: string | null; includeArchived?: boolean }) {
+  return useQuery({
+    enabled: !!orgId,
+    queryKey: ["knowledge", orgId, opts?.ventureId ?? null, !!opts?.includeArchived],
+    queryFn: async (): Promise<KnowledgeRecord[]> => {
+      let q = supabase.from("knowledge_records").select("*").eq("organization_id", orgId!);
+      if (!opts?.includeArchived) q = q.is("deleted_at", null);
+      if (opts?.ventureId) q = q.eq("venture_id", opts.ventureId);
+      const { data, error } = await q.order("updated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useKnowledgeRecord(id: string | undefined) {
+  return useQuery({
+    enabled: !!id,
+    queryKey: ["knowledge-record", id],
+    queryFn: async (): Promise<KnowledgeRecord | null> => {
+      const { data, error } = await supabase
+        .from("knowledge_records")
+        .select("*")
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export type NewKnowledgeInput = {
+  title: string;
+  knowledge_type: KnowledgeType;
+  content?: string;
+  venture_id?: string | null;
+  source?: string;
+  source_url?: string;
+  tags?: string[];
+  importance?: Priority;
+  effective_date?: string | null;
+  expiration_date?: string | null;
+};
+
+export function useCreateKnowledge(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: NewKnowledgeInput) => {
+      if (!orgId) throw new Error("No active organization");
+      const { data: userRes } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from("knowledge_records")
+        .insert({
+          organization_id: orgId,
+          title: input.title,
+          knowledge_type: input.knowledge_type,
+          content: input.content ?? null,
+          venture_id: input.venture_id ?? null,
+          source: input.source ?? null,
+          source_url: input.source_url ?? null,
+          tags: input.tags ?? [],
+          importance: input.importance ?? "normal",
+          effective_date: input.effective_date ?? null,
+          expiration_date: input.expiration_date ?? null,
+          created_by: userRes.user?.id ?? null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      await logActivity({
+        organizationId: orgId,
+        ventureId: data.venture_id,
+        entityType: "knowledge",
+        entityId: data.id,
+        action: "knowledge.created",
+        summary: `Knowledge created: ${data.title}`,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["knowledge", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useUpdateKnowledge(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      patch: Database["public"]["Tables"]["knowledge_records"]["Update"];
+      prev: KnowledgeRecord;
+    }) => {
+      const patch = { ...input.patch };
+      const material = knowledgeMaterialChanged(input.prev, patch);
+      const wasVerified = input.prev.verification_status === "verified";
+      const resetVerification =
+        material && wasVerified && patch.verification_status === undefined;
+      if (resetVerification) {
+        patch.verification_status = "unverified";
+        patch.verified_by = null;
+        patch.verified_at = null;
+      }
+      const { data, error } = await supabase
+        .from("knowledge_records")
+        .update(patch)
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId && material) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: data.venture_id,
+          entityType: "knowledge",
+          entityId: data.id,
+          action: "knowledge.updated",
+          summary: `Knowledge updated: ${data.title}${resetVerification ? " (reverification required)" : ""}`,
+          metadata: { reverification_required: resetVerification },
+        });
+      }
+      return data;
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ["knowledge", orgId] });
+      qc.invalidateQueries({ queryKey: ["knowledge-record", d.id] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useSetKnowledgeVerification(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      status: VerificationStatus;
+      note?: string;
+    }) => {
+      const { data: userRes } = await supabase.auth.getUser();
+      const patch: Database["public"]["Tables"]["knowledge_records"]["Update"] = {
+        verification_status: input.status,
+      };
+      if (input.status === "verified") {
+        patch.verified_by = userRes.user?.id ?? null;
+        patch.verified_at = new Date().toISOString();
+      }
+      // outdated & disputed: preserve prior verified_by/verified_at
+      const { data, error } = await supabase
+        .from("knowledge_records")
+        .update(patch)
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        const action =
+          input.status === "verified"
+            ? "knowledge.verified"
+            : input.status === "outdated"
+              ? "knowledge.marked_outdated"
+              : input.status === "disputed"
+                ? "knowledge.disputed"
+                : "knowledge.unverified";
+        const summary =
+          input.status === "verified"
+            ? `Verified "${data.title}"`
+            : input.status === "outdated"
+              ? `"${data.title}" was marked outdated`
+              : input.status === "disputed"
+                ? `"${data.title}" was marked disputed`
+                : `"${data.title}" verification cleared`;
+        await logActivity({
+          organizationId: orgId,
+          ventureId: data.venture_id,
+          entityType: "knowledge",
+          entityId: data.id,
+          action,
+          summary,
+          metadata: input.note ? { note: input.note } : undefined,
+        });
+      }
+      return data;
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ["knowledge", orgId] });
+      qc.invalidateQueries({ queryKey: ["knowledge-record", d.id] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useArchiveKnowledge(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; title: string; venture_id: string | null }) => {
+      const { error } = await supabase
+        .from("knowledge_records")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", input.id);
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: input.venture_id,
+          entityType: "knowledge",
+          entityId: input.id,
+          action: "knowledge.archived",
+          summary: `Archived "${input.title}"`,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["knowledge", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useRestoreKnowledge(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; title: string; venture_id: string | null }) => {
+      const { error } = await supabase
+        .from("knowledge_records")
+        .update({ deleted_at: null })
+        .eq("id", input.id);
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: input.venture_id,
+          entityType: "knowledge",
+          entityId: input.id,
+          action: "knowledge.restored",
+          summary: `Restored "${input.title}"`,
+        });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["knowledge", orgId] }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Documents
+// ─────────────────────────────────────────────────────────────
+
+export function useDocuments(orgId: string | null, opts?: { ventureId?: string | null; includeArchived?: boolean; knowledgeRecordId?: string | null }) {
+  return useQuery({
+    enabled: !!orgId,
+    queryKey: ["documents", orgId, opts?.ventureId ?? null, !!opts?.includeArchived, opts?.knowledgeRecordId ?? null],
+    queryFn: async (): Promise<DocumentRow[]> => {
+      let q = supabase.from("documents").select("*").eq("organization_id", orgId!);
+      if (!opts?.includeArchived) q = q.is("deleted_at", null);
+      if (opts?.ventureId) q = q.eq("venture_id", opts.ventureId);
+      if (opts?.knowledgeRecordId) q = q.eq("knowledge_record_id", opts.knowledgeRecordId);
+      const { data, error } = await q.order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useDocument(id: string | undefined) {
+  return useQuery({
+    enabled: !!id,
+    queryKey: ["document", id],
+    queryFn: async (): Promise<DocumentRow | null> => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateDocument(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      patch: Database["public"]["Tables"]["documents"]["Update"];
+    }) => {
+      const { data, error } = await supabase
+        .from("documents")
+        .update(input.patch)
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: data.venture_id,
+          entityType: "document",
+          entityId: data.id,
+          action: "document.updated",
+          summary: `Document updated: ${data.title}`,
+        });
+      }
+      return data;
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ["documents", orgId] });
+      qc.invalidateQueries({ queryKey: ["document", d.id] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useArchiveDocument(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; title: string; venture_id: string | null }) => {
+      const { error } = await supabase
+        .from("documents")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", input.id);
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: input.venture_id,
+          entityType: "document",
+          entityId: input.id,
+          action: "document.archived",
+          summary: `Archived document "${input.title}"`,
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["documents", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useRestoreDocument(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; title: string; venture_id: string | null }) => {
+      const { error } = await supabase
+        .from("documents")
+        .update({ deleted_at: null })
+        .eq("id", input.id);
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          ventureId: input.venture_id,
+          entityType: "document",
+          entityId: input.id,
+          action: "document.restored",
+          summary: `Restored document "${input.title}"`,
+        });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["documents", orgId] }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Members (full: all statuses) + role/status changes
+// ─────────────────────────────────────────────────────────────
+
+export type OrgMemberFull = {
+  id: string;
+  user_id: string;
+  role: OrgRole;
+  status: MemberStatus;
+  joined_at: string | null;
+  invited_by: string | null;
+  profile: Pick<Profile, "id" | "full_name" | "preferred_name" | "email" | "avatar_url" | "title"> | null;
+};
+
+export function useOrgMembersFull(orgId: string | null) {
+  return useQuery({
+    enabled: !!orgId,
+    queryKey: ["org-members-full", orgId],
+    queryFn: async (): Promise<OrgMemberFull[]> => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .select("id,user_id,role,status,joined_at,invited_by,profile:profiles!organization_members_user_id_fkey(id,full_name,preferred_name,email,avatar_url,title)")
+        .eq("organization_id", orgId!)
+        .order("joined_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as OrgMemberFull[];
+    },
+  });
+}
+
+export function useUpdateMemberRole(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { membershipId: string; role: OrgRole; prevRole: OrgRole; memberName: string }) => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .update({ role: input.role })
+        .eq("id", input.membershipId)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          entityType: "member",
+          entityId: input.membershipId,
+          action: "member.role_changed",
+          summary: `${input.memberName}'s role changed from ${input.prevRole} to ${input.role}.`,
+          metadata: { from: input.prevRole, to: input.role, user_id: data.user_id },
+        });
+      }
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["org-members-full", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useUpdateMemberStatus(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { membershipId: string; status: MemberStatus; memberName: string }) => {
+      const { data, error } = await supabase
+        .from("organization_members")
+        .update({ status: input.status })
+        .eq("id", input.membershipId)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        const action =
+          input.status === "suspended"
+            ? "member.suspended"
+            : input.status === "active"
+              ? "member.reactivated"
+              : input.status === "removed"
+                ? "member.removed"
+                : "member.status_changed";
+        const summary =
+          input.status === "suspended"
+            ? `${input.memberName} was suspended.`
+            : input.status === "active"
+              ? `${input.memberName} was reactivated.`
+              : input.status === "removed"
+                ? `${input.memberName} was removed.`
+                : `${input.memberName} status changed.`;
+        await logActivity({
+          organizationId: orgId,
+          entityType: "member",
+          entityId: input.membershipId,
+          action,
+          summary,
+          metadata: { to: input.status, user_id: data.user_id },
+        });
+      }
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["org-members-full", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Organization + Profile settings
+// ─────────────────────────────────────────────────────────────
+
+export function useOrganization(orgId: string | null) {
+  return useQuery({
+    enabled: !!orgId,
+    queryKey: ["organization", orgId],
+    queryFn: async (): Promise<Organization | null> => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("*")
+        .eq("id", orgId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateOrganization(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      patch: Database["public"]["Tables"]["organizations"]["Update"];
+    }) => {
+      if (!orgId) throw new Error("No active organization");
+      const { data, error } = await supabase
+        .from("organizations")
+        .update(input.patch)
+        .eq("id", orgId)
+        .select()
+        .single();
+      if (error) throw error;
+      await logActivity({
+        organizationId: orgId,
+        entityType: "organization",
+        entityId: orgId,
+        action: "organization.updated",
+        summary: `${data.name} settings were updated.`,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organization", orgId] });
+      qc.invalidateQueries({ queryKey: ["memberships"] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+export function useProfile(userId: string | undefined) {
+  return useQuery({
+    enabled: !!userId,
+    queryKey: ["profile", userId],
+    queryFn: async (): Promise<Profile | null> => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateProfile(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      userId: string;
+      patch: Database["public"]["Tables"]["profiles"]["Update"];
+    }) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(input.patch)
+        .eq("id", input.userId)
+        .select()
+        .single();
+      if (error) throw error;
+      if (orgId) {
+        await logActivity({
+          organizationId: orgId,
+          entityType: "profile",
+          entityId: input.userId,
+          action: "profile.updated",
+          summary: `${data.preferred_name ?? data.full_name ?? "A member"} updated their profile.`,
+        });
+      }
+      return data;
+    },
+    onSuccess: (d) => {
+      qc.invalidateQueries({ queryKey: ["profile", d.id] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Activity: venture-scoped + actor profile resolver
+// ─────────────────────────────────────────────────────────────
+
+export function useVentureActivity(orgId: string | null, ventureId: string | undefined, limit = 30) {
+  return useQuery({
+    enabled: !!orgId && !!ventureId,
+    queryKey: ["venture-activity", orgId, ventureId, limit],
+    queryFn: async (): Promise<ActivityEvent[]> => {
+      const { data, error } = await supabase
+        .from("activity_events")
+        .select("*")
+        .eq("organization_id", orgId!)
+        .eq("venture_id", ventureId!)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useActorProfiles(userIds: (string | null | undefined)[]) {
+  const ids = Array.from(new Set(userIds.filter((x): x is string => !!x)));
+  return useQuery({
+    enabled: ids.length > 0,
+    queryKey: ["actor-profiles", ids.sort().join(",")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id,full_name,preferred_name,email,avatar_url")
+        .in("id", ids);
+      if (error) throw error;
+      const map = new Map<string, Pick<Profile, "id" | "full_name" | "preferred_name" | "email" | "avatar_url">>();
+      for (const p of data ?? []) map.set(p.id, p);
+      return map;
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Document upload (transactional-ish: DB row → storage → status)
+// ─────────────────────────────────────────────────────────────
+
+import {
+  DOCUMENTS_BUCKET,
+  documentStoragePath,
+  validateDocumentFile,
+} from "./storage";
+
+export type NewDocumentInput = {
+  file: File;
+  title: string;
+  description?: string;
+  venture_id?: string | null;
+  knowledge_record_id?: string | null;
+};
+
+export function useUploadDocument(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: NewDocumentInput) => {
+      if (!orgId) throw new Error("No active organization");
+      const validation = validateDocumentFile(input.file);
+      if (validation) throw new Error(validation);
+
+      const { data: userRes } = await supabase.auth.getUser();
+      // 1. Create metadata row first (so we have an id for the storage path)
+      const { data: doc, error: insertErr } = await supabase
+        .from("documents")
+        .insert({
+          organization_id: orgId,
+          venture_id: input.venture_id ?? null,
+          knowledge_record_id: input.knowledge_record_id ?? null,
+          title: input.title,
+          description: input.description ?? null,
+          file_name: input.file.name,
+          file_path: "pending",
+          file_type: input.file.type || null,
+          file_size: input.file.size,
+          processing_status: "pending",
+          uploaded_by: userRes.user?.id ?? null,
+        })
+        .select()
+        .single();
+      if (insertErr) throw insertErr;
+
+      const path = documentStoragePath(orgId, doc.id, input.file.name);
+
+      // 2. Upload the object
+      const { error: upErr } = await supabase.storage
+        .from(DOCUMENTS_BUCKET)
+        .upload(path, input.file, {
+          contentType: input.file.type || undefined,
+          upsert: false,
+        });
+      if (upErr) {
+        // Storage failed → mark record failed (do not leave misleading "ready")
+        await supabase
+          .from("documents")
+          .update({ processing_status: "failed", deleted_at: new Date().toISOString() })
+          .eq("id", doc.id);
+        throw new Error(`Upload failed: ${upErr.message}`);
+      }
+
+      // 3. Finalize metadata with path + uploaded status
+      const { data: finalDoc, error: finalErr } = await supabase
+        .from("documents")
+        .update({ file_path: path, processing_status: "uploaded" })
+        .eq("id", doc.id)
+        .select()
+        .single();
+      if (finalErr) {
+        // metadata finalization failed → safe cleanup of the storage object
+        await supabase.storage.from(DOCUMENTS_BUCKET).remove([path]);
+        throw new Error(`Metadata save failed: ${finalErr.message}`);
+      }
+
+      await logActivity({
+        organizationId: orgId,
+        ventureId: finalDoc.venture_id,
+        entityType: "document",
+        entityId: finalDoc.id,
+        action: "document.uploaded",
+        summary: `Uploaded "${finalDoc.title}"`,
+        metadata: { file_size: finalDoc.file_size, file_type: finalDoc.file_type },
+      });
+      return finalDoc;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["documents", orgId] });
+      qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
