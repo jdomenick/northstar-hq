@@ -5,6 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { SAM_GRAPH_LIMITS } from "@/lib/constants";
+import type { Json } from "@/integrations/supabase/types";
 
 export type GraphEntityType =
   | "organization"
@@ -25,7 +26,7 @@ export interface GraphNode {
   id: string;
   type: GraphEntityType;
   label: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Json;
 }
 
 export interface GraphEdge {

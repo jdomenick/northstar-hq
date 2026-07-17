@@ -15,6 +15,7 @@ import {
   PERSONAL_LAYERS,
   bandForScore,
 } from "./schema";
+import type { Database } from "@/integrations/supabase/types";
 import { SAM_MEMORY_LIMITS } from "@/lib/constants";
 import { detectConflicts } from "./conflict";
 
@@ -150,9 +151,11 @@ export const updateMemory = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertMembership(supabase, data.organizationId, userId);
-    const patch = { ...data.patch } as Record<string, unknown>;
+    const patch: Database["public"]["Tables"]["sam_memory_items"]["Update"] = {
+      ...(data.patch as Database["public"]["Tables"]["sam_memory_items"]["Update"]),
+    };
     if (patch.confidence_score != null) {
-      patch.confidence_band = bandForScore(patch.confidence_score as number);
+      patch.confidence_band = bandForScore(patch.confidence_score);
     }
     const { data: row, error } = await supabase
       .from("sam_memory_items")
@@ -177,7 +180,7 @@ async function transitionStatus(
   ctx: { supabase: import("@supabase/supabase-js").SupabaseClient<import("@/integrations/supabase/types").Database>; userId: string },
   data: z.infer<typeof StatusInput>,
   next: MemoryStatus,
-  extra: Record<string, unknown> = {},
+  extra: Database["public"]["Tables"]["sam_memory_items"]["Update"] = {},
 ) {
   await assertMembership(ctx.supabase, data.organizationId, ctx.userId);
   const { data: row, error } = await ctx.supabase
