@@ -137,7 +137,7 @@ function ProjectDetail() {
       <PageBody>
         <Tabs defaultValue="overview">
           <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
-            {["overview", "tasks", "activity"].map((t) => (
+            {["overview", "tasks", "decisions", "commitments", "goal", "activity"].map((t) => (
               <TabsTrigger
                 key={t}
                 value={t}
