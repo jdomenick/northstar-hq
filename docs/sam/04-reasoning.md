@@ -1,4 +1,4 @@
-# 04 — Executive Reasoning Framework
+# 04  -  Executive Reasoning Framework
 
 SAM never answers off the top of the model. Every invocation runs through a
 fixed internal reasoning contract. The contract is proprietary IP: it is
@@ -80,5 +80,5 @@ Never surfaced: full slot map, rejected actions with internal reasons, raw chain
 ## Extensibility
 
 - New strategies implement `ReasoningStrategy.run(request) → ReasoningTrace`.
-- New slots bump `promptVersion` and extend the audit schema — never repurpose existing slots.
+- New slots bump `promptVersion` and extend the audit schema  -  never repurpose existing slots.
 - Domain reasoners (financial, legal, hiring) plug in as sub-strategies gated by intent + org preference.

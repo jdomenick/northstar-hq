@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/accountability")({
   component: AccountabilityPage,
   head: () => ({
     meta: [
-      { title: "Accountability — Northstar" },
+      { title: "Accountability  -  Northstar" },
       { name: "description", content: "Commitments, owners, and follow-through across every venture." },
     ],
   }),

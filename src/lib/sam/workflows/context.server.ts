@@ -1,5 +1,5 @@
 // Bounded, organization-scoped context assembler for workflows.
-// Uses the existing RLS-scoped Supabase client — no service role reads.
+// Uses the existing RLS-scoped Supabase client  -  no service role reads.
 // Wraps provider-bound material as untrusted context. Never returns raw
 // document contents; never returns another user's private memory.
 
@@ -147,7 +147,7 @@ export async function assembleWorkflowContext(
       })()
     : Promise.resolve({ data: [], count: 0, error: null } as never);
 
-  // Memory — RLS enforces that another user's private memory is invisible.
+  // Memory  -  RLS enforces that another user's private memory is invisible.
   const memoryPromise = needs(options, "memory")
     ? supabase
         .from("sam_memory_items")
@@ -242,7 +242,7 @@ export async function assembleWorkflowContext(
   const memoryRows = (memoryRes.data ?? []) as Array<{
     id: string; layer: string; category: string; title: string; statement: string; status: string; confidence_score: number | null;
   }>;
-  // sam_settings columns for workflows are not yet migrated — read from a
+  // sam_settings columns for workflows are not yet migrated  -  read from a
   // JSON extras column if present, else use safe defaults.
   const settingsExtras =
     ((settingsRes.data as unknown as Record<string, unknown> | null)?.workflow_preferences as
@@ -275,7 +275,7 @@ export async function assembleWorkflowContext(
       : null,
   };
 
-  // Bounded graph traversal — only around the scoped venture (if any).
+  // Bounded graph traversal  -  only around the scoped venture (if any).
   let graph = { nodes: 0, edges: 0, depthReached: 0, truncated: false };
   if (needs(options, "graph") && options.ventureId) {
     try {

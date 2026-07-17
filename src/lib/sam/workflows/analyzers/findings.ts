@@ -1,5 +1,5 @@
 // Finding & citation-candidate helpers. Every material finding must carry
-// a stable rule identifier and at least one citation candidate — except
+// a stable rule identifier and at least one citation candidate  -  except
 // findings explicitly classified as missing_information / assumption.
 
 import type {
@@ -43,7 +43,7 @@ export function buildFinding(b: FindingBuilder): WorkflowFinding {
   };
 }
 
-// Deduplicate by finding key (later wins are dropped — first is stable).
+// Deduplicate by finding key (later wins are dropped  -  first is stable).
 export function dedupeFindings(findings: WorkflowFinding[]): WorkflowFinding[] {
   const seen = new Set<string>();
   const out: WorkflowFinding[] = [];

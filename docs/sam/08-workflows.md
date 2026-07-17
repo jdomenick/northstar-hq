@@ -1,4 +1,4 @@
-# 08 — Executive Workflows
+# 08  -  Executive Workflows
 
 Workflows are named, scheduled, structured SAM programs. Each is a
 specific pipeline invocation with fixed intent, retrieval policy,
@@ -97,6 +97,6 @@ A workflow that cannot satisfy `requiredData` short-circuits with a
 
 ## Extensibility
 
-- Workflows are registered in a `WorkflowRegistry`; a new workflow needs only key, contract, and strategy — scheduler and audit handle the rest.
+- Workflows are registered in a `WorkflowRegistry`; a new workflow needs only key, contract, and strategy  -  scheduler and audit handle the rest.
 - Per-org enable/disable + schedule overrides live in Preference memory (org scope).
 - Custom workflows (e.g. Fundraise Prep) plug in the same way in later phases.

@@ -1,6 +1,6 @@
 // Deterministic rule predicates. Each rule owns a stable id used in
 // finding.structured_data.ruleId. Predicates are pure; they do not know
-// about severities or citations — analyzers compose these into findings.
+// about severities or citations  -  analyzers compose these into findings.
 
 import { SAM_WORKFLOW_THRESHOLDS } from "@/lib/constants";
 import type { WorkflowContext } from "../types";

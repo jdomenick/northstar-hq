@@ -1,10 +1,10 @@
-# SAM — Executive Intelligence Architecture
+# SAM  -  Executive Intelligence Architecture
 
 SAM is Northstar's proprietary executive intelligence system. It is not a
 chatbot and not an LLM wrapper. The LLM is one replaceable component inside
 a larger pipeline whose defensibility comes from the Executive Graph, the
 Memory layers, the Reasoning Framework, the Confidence model, the Citation
-system, the Learning loop, and the Audit trail — all of which Northstar
+system, the Learning loop, and the Audit trail  -  all of which Northstar
 owns end to end.
 
 This directory is the blueprint. Nothing here is wired to a provider yet;
@@ -13,17 +13,17 @@ first model behind it.
 
 ## Documents
 
-- [01 — Intelligence Pipeline](./01-pipeline.md)
-- [02 — Executive Graph](./02-executive-graph.md)
-- [03 — Memory Architecture](./03-memory.md)
-- [04 — Executive Reasoning Framework](./04-reasoning.md)
-- [05 — Confidence Framework](./05-confidence.md)
-- [06 — Citation Architecture](./06-citations.md)
-- [07 — Learning Framework](./07-learning.md)
-- [08 — Executive Workflows](./08-workflows.md)
-- [09 — Provider Abstraction Layer](./09-provider-abstraction.md)
-- [10 — Audit Trail](./10-audit-trail.md)
-- [11 — Architecture Decision Records](./adr/README.md)
+- [01  -  Intelligence Pipeline](./01-pipeline.md)
+- [02  -  Executive Graph](./02-executive-graph.md)
+- [03  -  Memory Architecture](./03-memory.md)
+- [04  -  Executive Reasoning Framework](./04-reasoning.md)
+- [05  -  Confidence Framework](./05-confidence.md)
+- [06  -  Citation Architecture](./06-citations.md)
+- [07  -  Learning Framework](./07-learning.md)
+- [08  -  Executive Workflows](./08-workflows.md)
+- [09  -  Provider Abstraction Layer](./09-provider-abstraction.md)
+- [10  -  Audit Trail](./10-audit-trail.md)
+- [11  -  Architecture Decision Records](./adr/README.md)
 
 ## Design principles
 
@@ -54,10 +54,10 @@ functionality is untouched.
 
 ## Implementation status
 
-- **Phase 3A** — SAM Foundation: live `/sam` route, provider abstraction,
+- **Phase 3A**  -  SAM Foundation: live `/sam` route, provider abstraction,
   deterministic pipeline, deterministic confidence, audit trail, rate
   limits, prompt-injection defenses.
-- **Phase 3B** — SAM Memory + Executive Graph:
+- **Phase 3B**  -  SAM Memory + Executive Graph:
   - `sam_memory_items`, versions, feedback, conflicts
   - `executive_graph_edges` with same-org DB-level trigger
   - `sam_learning_events`, `sam_response_feedback`

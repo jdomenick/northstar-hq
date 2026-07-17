@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({
     meta: [
-      { title: "Settings — Northstar" },
+      { title: "Settings  -  Northstar" },
       { name: "description", content: "Founder, organization, and member preferences." },
     ],
   }),
@@ -328,11 +328,11 @@ function ProfileTab() {
         </div>
         <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
           <div className="text-muted-foreground">Current organization</div>
-          <div className="text-foreground">{activeMembership?.organizations?.name ?? "—"}</div>
+          <div className="text-foreground">{activeMembership?.organizations?.name ?? " - "}</div>
         </div>
         <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
           <div className="text-muted-foreground">Role</div>
-          <div className="text-foreground capitalize">{activeMembership?.role ?? "—"}</div>
+          <div className="text-foreground capitalize">{activeMembership?.role ?? " - "}</div>
         </div>
         <p className="mt-3 text-[12px] text-muted-foreground">Email changes will be handled by a secure flow in a future phase.</p>
       </Section>
@@ -460,7 +460,7 @@ function MembersTab() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[14px] text-foreground">{actorName(m.profile)}</div>
                   <div className="truncate text-[11.5px] text-muted-foreground">
-                    {m.profile?.email ?? "—"}
+                    {m.profile?.email ?? " - "}
                     {m.profile?.title && ` · ${m.profile.title}`}
                     {m.joined_at && ` · joined ${m.joined_at.slice(0, 10)}`}
                   </div>

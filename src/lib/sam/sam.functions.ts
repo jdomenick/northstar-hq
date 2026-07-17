@@ -18,7 +18,7 @@ function sanitizeError(e: unknown) {
 }
 
 // ---------------------------------------------------------------------------
-// askSam — the primary read-only SAM entrypoint.
+// askSam  -  the primary read-only SAM entrypoint.
 // ---------------------------------------------------------------------------
 export const askSam = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -33,7 +33,7 @@ export const askSam = createServerFn({ method: "POST" })
       throw new SamError("message_too_long");
     }
 
-    // 1. Membership verification — client cannot forge the org id.
+    // 1. Membership verification  -  client cannot forge the org id.
     const { data: mem, error: memErr } = await supabase
       .from("organization_members")
       .select("role, status")
@@ -145,7 +145,7 @@ export const askSam = createServerFn({ method: "POST" })
     };
     const allowMemoryProposals = settingsRow?.allow_memory_proposals ?? true;
 
-    // 7. Run the pipeline (lazy import — server-only module graph).
+    // 7. Run the pipeline (lazy import  -  server-only module graph).
     const { runPipeline, writeAudit } = await import("./pipeline.server");
     let result;
     let samMessageId: string | null = null;
@@ -289,7 +289,7 @@ export const askSam = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// listConversations — organization-scoped SAM conversations.
+// listConversations  -  organization-scoped SAM conversations.
 // ---------------------------------------------------------------------------
 export const listConversations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -309,7 +309,7 @@ export const listConversations = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// loadConversation — messages for one conversation.
+// loadConversation  -  messages for one conversation.
 // ---------------------------------------------------------------------------
 export const loadConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

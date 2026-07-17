@@ -11,7 +11,7 @@ Unsourced AI output erodes trust and creates liability. Executives cannot act on
 The Recommendation Engine drops any recommendation without at least one `direct` or `supporting` citation. Assumptions and inferences are also cited (assumptions cite the assumed record; inferences cite the rule id).
 
 ## Alternatives considered
-- **Best-effort citations.** Rejected — degrades to unsourced output under pressure.
+- **Best-effort citations.** Rejected  -  degrades to unsourced output under pressure.
 
 ## Rationale
 A hard structural requirement is the only way to guarantee explainability at scale.

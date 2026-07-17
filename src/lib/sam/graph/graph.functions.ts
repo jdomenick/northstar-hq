@@ -1,5 +1,5 @@
 // Narrow, non-arbitrary graph server fns. There is intentionally no raw
-// query endpoint — clients cannot ask for arbitrary traversals.
+// query endpoint  -  clients cannot ask for arbitrary traversals.
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";

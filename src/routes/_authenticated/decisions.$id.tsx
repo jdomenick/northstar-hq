@@ -31,7 +31,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/decisions/$id")({
   component: DecisionDetail,
-  head: () => ({ meta: [{ title: "Decision — Northstar" }] }),
+  head: () => ({ meta: [{ title: "Decision  -  Northstar" }] }),
 });
 
 const STATUS_LABEL: Record<DecisionStatus, string> = {
@@ -168,7 +168,7 @@ function DecisionDetail() {
               SAM intelligence will be activated in Phase 3.
             </p>
             <button disabled className="mt-4 rounded-md bg-secondary/60 px-3.5 py-1.5 text-[12px] text-muted-foreground/70">
-              Analyze — disabled
+              Analyze  -  disabled
             </button>
           </div>
         </Section>
@@ -349,7 +349,7 @@ function EvidenceEditor({ value, onChange, disabled }: { value: EvidenceItem[]; 
               <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">Type</div>
               <select disabled={disabled} value={e.type ?? ""} onChange={(ev) => update(e.id, { type: ev.target.value })}
                 className="w-full rounded-md bg-background/50 px-2.5 py-2 text-[13px] text-foreground outline-none disabled:opacity-60">
-                <option value="">—</option>
+                <option value=""> - </option>
                 {EVIDENCE_TYPES.map((t) => <option key={t} value={t}>{t.replaceAll("_", " ")}</option>)}
               </select>
             </label>
@@ -357,7 +357,7 @@ function EvidenceEditor({ value, onChange, disabled }: { value: EvidenceItem[]; 
               <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">Reliability</div>
               <select disabled={disabled} value={e.reliability ?? ""} onChange={(ev) => update(e.id, { reliability: (ev.target.value || undefined) as EvidenceItem["reliability"] })}
                 className="w-full rounded-md bg-background/50 px-2.5 py-2 text-[13px] text-foreground outline-none disabled:opacity-60">
-                <option value="">—</option>
+                <option value=""> - </option>
                 <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
             </label>
@@ -387,7 +387,7 @@ function RisksEditor({ value, onChange, disabled }: { value: RiskItem[]; onChang
               <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">Likelihood</div>
               <select disabled={disabled} value={r.likelihood ?? ""} onChange={(ev) => update(r.id, { likelihood: (ev.target.value || undefined) as RiskItem["likelihood"] })}
                 className="w-full rounded-md bg-background/50 px-2.5 py-2 text-[13px] text-foreground outline-none disabled:opacity-60">
-                <option value="">—</option>
+                <option value=""> - </option>
                 <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
             </label>
@@ -395,7 +395,7 @@ function RisksEditor({ value, onChange, disabled }: { value: RiskItem[]; onChang
               <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">Impact</div>
               <select disabled={disabled} value={r.impact ?? ""} onChange={(ev) => update(r.id, { impact: (ev.target.value || undefined) as RiskItem["impact"] })}
                 className="w-full rounded-md bg-background/50 px-2.5 py-2 text-[13px] text-foreground outline-none disabled:opacity-60">
-                <option value="">—</option>
+                <option value=""> - </option>
                 <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option>
               </select>
             </label>

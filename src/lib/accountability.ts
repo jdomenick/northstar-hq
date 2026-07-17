@@ -60,7 +60,7 @@ export function isDecisionWaiting(d: Decision, userId?: string | null): boolean 
   return false;
 }
 
-/** Rule-based executive statements — never AI-generated. */
+/** Rule-based executive statements  -  never AI-generated. */
 export type AccountabilityStatement = {
   id: string;
   text: string;

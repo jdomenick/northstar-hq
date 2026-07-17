@@ -1,4 +1,4 @@
-# 06 — Citation Architecture
+# 06  -  Citation Architecture
 
 If SAM cannot cite it, SAM does not claim it. Every recommendation and
 every non-trivial statement carries `Citation[]`. Citations point to real
@@ -41,7 +41,7 @@ Citation {
 2. Assumptions are explicit and user-correctable.
 3. Inferences name the rule via a synthetic `rule` entity with a stable href to the rule's documentation.
 4. Citations are per-claim, not per-response.
-5. Deep links respect RLS — `href` always resolves inside the caller's org.
+5. Deep links respect RLS  -  `href` always resolves inside the caller's org.
 6. Excerpts are verbatim, never paraphrased.
 
 ## Response wiring

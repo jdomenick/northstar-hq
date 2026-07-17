@@ -1,6 +1,6 @@
 // Client-callable workflow server functions. All routed through
 // requireSupabaseAuth. The client MUST NEVER send an authoritative
-// organization_id — scope is resolved server-side. No UI exists yet in
+// organization_id  -  scope is resolved server-side. No UI exists yet in
 // this milestone; these functions exist so later phases can integrate.
 
 import { createServerFn } from "@tanstack/react-start";
@@ -15,7 +15,7 @@ export const runWorkflow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => {
     const parsed = WorkflowRunInput.parse(input);
-    // Enforce combination rules early — server-side auth also re-checks.
+    // Enforce combination rules early  -  server-side auth also re-checks.
     if (parsed.workflowType === "daily_briefing" && (parsed.periodStart || parsed.periodEnd)) {
       throw new SamError("invalid_date_range");
     }
@@ -36,7 +36,7 @@ export const runWorkflow = createServerFn({ method: "POST" })
     }
   });
 
-// Retry a failed run — creates a new run linked to the prior via
+// Retry a failed run  -  creates a new run linked to the prior via
 // input_snapshot.retryOfRunId. Never overwrites the historical row.
 const RetryInput = z.object({ runId: z.string().uuid() });
 export const retryWorkflowRun = createServerFn({ method: "POST" })

@@ -75,7 +75,7 @@ export const weeklyReviewAnalyzer: WorkflowAnalyzer = {
           key, ruleId: R.RULES.weekCommitmentsMissed,
           finding_type: "commitment_issue",
           title: `Missed: ${c.title}`,
-          summary: `Due ${c.due_date} — not completed.`,
+          summary: `Due ${c.due_date}  -  not completed.`,
           severity: "high",
           priority: 80,
           structured_data: { commitmentId: c.id, dueDate: c.due_date },

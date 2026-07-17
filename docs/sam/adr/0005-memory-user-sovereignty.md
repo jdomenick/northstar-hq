@@ -11,8 +11,8 @@
 SAM memory is six explicit layers (Founder, Organization, Venture, Operational, Historical, Preference). Every non-historical row is user-editable; Historical rows are append-only but soft-hideable from retrieval. User edits always beat inferences. Every row is versioned via `supersedesId`.
 
 ## Alternatives considered
-- **Single blob memory.** Rejected — unauditable, un-scopeable.
-- **Model-managed memory.** Rejected — no user sovereignty.
+- **Single blob memory.** Rejected  -  unauditable, un-scopeable.
+- **Model-managed memory.** Rejected  -  no user sovereignty.
 
 ## Rationale
 Trust requires inspection and correction. Layers make ownership and lifetime explicit.

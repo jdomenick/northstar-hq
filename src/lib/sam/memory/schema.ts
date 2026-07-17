@@ -45,7 +45,7 @@ export const MemoryConfidenceBand = z.enum(["low", "moderate", "high", "very_hig
 // Personal layers stay private to owner_user_id.
 export const PERSONAL_LAYERS: ReadonlySet<MemoryLayer> = new Set(["founder", "preference"]);
 
-// A safe, project-controlled DTO — clients never write organization_id / owner_user_id directly.
+// A safe, project-controlled DTO  -  clients never write organization_id / owner_user_id directly.
 export const CreateMemoryInput = z.object({
   organizationId: z.string().uuid(),
   layer: MemoryLayer,

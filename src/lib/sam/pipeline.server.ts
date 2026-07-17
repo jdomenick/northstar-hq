@@ -64,7 +64,7 @@ export async function runPipeline(
     throw new SamError("context_assembly_failed", (e as Error).message);
   }
 
-  // 7. Reasoning — single-pass structured call through PAL
+  // 7. Reasoning  -  single-pass structured call through PAL
   const provider = selectProvider(intent);
   const meta = provider.getModelMetadata();
 
@@ -120,7 +120,7 @@ export async function runPipeline(
     hrefs[`${c.entity_type}:${c.entity_id}`] = citationHref(c.entity_type, c.entity_id);
   }
 
-  // 11. Deterministic confidence — Northstar owns the score
+  // 11. Deterministic confidence  -  Northstar owns the score
   const confidence = computeConfidence(response, context);
 
   return {
@@ -134,6 +134,6 @@ export async function runPipeline(
   };
 }
 
-// Convenience audit wrapper — pipeline callers hand us the message id after
+// Convenience audit wrapper  -  pipeline callers hand us the message id after
 // persistence so the invocation row can link back.
 export { writeAudit };

@@ -16,7 +16,7 @@ export function atLeast(role: Role | undefined | null, min: Role): boolean {
 }
 
 /**
- * UI-level capability checks. These are hints only —
+ * UI-level capability checks. These are hints only  - 
  * RLS is the actual enforcement layer.
  */
 export const can = {

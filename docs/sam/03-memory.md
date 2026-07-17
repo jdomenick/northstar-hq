@@ -1,4 +1,4 @@
-# 03 — Memory Architecture
+# 03  -  Memory Architecture
 
 SAM's memory is layered, user-editable, versioned, and always sourced.
 No layer is a black box: every field can be read, edited, exported, or
@@ -83,7 +83,7 @@ MemoryRecord {
 - **Purpose.** Short-term working set: what SAM saw recently, what was
   surfaced in the last Briefing, cursors for incremental workflows.
 - **Lifetime.** Rolling 90 days; anything older migrates to Historical.
-- **Editable fields.** None directly — users clear by clearing the
+- **Editable fields.** None directly  -  users clear by clearing the
   underlying entity or via a "reset SAM working memory" admin action.
 - **Confidence.** Not applicable; this is a cache/cursor layer.
 - **Source.** Always `derived`.

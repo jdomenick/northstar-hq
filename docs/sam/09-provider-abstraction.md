@@ -1,4 +1,4 @@
-# 09 — Provider Abstraction Layer
+# 09  -  Provider Abstraction Layer
 
 SAM must never bind to a single vendor. The Provider Abstraction Layer
 (PAL) is the only place in the codebase that speaks to a model. Every

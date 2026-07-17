@@ -1,6 +1,6 @@
 
 -- ============================================================
--- Phase 3B — SAM Memory & Executive Graph
+-- Phase 3B  -  SAM Memory & Executive Graph
 -- ============================================================
 
 -- ---------- ENUMS ----------
@@ -162,7 +162,7 @@ CREATE POLICY sam_memory_versions_select ON public.sam_memory_versions FOR SELEC
 CREATE POLICY sam_memory_versions_insert ON public.sam_memory_versions FOR INSERT TO authenticated
   WITH CHECK (public.is_org_member(organization_id, auth.uid()));
 
--- Version trigger — snapshot on material change
+-- Version trigger  -  snapshot on material change
 CREATE OR REPLACE FUNCTION public.sam_memory_snapshot_version()
 RETURNS trigger
 LANGUAGE plpgsql

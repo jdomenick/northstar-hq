@@ -1,6 +1,6 @@
 // Server functions for SAM Memory. All routed through requireSupabaseAuth so
 // RLS enforces organization + privacy scope. Client never sets
-// organization_id / owner_user_id — those are derived from the authenticated
+// organization_id / owner_user_id  -  those are derived from the authenticated
 // user + validated input.
 
 import { createServerFn } from "@tanstack/react-start";

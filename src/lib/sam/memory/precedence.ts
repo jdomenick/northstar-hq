@@ -1,4 +1,4 @@
-// Deterministic memory precedence — Phase 3B (ADR-0011).
+// Deterministic memory precedence  -  Phase 3B (ADR-0011).
 // Lower rank = higher precedence.
 import { MEMORY_PRECEDENCE_VERSION } from "@/lib/constants";
 import type { MemoryItemRow, MemoryLayer, MemoryStatus } from "./schema";

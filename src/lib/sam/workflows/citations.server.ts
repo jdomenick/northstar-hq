@@ -1,5 +1,5 @@
 // Workflow citation validator. Every emitted citation must reference an
-// entity actually loaded in the RLS-authorized context — cross-org and
+// entity actually loaded in the RLS-authorized context  -  cross-org and
 // private-memory citations are dropped, not silently accepted.
 
 import type {

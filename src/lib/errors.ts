@@ -1,5 +1,5 @@
 // Shared user-facing error dictionary. Never expose provider or Supabase raw
-// errors to end users — map them through this table.
+// errors to end users  -  map them through this table.
 
 export type SamErrorCode =
   | "auth_required"
@@ -72,7 +72,7 @@ export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
   memory_expired: "That memory has expired and needs to be reconfirmed.",
   memory_version_conflict: "This memory was edited elsewhere. Reload and try again.",
   memory_duplicate_active: "An active memory with the same scope already exists.",
-  memory_conflict_detected: "This memory conflicts with another active item — review before confirming.",
+  memory_conflict_detected: "This memory conflicts with another active item  -  review before confirming.",
   memory_source_unavailable: "SAM couldn't reach the source of that memory.",
   memory_dispute_review_required: "Disputed memory needs a review action before it can be confirmed.",
   learning_persistence_failed: "SAM couldn't record that feedback. Please retry.",

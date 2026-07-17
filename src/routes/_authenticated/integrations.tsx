@@ -5,7 +5,7 @@ export const Route = createFileRoute("/_authenticated/integrations")({
   component: IntegrationsPage,
   head: () => ({
     meta: [
-      { title: "Integrations — Northstar" },
+      { title: "Integrations  -  Northstar" },
       { name: "description", content: "Connect the systems SAM reads from." },
     ],
   }),

@@ -10,7 +10,7 @@ Two database identifiers still contain the word `operator`:
 `decisions.operator_recommendation` column. Both are load-bearing.
 
 ## Decision
-Leave the database identifiers unchanged. Map them at the boundary — SAM
+Leave the database identifiers unchanged. Map them at the boundary  -  SAM
 messages persist with `role = 'operator'` and are surfaced to the user as SAM.
 
 ## Consequences

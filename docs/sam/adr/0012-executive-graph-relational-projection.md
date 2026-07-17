@@ -1,4 +1,4 @@
-# ADR-0012 — Executive Graph as a Relational Projection
+# ADR-0012  -  Executive Graph as a Relational Projection
 
 Status: Accepted (Phase 3B)
 

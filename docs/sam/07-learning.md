@@ -1,7 +1,7 @@
-# 07 — Learning Framework
+# 07  -  Learning Framework
 
 SAM improves over time without training a foundation model. Learning is
-observation, versioned metrics, and per-org calibration — never gradient
+observation, versioned metrics, and per-org calibration  -  never gradient
 updates on shared weights.
 
 ## What we track
@@ -37,13 +37,13 @@ All rows are RLS-scoped by `organization_id`; historical rows are append-only.
 ## Feedback loop
 
 1. **Historical reliability** (doc 05) is recomputed nightly from lifecycle events per `(orgId, intent, entityType, promptVersion)`.
-2. **Preference inference** proposes updates to Founder/Organization memory as *pending* rows — never auto-written.
+2. **Preference inference** proposes updates to Founder/Organization memory as *pending* rows  -  never auto-written.
 3. **Rejected-reason clustering** produces "avoid" patterns the Recommendation Engine consults.
 4. **Prompt regression detection.** New `promptVersion` metrics are compared against the previous version for the same intent; regressions raise an audit alert.
 
 ## Versioning
 
-`promptVersion`, `strategyVersion`, `confidenceMethod`, and `weightsVersion` are stamped on every recommendation. Metrics roll up per version tuple; older versions' metrics stay intact when new versions ship. Historical rows are never overwritten — corrections are new rows.
+`promptVersion`, `strategyVersion`, `confidenceMethod`, and `weightsVersion` are stamped on every recommendation. Metrics roll up per version tuple; older versions' metrics stay intact when new versions ship. Historical rows are never overwritten  -  corrections are new rows.
 
 ## Guardrails
 
