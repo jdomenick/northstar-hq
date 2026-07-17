@@ -34,7 +34,7 @@ function VentureDetail() {
 
   return (
     <div>
-      <div className="border-b border-border/60 px-4 pt-6 md:px-10">
+      <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
           <Link
             to="/ventures"
@@ -51,13 +51,13 @@ function VentureDetail() {
       />
       <PageBody>
         <Tabs defaultValue="overview">
-          <TabsList className="mb-8 h-auto flex-wrap justify-start gap-1 bg-transparent p-0">
+          <TabsList className="mb-12 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0 -mx-2">
             {["overview", "projects", "goals", "decisions", "knowledge", "activity", "metrics", "settings"].map(
               (t) => (
                 <TabsTrigger
                   key={t}
                   value={t}
-                  className="rounded-md border border-transparent bg-transparent px-3 py-1.5 text-[12px] capitalize text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  className="relative rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[12.5px] capitalize text-muted-foreground hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                 >
                   {t}
                 </TabsTrigger>
@@ -70,25 +70,32 @@ function VentureDetail() {
               <p className="text-[15px] text-foreground/90">{v.focus}</p>
             </Section>
             <Section title="Priorities">
-              <ul className="divide-y divide-border rounded-lg border border-border">
+              <ul>
                 {v.priorities.map((p, i) => (
-                  <li key={i} className="flex items-center gap-4 px-5 py-4 text-[14px]">
-                    <span className="text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
-                    <span>{p}</span>
+                  <li
+                    key={i}
+                    className="flex items-center gap-6 border-b border-border/60 py-5 text-[14.5px] last:border-0"
+                  >
+                    <span className="font-display text-[15px] text-muted-foreground/70">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-foreground">{p}</span>
                   </li>
                 ))}
               </ul>
             </Section>
             <Section title="Key metrics">
-              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-10 gap-y-8 sm:grid-cols-4">
                 {v.metrics.map((m) => (
-                  <div key={m.label} className="bg-background px-5 py-4">
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <div key={m.label}>
+                    <div className="font-display text-[36px] leading-none tabular-nums text-foreground">
+                      {m.value}
+                    </div>
+                    <div className="mt-3 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
                       {m.label}
                     </div>
-                    <div className="mt-2 font-display text-3xl text-foreground">{m.value}</div>
                     {m.delta && (
-                      <div className="mt-1 text-[11px] text-muted-foreground">{m.delta}</div>
+                      <div className="mt-1 text-[12px] text-muted-foreground">{m.delta}</div>
                     )}
                   </div>
                 ))}
@@ -105,10 +112,13 @@ function VentureDetail() {
             <p className="text-[14px] text-muted-foreground">Quarterly goals will live here.</p>
           </TabsContent>
           <TabsContent value="decisions">
-            <ul className="divide-y divide-border rounded-lg border border-border">
+            <ul>
               {v.recentDecisions.map((d, i) => (
-                <li key={i} className="flex items-center justify-between px-5 py-4 text-[14px]">
-                  <span>{d.title}</span>
+                <li
+                  key={i}
+                  className="flex items-center justify-between border-b border-border/60 py-5 text-[14.5px] last:border-0"
+                >
+                  <span className="text-foreground">{d.title}</span>
                   <span className="text-[12px] text-muted-foreground">{d.when}</span>
                 </li>
               ))}

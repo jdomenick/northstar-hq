@@ -42,21 +42,30 @@ function IntegrationsPage() {
                 .map((i) => (
                   <div
                     key={i.name}
-                    className="flex items-center justify-between rounded-lg border border-border bg-card/40 px-5 py-4"
+                    className="group flex items-center justify-between rounded-xl bg-card/40 px-5 py-4 hover:bg-card/70"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-[12px] font-semibold text-foreground">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/70 text-[13px] font-semibold text-foreground">
                         {i.name.slice(0, 1)}
                       </div>
                       <div>
-                        <div className="text-[13px] text-foreground">{i.name}</div>
-                        <div className="text-[11px] text-muted-foreground">{i.status}</div>
+                        <div className="text-[13.5px] text-foreground">{i.name}</div>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
+                          <span
+                            className={
+                              i.status === "Connected"
+                                ? "h-1.5 w-1.5 rounded-full bg-[oklch(0.72_0.14_155)]"
+                                : "h-1.5 w-1.5 rounded-full bg-muted-foreground/40"
+                            }
+                          />
+                          {i.status}
+                        </div>
                       </div>
                     </div>
                     <button
                       className={
                         i.status === "Connected"
-                          ? "text-[12px] text-muted-foreground hover:text-foreground"
+                          ? "rounded-md px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
                           : "rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90"
                       }
                     >

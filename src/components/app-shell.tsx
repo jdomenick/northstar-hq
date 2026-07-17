@@ -75,25 +75,28 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-out",
-          collapsed ? "w-[68px]" : "w-[240px]",
+          "hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          collapsed ? "w-[68px]" : "w-[248px]",
         )}
       >
-        <div className="flex h-16 items-center gap-2 px-4">
+        <div className="flex h-16 items-center gap-2.5 px-4">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[13px] font-semibold">
             N
           </div>
-          {!collapsed && (
-            <div className="min-w-0 leading-tight">
-              <div className="font-display text-[17px]">Northstar</div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                Executive OS
-              </div>
+          <div
+            className={cn(
+              "min-w-0 leading-tight transition-opacity duration-200",
+              collapsed ? "pointer-events-none opacity-0" : "opacity-100",
+            )}
+          >
+            <div className="font-display text-[18px]">Northstar</div>
+            <div className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
+              Executive OS
             </div>
-          )}
+          </div>
         </div>
 
-        <nav className="flex-1 space-y-0.5 px-2 py-2">
+        <nav className="flex-1 space-y-0.5 px-2 pt-4" aria-label="Primary">
           {NAV.map((item) => {
             const active = isActive(item.to, item.exact);
             const Icon = item.icon;
@@ -101,27 +104,49 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
+                title={collapsed ? item.label : undefined}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group flex items-center gap-3 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors",
+                  "group relative flex h-9 items-center gap-3 rounded-md px-2.5 text-[13px] font-medium",
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                   collapsed && "justify-center px-0",
                 )}
               >
+                {active && !collapsed && (
+                  <span className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-foreground/80" />
+                )}
                 <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                <span
+                  className={cn(
+                    "truncate transition-opacity duration-150",
+                    collapsed ? "hidden" : "opacity-100",
+                  )}
+                >
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-border/60 p-2">
+        <div className="p-2">
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-[12px] text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "flex h-9 w-full items-center gap-3 rounded-md px-2.5 text-[12px] text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+              collapsed && "justify-center px-0",
+            )}
           >
-            <PanelLeft className="h-[15px] w-[15px]" strokeWidth={1.75} />
+            <PanelLeft
+              className={cn(
+                "h-[15px] w-[15px] transition-transform duration-300",
+                collapsed && "rotate-180",
+              )}
+              strokeWidth={1.75}
+            />
             {!collapsed && <span>Collapse</span>}
           </button>
         </div>
@@ -167,7 +192,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-background/70 px-4 backdrop-blur-xl md:px-8">
           <button
             className="md:hidden -ml-1 rounded-md p-2 text-muted-foreground hover:bg-accent"
             onClick={() => setMobileOpen(true)}
@@ -178,13 +203,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <button
             onClick={() => setCmdOpen(true)}
-            className="group flex h-9 w-full max-w-md items-center gap-2.5 rounded-md border border-border bg-secondary/40 px-3 text-left text-[13px] text-muted-foreground transition-colors hover:bg-secondary"
+            className="group flex h-9 w-full max-w-md items-center gap-2.5 rounded-lg bg-secondary/40 px-3 text-left text-[13px] text-muted-foreground hover:bg-secondary/70"
           >
             <Search className="h-3.5 w-3.5" strokeWidth={2} />
             <span className="flex-1 truncate">
               Search ventures, decisions, docs…
             </span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[10px] text-muted-foreground">
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded bg-background/70 px-1.5 font-mono text-[10px] text-muted-foreground/80">
               ⌘K
             </kbd>
           </button>
