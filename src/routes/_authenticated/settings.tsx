@@ -66,7 +66,14 @@ function SettingsPage() {
           <TabsContent value="organization"><OrganizationTab /></TabsContent>
           <TabsContent value="members"><MembersTab /></TabsContent>
           <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
-          <TabsContent value="sam"><SamSettingsTab /></TabsContent>
+          <TabsContent value="sam">
+            <p className="text-[13.5px] text-muted-foreground">
+              SAM is active. Detailed preferences (response style, challenge level,
+              citations, confidence display) live in{" "}
+              <code className="text-foreground">sam_settings</code> and will surface here
+              in the next iteration. Defaults apply organization-wide today.
+            </p>
+          </TabsContent>
           {["accountability","notifications","security","integrations","appearance"].map((v) => (
             <TabsContent key={v} value={v}>
               <p className="text-[13.5px] text-muted-foreground">
