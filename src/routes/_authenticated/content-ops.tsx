@@ -19,6 +19,7 @@ import { getAutonomy } from "@/lib/content-ops/autonomy.functions";
 import { listContentItems } from "@/lib/content-ops/content.functions";
 import { listStrategies } from "@/lib/content-ops/strategy.functions";
 import { listLearnings } from "@/lib/content-ops/learnings.functions";
+import { validateBeehiivConnection } from "@/lib/content-ops/beehiiv-validate.functions";
 
 export const Route = createFileRoute("/_authenticated/content-ops")({
   component: ContentOpsWorkspace,
@@ -44,6 +45,7 @@ function ContentOpsWorkspace() {
   const listStrategiesFn = useServerFn(listStrategies);
   const listContentFn = useServerFn(listContentItems);
   const listLearningsFn = useServerFn(listLearnings);
+  const validateBeehiivFn = useServerFn(validateBeehiivConnection);
 
   const enabled = Boolean(organizationId && ventureId);
 
@@ -82,6 +84,18 @@ function ContentOpsWorkspace() {
     queryKey: ["content-ops", "learnings", organizationId, ventureId],
     enabled,
     queryFn: () => listLearningsFn({ data: { organizationId: organizationId!, ventureId: ventureId! } }),
+  });
+  const beehiivQ = useQuery({
+    queryKey: ["content-ops", "beehiiv-validation", organizationId, ventureId],
+    enabled,
+    queryFn: () =>
+      validateBeehiivFn({
+        data: {
+          organizationId: organizationId!,
+          ventureId: ventureId!,
+          expectedPublicationName: "Healing Path",
+        },
+      }),
   });
 
   const autonomy = autonomyQ.data;
@@ -131,6 +145,59 @@ function ContentOpsWorkspace() {
             </div>
           </div>
         </QuietPanel>
+
+        <section className="mt-10">
+          <SectionLabel>Beehiiv connection</SectionLabel>
+          {beehiivQ.isLoading ? (
+            <EditorialSkeleton rows={2} />
+          ) : beehiivQ.isError ? (
+            <ErrorLine message="Could not check Beehiiv connection." />
+          ) : (
+            <QuietPanel>
+              <div className="grid gap-2 text-sm">
+                <div>
+                  <SectionLabel>Status</SectionLabel>
+                  <div className="mt-1">
+                    {beehiivQ.data?.configured
+                      ? beehiivQ.data.reachable
+                        ? "Credentials configured and reachable."
+                        : "Credentials configured but Beehiiv is not responding."
+                      : "Credentials not configured."}
+                  </div>
+                </div>
+                <div>
+                  <SectionLabel>Publication</SectionLabel>
+                  <div className="mt-1 font-mono text-xs">
+                    {beehiivQ.data?.publicationName ?? "(unknown)"} - id {beehiivQ.data?.publicationId ?? "-"}
+                  </div>
+                </div>
+                <div>
+                  <SectionLabel>Identity match (Healing Path)</SectionLabel>
+                  <div className="mt-1">
+                    {beehiivQ.data?.identityMatches == null
+                      ? "not checked"
+                      : beehiivQ.data.identityMatches
+                        ? "matches"
+                        : "does not match"}
+                  </div>
+                </div>
+                <div>
+                  <SectionLabel>Capabilities</SectionLabel>
+                  <div className="mt-1 font-mono text-xs">
+                    granted: {(beehiivQ.data?.grantedCapabilities ?? []).join(", ") || "-"}
+                    <br />
+                    missing: {(beehiivQ.data?.missingCapabilities ?? []).join(", ") || "-"}
+                  </div>
+                </div>
+                <div>
+                  <SectionLabel>Publishing armed</SectionLabel>
+                  <div className="mt-1">{beehiivQ.data?.armed ? "ARMED" : "DISARMED (6a)"}</div>
+                </div>
+                <div className="text-muted-foreground">{beehiivQ.data?.message}</div>
+              </div>
+            </QuietPanel>
+          )}
+        </section>
 
         <section className="mt-10">
           <SectionLabel>Awaiting approval</SectionLabel>
