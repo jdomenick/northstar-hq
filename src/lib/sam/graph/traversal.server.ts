@@ -83,7 +83,7 @@ export function getRelatedEntities(
   supabase: SupabaseClient<Database>,
   orgId: string,
   origin: { type: GraphEntityType; id: string },
-  maxDepth = 2,
+  maxDepth: number = 2,
 ) {
   return traverse(supabase, orgId, origin, { maxDepth });
 }
@@ -92,7 +92,7 @@ export function getUpstreamDependencies(
   supabase: SupabaseClient<Database>,
   orgId: string,
   origin: { type: GraphEntityType; id: string },
-  maxDepth = SAM_GRAPH_LIMITS.maxDepth,
+  maxDepth: number = SAM_GRAPH_LIMITS.maxDepth,
 ) {
   return traverse(supabase, orgId, origin, { maxDepth, directions: "outbound" });
 }
@@ -101,7 +101,7 @@ export function getDownstreamImpact(
   supabase: SupabaseClient<Database>,
   orgId: string,
   origin: { type: GraphEntityType; id: string },
-  maxDepth = SAM_GRAPH_LIMITS.maxDepth,
+  maxDepth: number = SAM_GRAPH_LIMITS.maxDepth,
 ) {
   return traverse(supabase, orgId, origin, { maxDepth, directions: "inbound" });
 }
