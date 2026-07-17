@@ -1,3 +1,9 @@
+// Editorial page primitives for the Paper & Ink experience system.
+// Every signed-in route composes with PageHeader / PageBody / Section
+// so a change here cascades through the whole product. Preserve the
+// component API (eyebrow / title / description / actions on PageHeader,
+// title / hint / action on Section) so existing routes keep working.
+
 import type { ReactNode } from "react";
 
 export function PageHeader({
@@ -12,35 +18,46 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="px-6 pb-10 pt-14 md:px-14 md:pb-14 md:pt-20">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-end md:justify-between">
-        <div className="min-w-0">
-          {eyebrow && (
-            <div className="mb-4 text-[10.5px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80">
-              {eyebrow}
+    <header className="animate-in fade-in duration-500 border-b border-foreground/15 px-6 pt-10 md:px-14 md:pt-14">
+      <div className="mx-auto max-w-6xl">
+        {eyebrow && (
+          <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
+            {eyebrow}
+          </div>
+        )}
+        <div className="mt-5 flex flex-col gap-8 border-t border-foreground/80 pt-4 md:flex-row md:items-end md:justify-between md:gap-10">
+          <div className="min-w-0">
+            <h1 className="font-display text-[40px] leading-[0.98] tracking-tight text-foreground md:text-[64px]">
+              {title}
+            </h1>
+            {description && (
+              <p className="mt-5 max-w-2xl text-[14.5px] leading-[1.75] text-foreground/70">
+                {description}
+              </p>
+            )}
+          </div>
+          {actions && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {actions}
             </div>
           )}
-          <h1 className="font-display text-[40px] leading-[1.02] text-foreground md:text-[56px]">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-5 max-w-xl text-[14.5px] leading-[1.7] text-muted-foreground">
-              {description}
-            </p>
-          )}
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        <div className="pb-8" />
       </div>
-    </div>
+    </header>
   );
 }
 
 export function PageBody({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-w-6xl px-6 pb-24 md:px-14">{children}</div>
+    <div className="mx-auto max-w-6xl px-6 pb-24 pt-10 md:px-14 md:pt-14 animate-in fade-in duration-500">
+      {children}
+    </div>
   );
 }
 
+// Section: heavy hairline masthead under the label, italic hint,
+// right-aligned ledger action. Consistent across every screen.
 export function Section({
   title,
   hint,
@@ -53,17 +70,17 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="mb-16">
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80">
-            {title}
-          </h2>
-          {hint && <p className="mt-2 text-[13px] text-muted-foreground/70">{hint}</p>}
-        </div>
-        {action}
+    <section className="mb-14">
+      <div className="flex items-baseline justify-between gap-4 border-b border-foreground/80 pb-2">
+        <h2 className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/75">
+          {title}
+        </h2>
+        {action && <div className="shrink-0 text-[11px] uppercase tracking-[0.2em] text-foreground/55">{action}</div>}
       </div>
-      {children}
+      {hint && (
+        <p className="mt-3 text-[12.5px] italic text-foreground/60">{hint}</p>
+      )}
+      <div className="mt-6">{children}</div>
     </section>
   );
 }
