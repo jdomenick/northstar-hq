@@ -122,7 +122,6 @@ export function LedgerRow({
   as = "div",
   children,
   className,
-  ...rest
 }: {
   eyebrow?: ReactNode;
   title: ReactNode;
@@ -133,7 +132,7 @@ export function LedgerRow({
   as?: "div" | "button";
   children?: ReactNode;
   className?: string;
-} & Omit<ComponentPropsWithoutRef<"div">, "onClick" | "children" | "title">) {
+}) {
   const inner = (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-4 md:gap-6">
       <div className="min-w-0">
@@ -158,19 +157,17 @@ export function LedgerRow({
         <button
           type="button"
           onClick={onClick}
-          className={cn("group w-full text-left hover:bg-foreground/[0.03] focus:outline-none focus-visible:bg-foreground/[0.04]", className)}
-          {...(rest as ComponentPropsWithoutRef<"button">)}
+          className={cn(
+            "group w-full text-left hover:bg-foreground/[0.03] focus:outline-none focus-visible:bg-foreground/[0.04]",
+            className,
+          )}
         >
           {inner}
         </button>
       </li>
     );
   }
-  return (
-    <li className={cn("group", className)} {...rest}>
-      {inner}
-    </li>
-  );
+  return <li className={cn("group", className)}>{inner}</li>;
 }
 
 export function MetadataRow({
