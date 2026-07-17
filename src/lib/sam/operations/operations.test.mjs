@@ -112,7 +112,7 @@ test("isTerminalResult rejects bare { ok: true }", async () => {
 // ---- Input validation ------------------------------------------------------
 
 test("edit-op input schema rejects non-UUID ids and oversized instruction", async () => {
-  const { EditVariantInput } = await import("./ops.server.ts");
+  const { EditVariantInput } = await import("./schemas.ts");
   assert.throws(() => EditVariantInput.parse({ organizationId: "nope", ventureId: "nope", contentItemId: "nope" }));
   const bigInstruction = "x".repeat(2000);
   assert.throws(() =>
@@ -126,7 +126,7 @@ test("edit-op input schema rejects non-UUID ids and oversized instruction", asyn
 });
 
 test("createSocialPlan input requires 1+ platforms and a valid ISO period", async () => {
-  const { CreateSocialPlanInput } = await import("./ops.server.ts");
+  const { CreateSocialPlanInput } = await import("./schemas.ts");
   assert.throws(() =>
     CreateSocialPlanInput.parse({
       organizationId: "00000000-0000-0000-0000-000000000000",
@@ -149,7 +149,7 @@ test("createSocialPlan input requires 1+ platforms and a valid ISO period", asyn
 });
 
 test("approveBatch requires confirmationToken and non-empty list", async () => {
-  const { ApproveBatchInput } = await import("./ops.server.ts");
+  const { ApproveBatchInput } = await import("./schemas.ts");
   assert.throws(() =>
     ApproveBatchInput.parse({
       organizationId: "00000000-0000-0000-0000-000000000000",
