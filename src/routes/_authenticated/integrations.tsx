@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 
-export const Route = createFileRoute("/integrations")({
+export const Route = createFileRoute("/_authenticated/integrations")({
   component: IntegrationsPage,
   head: () => ({
     meta: [

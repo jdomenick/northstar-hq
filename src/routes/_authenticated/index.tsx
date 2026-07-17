@@ -3,7 +3,7 @@ import { ArrowUpRight, AlertTriangle, GitBranch, Sparkles, TrendingUp } from "lu
 import { PageBody, Section } from "@/components/page-header";
 import { decisions, projects } from "@/lib/northstar-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   component: Command,
 });
 

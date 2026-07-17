@@ -4,7 +4,7 @@ import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ventures, type Venture } from "@/lib/northstar-data";
 
-export const Route = createFileRoute("/ventures/$id")({
+export const Route = createFileRoute("/_authenticated/ventures/$id")({
   component: VentureDetail,
   loader: ({ params }) => {
     const v = ventures.find((x) => x.id === params.id);

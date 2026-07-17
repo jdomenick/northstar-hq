@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { decisions } from "@/lib/northstar-data";
 
-export const Route = createFileRoute("/decisions")({
+export const Route = createFileRoute("/_authenticated/decisions")({
   component: DecisionsPage,
   head: () => ({
     meta: [

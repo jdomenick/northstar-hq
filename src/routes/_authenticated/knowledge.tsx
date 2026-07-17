@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileText, BookOpen, Notebook, Layers } from "lucide-react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 
-export const Route = createFileRoute("/knowledge")({
+export const Route = createFileRoute("/_authenticated/knowledge")({
   component: KnowledgePage,
   head: () => ({
     meta: [

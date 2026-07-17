@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { ventures } from "@/lib/northstar-data";
 
-export const Route = createFileRoute("/ventures")({
+export const Route = createFileRoute("/_authenticated/ventures")({
   component: VenturesLayout,
   head: () => ({
     meta: [

@@ -9,109 +9,110 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VenturesRouteImport } from './routes/ventures'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as OperatorRouteImport } from './routes/operator'
-import { Route as KnowledgeRouteImport } from './routes/knowledge'
-import { Route as IntegrationsRouteImport } from './routes/integrations'
-import { Route as DecisionsRouteImport } from './routes/decisions'
-import { Route as AccountabilityRouteImport } from './routes/accountability'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as VenturesIdRouteImport } from './routes/ventures.$id'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedVenturesRouteImport } from './routes/_authenticated/ventures'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
+import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
+import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
+import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
+import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 
-const VenturesRoute = VenturesRouteImport.update({
-  id: '/ventures',
-  path: '/ventures',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OperatorRoute = OperatorRouteImport.update({
-  id: '/operator',
-  path: '/operator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KnowledgeRoute = KnowledgeRouteImport.update({
-  id: '/knowledge',
-  path: '/knowledge',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntegrationsRoute = IntegrationsRouteImport.update({
-  id: '/integrations',
-  path: '/integrations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DecisionsRoute = DecisionsRouteImport.update({
-  id: '/decisions',
-  path: '/decisions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountabilityRoute = AccountabilityRouteImport.update({
-  id: '/accountability',
-  path: '/accountability',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VenturesIdRoute = VenturesIdRouteImport.update({
+const AuthenticatedVenturesRoute = AuthenticatedVenturesRouteImport.update({
+  id: '/_authenticated/ventures',
+  path: '/ventures',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/_authenticated/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/_authenticated/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
+  id: '/_authenticated/operator',
+  path: '/operator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
+  id: '/_authenticated/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/_authenticated/integrations',
+    path: '/integrations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
+  id: '/_authenticated/decisions',
+  path: '/decisions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAccountabilityRoute =
+  AuthenticatedAccountabilityRouteImport.update({
+    id: '/_authenticated/accountability',
+    path: '/accountability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedVenturesIdRoute = AuthenticatedVenturesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => VenturesRoute,
+  getParentRoute: () => AuthenticatedVenturesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/accountability': typeof AccountabilityRoute
-  '/decisions': typeof DecisionsRoute
-  '/integrations': typeof IntegrationsRoute
-  '/knowledge': typeof KnowledgeRoute
-  '/operator': typeof OperatorRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
-  '/ventures': typeof VenturesRouteWithChildren
-  '/ventures/$id': typeof VenturesIdRoute
+  '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
+  '/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/operator': typeof AuthenticatedOperatorRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/': typeof AuthenticatedIndexRoute
+  '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/accountability': typeof AccountabilityRoute
-  '/decisions': typeof DecisionsRoute
-  '/integrations': typeof IntegrationsRoute
-  '/knowledge': typeof KnowledgeRoute
-  '/operator': typeof OperatorRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
-  '/ventures': typeof VenturesRouteWithChildren
-  '/ventures/$id': typeof VenturesIdRoute
+  '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
+  '/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/operator': typeof AuthenticatedOperatorRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/': typeof AuthenticatedIndexRoute
+  '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/accountability': typeof AccountabilityRoute
-  '/decisions': typeof DecisionsRoute
-  '/integrations': typeof IntegrationsRoute
-  '/knowledge': typeof KnowledgeRoute
-  '/operator': typeof OperatorRoute
-  '/projects': typeof ProjectsRoute
-  '/settings': typeof SettingsRoute
-  '/ventures': typeof VenturesRouteWithChildren
-  '/ventures/$id': typeof VenturesIdRoute
+  '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
+  '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
+  '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/_authenticated/operator': typeof AuthenticatedOperatorRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/accountability'
     | '/decisions'
     | '/integrations'
@@ -120,10 +121,10 @@ export interface FileRouteTypes {
     | '/projects'
     | '/settings'
     | '/ventures'
+    | '/'
     | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/accountability'
     | '/decisions'
     | '/integrations'
@@ -132,130 +133,132 @@ export interface FileRouteTypes {
     | '/projects'
     | '/settings'
     | '/ventures'
+    | '/'
     | '/ventures/$id'
   id:
     | '__root__'
-    | '/'
-    | '/accountability'
-    | '/decisions'
-    | '/integrations'
-    | '/knowledge'
-    | '/operator'
-    | '/projects'
-    | '/settings'
-    | '/ventures'
-    | '/ventures/$id'
+    | '/_authenticated/accountability'
+    | '/_authenticated/decisions'
+    | '/_authenticated/integrations'
+    | '/_authenticated/knowledge'
+    | '/_authenticated/operator'
+    | '/_authenticated/projects'
+    | '/_authenticated/settings'
+    | '/_authenticated/ventures'
+    | '/_authenticated/'
+    | '/_authenticated/ventures/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AccountabilityRoute: typeof AccountabilityRoute
-  DecisionsRoute: typeof DecisionsRoute
-  IntegrationsRoute: typeof IntegrationsRoute
-  KnowledgeRoute: typeof KnowledgeRoute
-  OperatorRoute: typeof OperatorRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SettingsRoute: typeof SettingsRoute
-  VenturesRoute: typeof VenturesRouteWithChildren
+  AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
+  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
+  AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
+  AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/ventures': {
-      id: '/ventures'
-      path: '/ventures'
-      fullPath: '/ventures'
-      preLoaderRoute: typeof VenturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/operator': {
-      id: '/operator'
-      path: '/operator'
-      fullPath: '/operator'
-      preLoaderRoute: typeof OperatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/knowledge': {
-      id: '/knowledge'
-      path: '/knowledge'
-      fullPath: '/knowledge'
-      preLoaderRoute: typeof KnowledgeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/integrations': {
-      id: '/integrations'
-      path: '/integrations'
-      fullPath: '/integrations'
-      preLoaderRoute: typeof IntegrationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/decisions': {
-      id: '/decisions'
-      path: '/decisions'
-      fullPath: '/decisions'
-      preLoaderRoute: typeof DecisionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/accountability': {
-      id: '/accountability'
-      path: '/accountability'
-      fullPath: '/accountability'
-      preLoaderRoute: typeof AccountabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ventures/$id': {
-      id: '/ventures/$id'
+    '/_authenticated/ventures': {
+      id: '/_authenticated/ventures'
+      path: '/ventures'
+      fullPath: '/ventures'
+      preLoaderRoute: typeof AuthenticatedVenturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/operator': {
+      id: '/_authenticated/operator'
+      path: '/operator'
+      fullPath: '/operator'
+      preLoaderRoute: typeof AuthenticatedOperatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/knowledge': {
+      id: '/_authenticated/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof AuthenticatedKnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/decisions': {
+      id: '/_authenticated/decisions'
+      path: '/decisions'
+      fullPath: '/decisions'
+      preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/accountability': {
+      id: '/_authenticated/accountability'
+      path: '/accountability'
+      fullPath: '/accountability'
+      preLoaderRoute: typeof AuthenticatedAccountabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/ventures/$id': {
+      id: '/_authenticated/ventures/$id'
       path: '/$id'
       fullPath: '/ventures/$id'
-      preLoaderRoute: typeof VenturesIdRouteImport
-      parentRoute: typeof VenturesRoute
+      preLoaderRoute: typeof AuthenticatedVenturesIdRouteImport
+      parentRoute: typeof AuthenticatedVenturesRoute
     }
   }
 }
 
-interface VenturesRouteChildren {
-  VenturesIdRoute: typeof VenturesIdRoute
+interface AuthenticatedVenturesRouteChildren {
+  AuthenticatedVenturesIdRoute: typeof AuthenticatedVenturesIdRoute
 }
 
-const VenturesRouteChildren: VenturesRouteChildren = {
-  VenturesIdRoute: VenturesIdRoute,
+const AuthenticatedVenturesRouteChildren: AuthenticatedVenturesRouteChildren = {
+  AuthenticatedVenturesIdRoute: AuthenticatedVenturesIdRoute,
 }
 
-const VenturesRouteWithChildren = VenturesRoute._addFileChildren(
-  VenturesRouteChildren,
-)
+const AuthenticatedVenturesRouteWithChildren =
+  AuthenticatedVenturesRoute._addFileChildren(
+    AuthenticatedVenturesRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AccountabilityRoute: AccountabilityRoute,
-  DecisionsRoute: DecisionsRoute,
-  IntegrationsRoute: IntegrationsRoute,
-  KnowledgeRoute: KnowledgeRoute,
-  OperatorRoute: OperatorRoute,
-  ProjectsRoute: ProjectsRoute,
-  SettingsRoute: SettingsRoute,
-  VenturesRoute: VenturesRouteWithChildren,
+  AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
+  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
+  AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
+  AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
