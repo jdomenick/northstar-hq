@@ -335,7 +335,7 @@ function ConnectionDetail() {
                         {s.title ?? s.source_url}
                       </div>
                       <a
-                        href={s.source_url}
+                        href={s.source_url ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                         className="mt-1 block truncate text-[12px] italic text-foreground/60 underline-offset-4 hover:underline"

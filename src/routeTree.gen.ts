@@ -38,6 +38,7 @@ import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authen
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
+import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -192,6 +193,12 @@ const AuthenticatedSettingsIntegrationsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
   } as any)
+const AuthenticatedSettingsIntegrationsConnectionIdRoute =
+  AuthenticatedSettingsIntegrationsConnectionIdRouteImport.update({
+    id: '/$connectionId',
+    path: '/$connectionId',
+    getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
@@ -249,6 +257,7 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
@@ -281,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/integrations'
     | '/ventures/$id'
+    | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/integrations'
     | '/ventures/$id'
+    | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
@@ -374,6 +386,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/ventures/$id'
+    | '/_authenticated/settings/integrations/$connectionId'
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIntegrationsNewRouteImport
       parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
     }
+    '/_authenticated/settings/integrations/$connectionId': {
+      id: '/_authenticated/settings/integrations/$connectionId'
+      path: '/$connectionId'
+      fullPath: '/settings/integrations/$connectionId'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRouteImport
+      parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
+    }
   }
 }
 
@@ -673,11 +693,14 @@ const AuthenticatedSamRouteWithChildren =
   AuthenticatedSamRoute._addFileChildren(AuthenticatedSamRouteChildren)
 
 interface AuthenticatedSettingsIntegrationsRouteChildren {
+  AuthenticatedSettingsIntegrationsConnectionIdRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   AuthenticatedSettingsIntegrationsNewRoute: typeof AuthenticatedSettingsIntegrationsNewRoute
 }
 
 const AuthenticatedSettingsIntegrationsRouteChildren: AuthenticatedSettingsIntegrationsRouteChildren =
   {
+    AuthenticatedSettingsIntegrationsConnectionIdRoute:
+      AuthenticatedSettingsIntegrationsConnectionIdRoute,
     AuthenticatedSettingsIntegrationsNewRoute:
       AuthenticatedSettingsIntegrationsNewRoute,
   }
