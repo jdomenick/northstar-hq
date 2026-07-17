@@ -25,6 +25,7 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -107,13 +108,19 @@ const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedProjectsRoute,
 } as any)
+const AuthenticatedDecisionsIdRoute =
+  AuthenticatedDecisionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDecisionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -129,7 +137,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -148,7 +157,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
-  '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/ventures'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/decisions/$id'
     | '/projects/$id'
     | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/'
+    | '/decisions/$id'
     | '/projects/$id'
     | '/ventures/$id'
   id:
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/_authenticated/'
+    | '/_authenticated/decisions/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/ventures/$id'
   fileRoutesById: FileRoutesById
@@ -336,8 +349,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
       parentRoute: typeof AuthenticatedProjectsRoute
     }
+    '/_authenticated/decisions/$id': {
+      id: '/_authenticated/decisions/$id'
+      path: '/$id'
+      fullPath: '/decisions/$id'
+      preLoaderRoute: typeof AuthenticatedDecisionsIdRouteImport
+      parentRoute: typeof AuthenticatedDecisionsRoute
+    }
   }
 }
+
+interface AuthenticatedDecisionsRouteChildren {
+  AuthenticatedDecisionsIdRoute: typeof AuthenticatedDecisionsIdRoute
+}
+
+const AuthenticatedDecisionsRouteChildren: AuthenticatedDecisionsRouteChildren =
+  {
+    AuthenticatedDecisionsIdRoute: AuthenticatedDecisionsIdRoute,
+  }
+
+const AuthenticatedDecisionsRouteWithChildren =
+  AuthenticatedDecisionsRoute._addFileChildren(
+    AuthenticatedDecisionsRouteChildren,
+  )
 
 interface AuthenticatedProjectsRouteChildren {
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
@@ -367,7 +401,7 @@ const AuthenticatedVenturesRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
-  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
@@ -379,7 +413,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
-  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
