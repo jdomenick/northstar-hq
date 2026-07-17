@@ -56,13 +56,18 @@ export async function runSchedulerTick(supabaseAdmin: SB, batchLimit = AUTOMATIO
       result.skipped += 1;
       continue;
     }
+    const syntheticUser = def.owner_id ?? def.created_by;
+    if (!syntheticUser) {
+      result.skipped += 1;
+      continue;
+    }
     // Build synthetic scope from definition record (server authority only).
     try {
       await enqueueJob(supabaseAdmin, {
         organizationId: def.organization_id,
         ventureId: def.venture_id,
         role: "owner",
-        userId: def.owner_id ?? def.created_by ?? def.organization_id,
+        userId: syntheticUser,
         integrationConnectionId: def.integration_connection_id,
         assetId: def.asset_id,
         integrationSourceId: null,
