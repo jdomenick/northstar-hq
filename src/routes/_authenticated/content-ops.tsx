@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/content-ops")({
 function ContentOpsWorkspace() {
   const { activeOrgId } = useOrg();
   const organizationId = activeOrgId;
-  const venturesQ = useVentures();
+  const venturesQ = useVentures(organizationId);
   const ventureId = venturesQ.data?.[0]?.id ?? null;
 
   const getAutonomyFn = useServerFn(getAutonomy);
