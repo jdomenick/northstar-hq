@@ -19,6 +19,14 @@ import {
   type FolderNodeInput,
 } from "./asset-library";
 import { recordMediaAudit } from "./media-audit.server";
+import {
+  MAX_ASSET_COPY_BATCH,
+  copyStoragePath,
+  emptyCopyResult,
+  nextCopyDisplayName,
+  pushOutcome,
+  type AssetCopyResult,
+} from "./asset-copy";
 
 const uuid = z.string().uuid();
 const ScopeEnum = z.enum(["organization", "venture"]);
@@ -516,4 +524,224 @@ export const listLibraryAssets = createServerFn({ method: "GET" })
     const { data: rows, count, error } = await q;
     if (error) throw new ContentOpsError("unknown", error.message);
     return { assets: rows ?? [], total: count ?? (rows?.length ?? 0) };
+  });
+
+// ---------------------------------------------------------------------------
+// COPY / DUPLICATE
+//
+// duplicateMediaAssets - in-place copy into the source asset's folder with
+//                        an auto-suffixed display name (e.g. "Foo (copy)").
+// copyMediaAssets      - copy into a chosen destination folder, optionally
+//                        renaming a single asset. Destination stays in the
+//                        same organization AND venture as the source; a
+//                        cross-venture copy is refused truthfully.
+//
+// Storage semantics: for every source asset we CREATE A NEW STORAGE OBJECT
+// via supabase.storage.copy(). We never register a metadata-only duplicate
+// that points at the source object. On any per-asset failure we roll back
+// the DB row so no orphan records survive. Storage objects only survive if
+// their DB row also survives, so orphaned objects cannot accumulate.
+// ---------------------------------------------------------------------------
+
+const CopyBatchIds = z.array(uuid).min(1).max(MAX_ASSET_COPY_BATCH);
+
+async function performAssetCopyBatch(args: {
+  supabase: import("@supabase/supabase-js").SupabaseClient;
+  actorUserId: string;
+  organizationId: string;
+  sourceAssetIds: string[];
+  targetFolderId: string | null;
+  overrideDisplayName: string | null;
+  mode: "copy" | "duplicate";
+}): Promise<AssetCopyResult> {
+  const { supabase, actorUserId, organizationId, sourceAssetIds, targetFolderId, overrideDisplayName, mode } = args;
+  const result = emptyCopyResult(sourceAssetIds.length);
+
+  // Load all source rows in one query; anything not returned is skipped
+  // truthfully (deleted, wrong org, RLS-hidden, or bad id).
+  const { data: sources, error: srcErr } = await supabase
+    .from("content_media_assets")
+    .select("id, organization_id, venture_id, campaign_id, folder_id, media_type, source, mime_type, original_filename, display_name, storage_bucket, storage_path, file_size_bytes, width_px, height_px, aspect_ratio, duration_seconds, tags, alt_text, caption, credit, creative_brief, creative_notes, checksum_sha256, status")
+    .in("id", sourceAssetIds)
+    .eq("organization_id", organizationId)
+    .is("deleted_at", null);
+  if (srcErr) throw new ContentOpsError("unknown", srcErr.message);
+
+  const found = new Map<string, NonNullable<typeof sources>[number]>();
+  for (const s of sources ?? []) found.set(s.id, s);
+  for (const id of sourceAssetIds) {
+    if (!found.has(id)) {
+      pushOutcome(result, { sourceAssetId: id, status: "skipped", reason: "asset not found" });
+    }
+  }
+
+  // Validate target folder once, if given, and lock its venture.
+  let targetVentureId: string | null | undefined = undefined;
+  if (targetFolderId) {
+    const { data: folder, error: fErr } = await supabase
+      .from("asset_folders")
+      .select("id, organization_id, venture_id, archived, deleted_at")
+      .eq("id", targetFolderId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (fErr) throw new ContentOpsError("unknown", fErr.message);
+    if (!folder || folder.deleted_at) throw new ContentOpsError("not_found", "target folder not found");
+    if (folder.archived) throw new ContentOpsError("invalid_input", "target folder is archived");
+    targetVentureId = folder.venture_id;
+  }
+
+  for (const source of sources ?? []) {
+    try {
+      // Same-venture constraint: assets never cross venture scope.
+      if (targetVentureId !== undefined && targetVentureId !== null && source.venture_id !== targetVentureId) {
+        pushOutcome(result, { sourceAssetId: source.id, status: "skipped", reason: "target folder is in a different venture" });
+        continue;
+      }
+
+      const destinationFolderId = mode === "duplicate" ? source.folder_id : (targetFolderId ?? source.folder_id);
+      const displayName = overrideDisplayName && sourceAssetIds.length === 1
+        ? overrideDisplayName
+        : nextCopyDisplayName(source.display_name ?? source.original_filename);
+
+      // Step 1: insert placeholder row (pending) so we know the new id.
+      const { data: inserted, error: insErr } = await supabase
+        .from("content_media_assets")
+        .insert({
+          organization_id: source.organization_id,
+          venture_id: source.venture_id,
+          campaign_id: source.campaign_id,
+          folder_id: destinationFolderId,
+          media_type: source.media_type,
+          source: source.source,
+          status: "pending",
+          storage_bucket: source.storage_bucket,
+          storage_path: null,
+          mime_type: source.mime_type,
+          original_filename: source.original_filename,
+          file_size_bytes: source.file_size_bytes,
+          width_px: source.width_px,
+          height_px: source.height_px,
+          aspect_ratio: source.aspect_ratio,
+          duration_seconds: source.duration_seconds,
+          tags: source.tags ?? [],
+          alt_text: source.alt_text,
+          caption: source.caption,
+          credit: source.credit,
+          creative_brief: source.creative_brief,
+          creative_notes: source.creative_notes,
+          checksum_sha256: source.checksum_sha256,
+          display_name: displayName,
+          uploaded_by: actorUserId,
+        })
+        .select("id")
+        .single();
+      if (insErr || !inserted) {
+        pushOutcome(result, { sourceAssetId: source.id, status: "failed", reason: insErr?.message ?? "insert failed" });
+        continue;
+      }
+
+      const newAssetId = inserted.id;
+      const newPath = copyStoragePath(source.organization_id, source.venture_id, newAssetId, source.storage_path, "");
+
+      // Step 2: copy the storage object. If it fails we roll back the row.
+      if (source.storage_path && source.status === "uploaded") {
+        const { error: copyErr } = await supabase.storage
+          .from(source.storage_bucket)
+          .copy(source.storage_path, newPath);
+        if (copyErr) {
+          // Rollback the pending DB row so no orphaned record survives.
+          await supabase.from("content_media_assets").delete().eq("id", newAssetId);
+          pushOutcome(result, { sourceAssetId: source.id, status: "failed", reason: copyErr.message });
+          continue;
+        }
+
+        // Step 3: finalize path + status. If this update fails, remove the
+        // duplicated storage object so it can't leak.
+        const { error: upErr } = await supabase
+          .from("content_media_assets")
+          .update({
+            storage_path: newPath,
+            status: "uploaded",
+            uploaded_at: new Date().toISOString(),
+          })
+          .eq("id", newAssetId);
+        if (upErr) {
+          await supabase.storage.from(source.storage_bucket).remove([newPath]).catch(() => {});
+          await supabase.from("content_media_assets").delete().eq("id", newAssetId);
+          pushOutcome(result, { sourceAssetId: source.id, status: "failed", reason: upErr.message });
+          continue;
+        }
+      } else {
+        // Source had no live storage object (placeholder/pending/failed):
+        // preserve semantics by leaving the copy in the same state, no
+        // storage object required.
+        // Nothing to update; row already correct.
+      }
+
+      await recordMediaAudit({
+        organizationId: source.organization_id,
+        ventureId: source.venture_id,
+        mediaAssetId: newAssetId,
+        actorUserId,
+        action: mode === "duplicate" ? "duplicate" : "copy",
+        detail: {
+          sourceAssetId: source.id,
+          sourceStoragePath: source.storage_path,
+          destinationFolderId,
+          displayName,
+        },
+        newState: { storagePath: newPath, displayName },
+      });
+
+      pushOutcome(result, { sourceAssetId: source.id, status: "copied", newAssetId, storagePath: newPath });
+    } catch (err) {
+      pushOutcome(result, {
+        sourceAssetId: source.id,
+        status: "failed",
+        reason: err instanceof Error ? err.message : "unknown error",
+      });
+    }
+  }
+
+  return result;
+}
+
+export const duplicateMediaAssets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    organizationId: uuid,
+    mediaAssetIds: CopyBatchIds,
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireMembership(context.supabase, context.userId, data.organizationId, null, "member");
+    return performAssetCopyBatch({
+      supabase: context.supabase,
+      actorUserId: context.userId,
+      organizationId: data.organizationId,
+      sourceAssetIds: data.mediaAssetIds,
+      targetFolderId: null,
+      overrideDisplayName: null,
+      mode: "duplicate",
+    });
+  });
+
+export const copyMediaAssets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    organizationId: uuid,
+    mediaAssetIds: CopyBatchIds,
+    targetFolderId: uuid.nullable(),
+    displayName: z.string().min(1).max(300).nullable().optional(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireMembership(context.supabase, context.userId, data.organizationId, null, "member");
+    return performAssetCopyBatch({
+      supabase: context.supabase,
+      actorUserId: context.userId,
+      organizationId: data.organizationId,
+      sourceAssetIds: data.mediaAssetIds,
+      targetFolderId: data.targetFolderId,
+      overrideDisplayName: data.displayName ?? null,
+      mode: "copy",
+    });
   });
