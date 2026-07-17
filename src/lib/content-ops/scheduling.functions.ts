@@ -821,13 +821,34 @@ export const listScheduledContent = createServerFn({ method: "POST" })
           .order("scheduled_for", { ascending: false })
           .limit(500)
       : { data: [] as never[] };
-    const jobsByItem = new Map<string, Array<Record<string, unknown>>>();
+    interface ScheduledJobRow {
+      id: string;
+      status: string;
+      attempt_number: number | null;
+      max_attempts: number | null;
+      error_code: string | null;
+      scheduled_for: string;
+      available_at: string;
+      retry_after: string | null;
+      completed_at: string | null;
+    }
+    const jobsByItem = new Map<string, ScheduledJobRow[]>();
     for (const j of jobsRaw ?? []) {
       const p = (j.input_payload ?? {}) as { contentItemId?: string };
       const key = p.contentItemId ?? "";
       if (!key) continue;
       const arr = jobsByItem.get(key) ?? [];
-      arr.push(j as unknown as Record<string, unknown>);
+      arr.push({
+        id: j.id,
+        status: j.status,
+        attempt_number: j.attempt_number,
+        max_attempts: j.max_attempts,
+        error_code: j.error_code,
+        scheduled_for: j.scheduled_for,
+        available_at: j.available_at,
+        retry_after: j.retry_after,
+        completed_at: j.completed_at,
+      });
       jobsByItem.set(key, arr);
     }
 
@@ -880,11 +901,11 @@ export const previewScheduleGates = createServerFn({ method: "POST" })
       maxHorizonDays: CONTENT_OPS_LIMITS.maxScheduleHorizonDays,
     });
     return {
-      calendarState: gates.calendarState,
+      calendarState: gates.calendarState as string,
       editorialAllowed: gates.editorialAllowed,
       executableAllowed: gates.executableAllowed,
-      passed: gates.passed,
-      failures: gates.failures,
+      passed: gates.passed as string[],
+      failures: toJsonFailures(gates.failures),
       timezone: resolveVentureTimezone(sctx.ventureSocial?.default_timezone),
     };
   });
