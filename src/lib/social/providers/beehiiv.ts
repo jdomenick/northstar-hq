@@ -157,6 +157,35 @@ export const beehiivAdapter: SocialProviderAdapter = {
     // BEEHIIV_PUBLISH_ARMED at call time.
     return "implemented";
   },
+  getCapabilities() {
+    return {
+      platform: "beehiiv" as const,
+      adapterVersion: "0.2.0-6a",
+      supportsOAuth: false,
+      supportsApiKey: true,
+      supportsCredentialRefresh: false,
+      requiredScopes: ["posts:write"],
+      requiresDestinationSelection: true,
+      supportsListDestinations: false,
+      supportsPublish: true,
+      supportsScheduledPublish: true,
+      supportsDelete: false,
+      supportsMediaUpload: false,
+      supportsMultipleMedia: false,
+      supportsAltText: false,
+      supportsFirstComment: false,
+      supportsLink: true,
+      supportsMentions: false,
+      supportsHashtags: false,
+      maxTextLength: 500_000,
+      maxHashtagCount: 0,
+      maxMediaCount: 0,
+      supportedMediaFormats: [],
+      supportsFetchMetrics: true,
+      supportsVerifyPublication: true,
+      destinationsMayRequireManualApproval: false,
+    };
+  },
   async publish(input: PublishInput): Promise<PublishResult> {
     const c = creds();
     if (!c) {
