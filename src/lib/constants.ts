@@ -240,3 +240,153 @@ export const CONTENT_CATEGORIES = [
   "other",
 ] as const;
 export type ContentCategory = (typeof CONTENT_CATEGORIES)[number];
+
+// ─────────────────────────────────────────────────────────────
+// Phase 3D.2c-i - Automation Engine (Job Engine) core
+// ─────────────────────────────────────────────────────────────
+export const AUTOMATION_ENGINE_VERSION = "northstar.automation.v1.0.0";
+export const AUTOMATION_REGISTRY_VERSION = "northstar.automation.registry.v1";
+export const AUTOMATION_AUDIT_VERSION = "northstar.automation.audit.v1";
+export const AUTOMATION_SIGNAL_VERSION = "northstar.automation.signal.v1";
+
+export const JOB_STATES = [
+  "queued",
+  "scheduled",
+  "blocked",
+  "running",
+  "retrying",
+  "succeeded",
+  "failed",
+  "cancelled",
+  "skipped",
+  "expired",
+] as const;
+export type JobState = (typeof JOB_STATES)[number];
+
+// States where an idempotency key must remain unique per (org, job_type).
+export const JOB_ACTIVE_STATES: readonly JobState[] = [
+  "queued",
+  "scheduled",
+  "blocked",
+  "running",
+  "retrying",
+];
+
+export const JOB_TERMINAL_STATES: readonly JobState[] = [
+  "succeeded",
+  "failed",
+  "cancelled",
+  "skipped",
+  "expired",
+];
+
+export const JOB_PRIORITIES = ["critical", "high", "normal", "low", "background"] as const;
+export type JobPriority = (typeof JOB_PRIORITIES)[number];
+
+// Deterministic weights for future queue ordering. Lower = higher urgency.
+export const JOB_PRIORITY_WEIGHT: Record<JobPriority, number> = {
+  critical: 0,
+  high: 10,
+  normal: 20,
+  low: 30,
+  background: 40,
+};
+
+export const JOB_TRIGGER_TYPES = [
+  "manual",
+  "scheduled",
+  "event",
+  "dependency",
+  "system",
+  "retry",
+  "recovery",
+] as const;
+export type JobTriggerType = (typeof JOB_TRIGGER_TYPES)[number];
+
+export const JOB_ACTOR_TYPES = [
+  "user",
+  "system",
+  "scheduler",
+  "worker",
+  "sam",
+  "integration",
+] as const;
+export type JobActorType = (typeof JOB_ACTOR_TYPES)[number];
+
+export const JOB_FAMILIES = [
+  "integration",
+  "intelligence",
+  "knowledge",
+  "memory",
+  "sam",
+  "social",
+  "analytics",
+  "financial",
+  "document",
+  "maintenance",
+  "notification",
+  "system",
+] as const;
+export type JobFamily = (typeof JOB_FAMILIES)[number];
+
+export const AUTOMATION_DEFINITION_STATES = [
+  "active",
+  "paused",
+  "disabled",
+  "archived",
+] as const;
+export type AutomationDefinitionState = (typeof AUTOMATION_DEFINITION_STATES)[number];
+
+export const AUTOMATION_HEALTH_BANDS = [
+  "healthy",
+  "watch",
+  "degraded",
+  "critical",
+  "unknown",
+] as const;
+export type AutomationHealthBand = (typeof AUTOMATION_HEALTH_BANDS)[number];
+
+export const JOB_ATTEMPT_STATES = [
+  "running",
+  "succeeded",
+  "failed",
+  "interrupted",
+  "timed_out",
+  "cancelled",
+] as const;
+export type JobAttemptState = (typeof JOB_ATTEMPT_STATES)[number];
+
+export const JOB_DEPENDENCY_TYPES = [
+  "requires_success",
+  "requires_completion",
+  "runs_after",
+  "optional",
+] as const;
+export type JobDependencyType = (typeof JOB_DEPENDENCY_TYPES)[number];
+
+// Centralized numeric limits so no magic numbers leak into handlers.
+export const AUTOMATION_LIMITS = {
+  maxQueuedJobsPerOrg: 5000,
+  maxConcurrentJobsPerOrg: 8,
+  maxConcurrentJobsPerVenture: 4,
+  maxAttempts: 8,
+  maxTimeoutSeconds: 86400, // 24h hard ceiling
+  defaultTimeoutSeconds: 300,
+  minTimeoutSeconds: 5,
+  maxDependencyDepth: 8,
+  maxDependenciesPerJob: 16,
+  maxPipelineJobs: 32,
+  maxJobPayloadBytes: 32 * 1024,
+  maxOutputSummaryBytes: 32 * 1024,
+  maxEventMetadataBytes: 8 * 1024,
+  maxHealthPayloadBytes: 8 * 1024,
+  maxSchedulerBatchSize: 100,
+  maxJobsPerSchedulerRun: 250,
+  maxRetriesPerHour: 60,
+  maxStaleRecoveryBatch: 100,
+  maxSignalsPerJob: 10,
+  maxEventsPerJob: 200,
+  minAutomationIntervalSeconds: 60,
+  maxJobListPageSize: 100,
+  maxIdempotencyKeyLength: 200,
+} as const;
