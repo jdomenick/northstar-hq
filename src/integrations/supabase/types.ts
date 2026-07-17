@@ -183,6 +183,520 @@ export type Database = {
           },
         ]
       }
+      automation_definitions: {
+        Row: {
+          asset_id: string | null
+          automation_family: string
+          automation_key: string
+          configuration: Json
+          consecutive_failures: number
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          enabled: boolean
+          id: string
+          integration_connection_id: string | null
+          last_failure_at: string | null
+          last_run_at: string | null
+          last_success_at: string | null
+          name: string
+          next_run_at: string | null
+          organization_id: string
+          owner_id: string | null
+          policy: Json
+          priority: string
+          schedule_expression: string | null
+          status: string
+          timezone: string
+          trigger_type: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          automation_family: string
+          automation_key: string
+          configuration?: Json
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          enabled?: boolean
+          id?: string
+          integration_connection_id?: string | null
+          last_failure_at?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          name: string
+          next_run_at?: string | null
+          organization_id: string
+          owner_id?: string | null
+          policy?: Json
+          priority?: string
+          schedule_expression?: string | null
+          status?: string
+          timezone?: string
+          trigger_type?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          automation_family?: string
+          automation_key?: string
+          configuration?: Json
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          enabled?: boolean
+          id?: string
+          integration_connection_id?: string | null
+          last_failure_at?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          name?: string
+          next_run_at?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          policy?: Json
+          priority?: string
+          schedule_expression?: string | null
+          status?: string
+          timezone?: string
+          trigger_type?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_definitions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_definitions_integration_connection_id_fkey"
+            columns: ["integration_connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_definitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_definitions_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_health_snapshots: {
+        Row: {
+          automation_definition_id: string | null
+          calculated_at: string
+          created_at: string
+          health_band: string
+          health_score: number
+          id: string
+          organization_id: string
+          signal_breakdown: Json
+          venture_id: string | null
+          version: string
+        }
+        Insert: {
+          automation_definition_id?: string | null
+          calculated_at?: string
+          created_at?: string
+          health_band: string
+          health_score: number
+          id?: string
+          organization_id: string
+          signal_breakdown?: Json
+          venture_id?: string | null
+          version?: string
+        }
+        Update: {
+          automation_definition_id?: string | null
+          calculated_at?: string
+          created_at?: string
+          health_band?: string
+          health_score?: number
+          id?: string
+          organization_id?: string
+          signal_breakdown?: Json
+          venture_id?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_health_snapshots_automation_definition_id_fkey"
+            columns: ["automation_definition_id"]
+            isOneToOne: false
+            referencedRelation: "automation_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_health_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_health_snapshots_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_job_attempts: {
+        Row: {
+          attempt_number: number
+          completed_at: string | null
+          created_at: string
+          duration_ms: number | null
+          error_code: string | null
+          external_reference: string | null
+          id: string
+          input_summary: Json
+          job_id: string
+          metadata: Json
+          organization_id: string
+          output_summary: Json
+          provider: string | null
+          started_at: string
+          status: string
+          worker_id: string | null
+        }
+        Insert: {
+          attempt_number: number
+          completed_at?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          external_reference?: string | null
+          id?: string
+          input_summary?: Json
+          job_id: string
+          metadata?: Json
+          organization_id: string
+          output_summary?: Json
+          provider?: string | null
+          started_at?: string
+          status?: string
+          worker_id?: string | null
+        }
+        Update: {
+          attempt_number?: number
+          completed_at?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          external_reference?: string | null
+          id?: string
+          input_summary?: Json
+          job_id?: string
+          metadata?: Json
+          organization_id?: string
+          output_summary?: Json
+          provider?: string | null
+          started_at?: string
+          status?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_job_attempts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_job_attempts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_job_dependencies: {
+        Row: {
+          created_at: string
+          dependency_type: string
+          depends_on_job_id: string
+          id: string
+          job_id: string
+          organization_id: string
+          required_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          dependency_type?: string
+          depends_on_job_id: string
+          id?: string
+          job_id: string
+          organization_id: string
+          required_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          dependency_type?: string
+          depends_on_job_id?: string
+          id?: string
+          job_id?: string
+          organization_id?: string
+          required_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_job_dependencies_depends_on_job_id_fkey"
+            columns: ["depends_on_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_job_dependencies_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_job_dependencies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_job_events: {
+        Row: {
+          actor_id: string | null
+          actor_type: string
+          created_at: string
+          event_key: string | null
+          event_type: string
+          id: string
+          job_id: string
+          metadata: Json
+          organization_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          event_key?: string | null
+          event_type: string
+          id?: string
+          job_id: string
+          metadata?: Json
+          organization_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          event_key?: string | null
+          event_type?: string
+          id?: string
+          job_id?: string
+          metadata?: Json
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_job_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_job_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_jobs: {
+        Row: {
+          actor_type: string
+          asset_id: string | null
+          attempt_number: number
+          automation_definition_id: string | null
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_code: string | null
+          handler_version: string
+          id: string
+          idempotency_key: string
+          input_payload: Json
+          integration_connection_id: string | null
+          integration_source_id: string | null
+          job_family: string
+          job_type: string
+          max_attempts: number
+          organization_id: string
+          output_summary: Json
+          parent_job_id: string | null
+          policy_version: string
+          priority: string
+          retry_after: string | null
+          root_job_id: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          timeout_seconds: number
+          trigger_type: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          actor_type?: string
+          asset_id?: string | null
+          attempt_number?: number
+          automation_definition_id?: string | null
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_code?: string | null
+          handler_version?: string
+          id?: string
+          idempotency_key: string
+          input_payload?: Json
+          integration_connection_id?: string | null
+          integration_source_id?: string | null
+          job_family: string
+          job_type: string
+          max_attempts?: number
+          organization_id: string
+          output_summary?: Json
+          parent_job_id?: string | null
+          policy_version?: string
+          priority?: string
+          retry_after?: string | null
+          root_job_id?: string | null
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          timeout_seconds?: number
+          trigger_type?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          actor_type?: string
+          asset_id?: string | null
+          attempt_number?: number
+          automation_definition_id?: string | null
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_code?: string | null
+          handler_version?: string
+          id?: string
+          idempotency_key?: string
+          input_payload?: Json
+          integration_connection_id?: string | null
+          integration_source_id?: string | null
+          job_family?: string
+          job_type?: string
+          max_attempts?: number
+          organization_id?: string
+          output_summary?: Json
+          parent_job_id?: string | null
+          policy_version?: string
+          priority?: string
+          retry_after?: string | null
+          root_job_id?: string | null
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          timeout_seconds?: number
+          trigger_type?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_jobs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_automation_definition_id_fkey"
+            columns: ["automation_definition_id"]
+            isOneToOne: false
+            referencedRelation: "automation_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_integration_connection_id_fkey"
+            columns: ["integration_connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_integration_source_id_fkey"
+            columns: ["integration_source_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_parent_job_id_fkey"
+            columns: ["parent_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_root_job_id_fkey"
+            columns: ["root_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_jobs_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commitments: {
         Row: {
           completed_at: string | null
