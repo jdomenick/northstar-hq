@@ -48,12 +48,12 @@ export function CalendarView(props: {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-3">
         <div className="flex items-center gap-4">
           <SectionLabel>Editorial calendar</SectionLabel>
-          <StatusLine tone="quiet">Timezone {props.timezone}</StatusLine>
+          <StatusLine tone="muted">Timezone {props.timezone}</StatusLine>
           {props.emergencyPause && (
-            <StatusLine tone="alert">Emergency pause engaged</StatusLine>
+            <StatusLine tone="critical">Emergency pause engaged</StatusLine>
           )}
           {!props.publishingEnabled && (
-            <StatusLine tone="quiet">Publishing disabled at venture</StatusLine>
+            <StatusLine tone="muted">Publishing disabled at venture</StatusLine>
           )}
         </div>
         <div className="flex items-center gap-1 text-xs uppercase tracking-wider">
