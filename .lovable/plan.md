@@ -1,3 +1,43 @@
+
+---
+
+## Phase 3 Prep — Internal SAM route rename plan
+
+All user-facing text already says "SAM". Internals still use `operator` so the
+cutover is one deliberate migration.
+
+**Files to rename**
+- `src/routes/_authenticated/operator.tsx` → `src/routes/_authenticated/sam.tsx`
+- Component `OperatorPage` → `SamPage`
+
+**Files to update**
+- `src/components/app-shell.tsx` — `NAV` item `to: "/operator"` → `"/sam"`; the
+  `to` union type; the Phase-3 pill match in the command palette.
+- `src/routes/_authenticated/settings.tsx` — section key `"operator"` → `"sam"`
+  (and the guard array immediately below).
+- Any future links to `/operator` (none in tree today — verify with
+  `rg -n '"/operator"' src/`).
+
+**Generated tree**
+- `src/routeTree.gen.ts` regenerates automatically once `operator.tsx` is
+  removed and `sam.tsx` exists. Never hand-edit it.
+
+**Redirect strategy**
+- Add `src/routes/_authenticated/operator.tsx` back as a one-line redirect:
+  `createFileRoute("/_authenticated/operator")({ beforeLoad: () => { throw
+  redirect({ to: "/sam" }); } })`. Keep it for at least one release.
+
+**Settings identifier migration**
+- The section key `"operator"` is UI-local (Tabs value). Change in one commit;
+  no database column stores it.
+
+**Do NOT touch in Phase 3 rename**
+- `conversation_message_role` enum value `"operator"` in Supabase — that is
+  an unrelated conversational role and renaming it is a breaking schema
+  change with no user value.
+- `decisions.operator_recommendation` column — persisted historical data;
+  rename only if SAM intelligence needs a different column, and only via a
+  migration with a data copy.
 ## Phase 2 — Realistic Sequencing
 
 The Phase 2 spec covers ~13 domains, dozens of screens, full CRUD + detail pages, filters, board views, structured JSONB editors, document uploads, global search, activity logging, member management, and permission gating. Delivering all of it correctly in one turn would produce shallow, buggy code across every module. I want to split it into four focused sub-phases so each ships working, tested, and matches the premium UI bar.
