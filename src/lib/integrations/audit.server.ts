@@ -2,11 +2,15 @@
 // results here so integration_sync_runs is the single source of truth.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import type { IntegrationSyncStatus, SyncRunSummary } from "./types";
 import type { IntegrationErrorCode } from "./errors";
 
 type SB = SupabaseClient<Database>;
+
+function toJson(value: Record<string, unknown> | undefined): Json {
+  return (value ?? {}) as unknown as Json;
+}
 
 export interface OpenSyncRunInput {
   organizationId: string;
@@ -29,7 +33,7 @@ export async function openSyncRun(supabase: SB, input: OpenSyncRunInput) {
       trigger_type: input.triggerType ?? "manual",
       status: "running" as IntegrationSyncStatus,
       started_at: nowIso,
-      metadata: input.metadata ?? {},
+      metadata: toJson(input.metadata),
     })
     .select("id, started_at")
     .single();
@@ -62,7 +66,7 @@ export async function closeSyncRun(supabase: SB, input: CloseSyncRunInput) {
       records_failed: input.summary.failed,
       failure_code: input.failureCode ?? null,
       failure_message: input.failureMessage ?? null,
-      metadata: input.metadata ?? {},
+      metadata: toJson(input.metadata),
     })
     .eq("id", input.runId);
 }
@@ -74,19 +78,39 @@ export async function stampConnectionSync(
   opts: { successful: boolean; errorCode?: IntegrationErrorCode | null; nextCursor?: unknown },
 ) {
   const now = new Date().toISOString();
-  const patch: Record<string, unknown> = { last_sync_at: now };
+  const base = { last_sync_at: now } as const;
   if (opts.successful) {
-    patch.last_successful_sync_at = now;
-    patch.status = "active";
-    patch.last_error_code = null;
-    patch.last_error_at = null;
+    await supabase
+      .from("integration_connections")
+      .update({
+        ...base,
+        last_successful_sync_at: now,
+        status: "active",
+        last_error_code: null,
+        last_error_at: null,
+        ...(opts.nextCursor !== undefined ? { next_cursor: opts.nextCursor as Json } : {}),
+      })
+      .eq("id", connectionId);
   } else if (opts.errorCode) {
-    patch.status = "error";
-    patch.last_error_code = opts.errorCode;
-    patch.last_error_at = now;
+    await supabase
+      .from("integration_connections")
+      .update({
+        ...base,
+        status: "error",
+        last_error_code: opts.errorCode,
+        last_error_at: now,
+        ...(opts.nextCursor !== undefined ? { next_cursor: opts.nextCursor as Json } : {}),
+      })
+      .eq("id", connectionId);
+  } else {
+    await supabase
+      .from("integration_connections")
+      .update({
+        ...base,
+        ...(opts.nextCursor !== undefined ? { next_cursor: opts.nextCursor as Json } : {}),
+      })
+      .eq("id", connectionId);
   }
-  if (opts.nextCursor !== undefined) patch.next_cursor = opts.nextCursor;
-  await supabase.from("integration_connections").update(patch).eq("id", connectionId);
 }
 
 export async function stampSourceSync(
@@ -95,7 +119,6 @@ export async function stampSourceSync(
   successful: boolean,
 ) {
   const now = new Date().toISOString();
-  const patch: Record<string, unknown> = { last_synced_at: now };
-  await supabase.from("integration_sources").update(patch).eq("id", sourceId);
+  await supabase.from("integration_sources").update({ last_synced_at: now }).eq("id", sourceId);
   void successful; // reserved for future per-source failure bookkeeping
 }
