@@ -27,6 +27,7 @@ import {
   SCHEDULE_GATES_VERSION,
   type ScheduleGateFailure,
   type ScheduleGateContext,
+  type ScheduleGateCode,
 } from "./schedule-gates";
 import { resolveVentureTimezone, wallTimeToUtc } from "./timezone";
 import { findExactDuplicate } from "@/lib/social/deduplication.server";
@@ -36,6 +37,25 @@ type SB = SupabaseClient<Database>;
 
 const uuid = z.string().uuid();
 const org = { organizationId: uuid, ventureId: uuid };
+
+// JSON-safe response shape for gate failures. TanStack serializer refuses
+// `Record<string, unknown>` payloads, so we normalize to a Json-safe form
+// before returning.
+export interface JsonFailure {
+  gate: ScheduleGateCode;
+  severity: "blocking" | "editorial_only";
+  reason: string;
+  details: Json;
+}
+
+function toJsonFailures(failures: ScheduleGateFailure[]): JsonFailure[] {
+  return failures.map((f) => ({
+    gate: f.gate,
+    severity: f.severity,
+    reason: f.reason,
+    details: f.details ? (JSON.parse(JSON.stringify(f.details)) as Json) : null,
+  }));
+}
 
 /* ---------------------------------------------------------------------- */
 /* Shared context loaders                                                 */
@@ -55,7 +75,7 @@ async function loadItem(supabase: SB, orgId: string, ventureId: string, itemId: 
   const { data, error } = await supabase
     .from("social_content_items")
     .select(
-      "id, organization_id, venture_id, platform, content_type, status, approval_status, approved_content_version, content_version, external_post_id, duplicate_fingerprint, scheduled_for, body, title, hook, cta, hashtags, media_requirements, media_status, risk_band, newsletter_subject, social_account_id, deleted_at",
+      "id, organization_id, venture_id, platform, content_type, status, approval_status, approved_content_version, content_version, external_post_id, duplicate_fingerprint, scheduled_for, body, title, hook, cta, hashtags, media_requirements, media_status, risk_band, newsletter_subject, social_account_id, parent_content_item_id, deleted_at",
     )
     .eq("id", itemId)
     .eq("organization_id", orgId)
