@@ -89,3 +89,23 @@ export const DetachAssetInput = z.object({ organizationId: uuid, ventureId: uuid
 export const ListDestinationsInput = z.object({ organizationId: uuid, ventureId: uuid.nullable().optional() });
 export const ExplainBlockedInput = z.object({ organizationId: uuid, ventureId: uuid, contentItemId: uuid });
 export const PublishOpInput = z.object({ organizationId: uuid, ventureId: uuid, contentItemId: uuid });
+
+// Inferred TS types matching each schema. Consumers use these for handler
+// signatures without repeatedly writing z.infer.
+export type CreateSocialPlanInput = z.infer<typeof CreateSocialPlanInput>;
+export type CreatePlatformVariantsInput = z.infer<typeof CreatePlatformVariantsInput>;
+export type EditVariantInput = z.infer<typeof EditVariantInput>;
+export type ApprovalRefInput = z.infer<typeof ApprovalRefInput>;
+export type RejectVariantInput = z.infer<typeof RejectVariantInput>;
+export type RequestRevisionInput = z.infer<typeof RequestRevisionInput>;
+export type ApproveBatchInput = z.infer<typeof ApproveBatchInput>;
+export type ScheduleVariantOpInput = z.infer<typeof ScheduleVariantOpInput>;
+export type UnscheduleOpInput = z.infer<typeof UnscheduleOpInput>;
+export type ScheduleBatchOpInput = z.infer<typeof ScheduleBatchOpInput>;
+export type PauseOpInput = z.infer<typeof PauseOpInput>;
+export type ResumeOpInput = z.infer<typeof ResumeOpInput>;
+export type AttachAssetInput = z.infer<typeof AttachAssetInput>;
+export type DetachAssetInput = z.infer<typeof DetachAssetInput>;
+export type ListDestinationsInput = z.infer<typeof ListDestinationsInput>;
+export type ExplainBlockedInput = z.infer<typeof ExplainBlockedInput>;
+export type PublishOpInput = z.infer<typeof PublishOpInput>;
