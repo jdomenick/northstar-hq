@@ -68,6 +68,245 @@ export type Database = {
           },
         ]
       }
+      asset_collection_items: {
+        Row: {
+          added_by: string | null
+          collection_id: string
+          created_at: string
+          display_order: number
+          id: string
+          media_asset_id: string
+          organization_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          collection_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_asset_id: string
+          organization_id: string
+        }
+        Update: {
+          added_by?: string | null
+          collection_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_asset_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "asset_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_collection_items_media_asset_id_fkey"
+            columns: ["media_asset_id"]
+            isOneToOne: false
+            referencedRelation: "content_media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_collection_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_collections: {
+        Row: {
+          archived: boolean
+          color: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          scope: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          archived?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          scope?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          archived?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          scope?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_collections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_collections_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          media_asset_id: string
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_asset_id: string
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_asset_id?: string
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_favorites_media_asset_id_fkey"
+            columns: ["media_asset_id"]
+            isOneToOne: false
+            referencedRelation: "content_media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_favorites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_folders: {
+        Row: {
+          archived: boolean
+          color: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          owner_user_id: string | null
+          parent_folder_id: string | null
+          scope: string
+          slug: string | null
+          sort_order: number
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          archived?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          owner_user_id?: string | null
+          parent_folder_id?: string | null
+          scope?: string
+          slug?: string | null
+          sort_order?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          archived?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          owner_user_id?: string | null
+          parent_folder_id?: string | null
+          scope?: string
+          slug?: string | null
+          sort_order?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_folders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "asset_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_folders_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_types: {
         Row: {
           category: string | null
@@ -918,6 +1157,7 @@ export type Database = {
           display_name: string | null
           duration_seconds: number | null
           file_size_bytes: number | null
+          folder_id: string | null
           generated_at: string | null
           generation_model: string | null
           generation_negative_prompt: string | null
@@ -964,6 +1204,7 @@ export type Database = {
           display_name?: string | null
           duration_seconds?: number | null
           file_size_bytes?: number | null
+          folder_id?: string | null
           generated_at?: string | null
           generation_model?: string | null
           generation_negative_prompt?: string | null
@@ -1010,6 +1251,7 @@ export type Database = {
           display_name?: string | null
           duration_seconds?: number | null
           file_size_bytes?: number | null
+          folder_id?: string | null
           generated_at?: string | null
           generation_model?: string | null
           generation_negative_prompt?: string | null
@@ -1045,6 +1287,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_assets_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "asset_folders"
             referencedColumns: ["id"]
           },
           {
