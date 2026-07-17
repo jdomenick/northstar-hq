@@ -184,9 +184,21 @@ notYet({ ...socialCommon, key: "social_content_generate", displayName: "Social C
 notYet({ ...socialCommon, key: "social_content_review", displayName: "Social Content Review",
   defaultPriority: "normal", dependencyBehavior: "chained",
   createsExternalSideEffects: false, mayRequireApproval: true });
-notYet({ ...socialCommon, key: "social_publish", displayName: "Social Publish",
-  defaultPriority: "high", dependencyBehavior: "chained",
-  createsExternalSideEffects: true, mayRequireApproval: true });
+// social_publish: implemented in 6a as a gated skeleton. Handler enforces
+// the nine pre-publish gates and stays disarmed unless BEEHIIV_PUBLISH_ARMED.
+registerJob({
+  ...socialCommon,
+  key: "social_publish",
+  displayName: "Social Publish",
+  defaultPriority: "high",
+  dependencyBehavior: "chained",
+  createsExternalSideEffects: true,
+  mayRequireApproval: true,
+  handlerVersion: "beehiiv.publish.v1-6a",
+  implementationStatus: "implemented",
+  inputSchema: permissiveSchema,
+  outputSchema: permissiveSchema,
+});
 notYet({ ...socialCommon, key: "social_metrics_sync", displayName: "Social Metrics Sync",
   defaultPriority: "normal", dependencyBehavior: "independent",
   createsExternalSideEffects: false, mayRequireApproval: false });
