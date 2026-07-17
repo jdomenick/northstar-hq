@@ -128,7 +128,7 @@ test("createSocialPlan input requires 1+ platforms and a valid ISO period", asyn
   const ok = CreateSocialPlanInput.parse({
     organizationId: "00000000-0000-0000-0000-000000000000",
     ventureId: "00000000-0000-0000-0000-000000000000",
-    name: "Q3",
+    name: "Q3 launch plan",
     strategyPeriodStart: "2026-08-01T00:00:00Z",
     strategyPeriodEnd: "2026-08-31T00:00:00Z",
     platforms: ["linkedin", "x"],
