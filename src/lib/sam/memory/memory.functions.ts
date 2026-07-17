@@ -360,3 +360,18 @@ export const resolveMemoryConflict = createServerFn({ method: "POST" })
     if (error) throw new SamError("unknown_error", error.message);
     return { ok: true };
   });
+
+// ---- getMemoryReliability --------------------------------------------------
+export const getMemoryReliability = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ organizationId: z.string().uuid(), id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMembership(supabase, data.organizationId, userId);
+    const { computeMemoryReliability } = await import("./reliability.server");
+    const r = await computeMemoryReliability(supabase, data.organizationId, data.id);
+    if (!r) throw new SamError("memory_not_found");
+    return r;
+  });

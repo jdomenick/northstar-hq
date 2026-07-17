@@ -35,6 +35,7 @@ export type MemberStatus = Database["public"]["Enums"]["member_status"];
 // ─────────────────────────────────────────────────────────────
 export type SamMemoryItem = Database["public"]["Tables"]["sam_memory_items"]["Row"];
 export type SamMemoryConflict = Database["public"]["Tables"]["sam_memory_conflicts"]["Row"];
+export type SamMemoryVersion = Database["public"]["Tables"]["sam_memory_versions"]["Row"];
 export type SamMemoryLayer = Database["public"]["Enums"]["sam_memory_layer"];
 export type SamMemoryStatus = Database["public"]["Enums"]["sam_memory_status"];
 export type SamSettingsRow = Database["public"]["Tables"]["sam_settings"]["Row"];

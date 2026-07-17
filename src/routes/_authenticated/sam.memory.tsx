@@ -11,6 +11,7 @@ import { useVentures } from "@/lib/data-hooks";
 import {
   listMemory,
   createMemory,
+  updateMemory,
   confirmMemory,
   rejectMemory,
   disputeMemory,
@@ -19,8 +20,9 @@ import {
   restoreMemory,
   listMemoryConflicts,
   resolveMemoryConflict,
+  listMemoryVersions,
 } from "@/lib/sam/memory/memory.functions";
-import type { SamMemoryItem, SamMemoryLayer, SamMemoryStatus } from "@/lib/data-hooks";
+import type { SamMemoryItem, SamMemoryLayer, SamMemoryStatus, SamMemoryVersion } from "@/lib/data-hooks";
 
 export const Route = createFileRoute("/_authenticated/sam/memory")({
   component: SamMemoryPage,
@@ -180,6 +182,8 @@ function MemoryList({
   emphasize?: SamMemoryStatus;
 }) {
   const { activeOrgId } = useOrg();
+  const [editItem, setEditItem] = useState<SamMemoryItem | null>(null);
+  const [versionsItem, setVersionsItem] = useState<SamMemoryItem | null>(null);
   const confirmFn = useServerFn(confirmMemory);
   const rejectFn = useServerFn(rejectMemory);
   const disputeFn = useServerFn(disputeMemory);
@@ -205,6 +209,7 @@ function MemoryList({
   if (items.length === 0) return <p className="text-[13px] text-muted-foreground">No memory items match.</p>;
 
   return (
+    <>
     <ul className="divide-y divide-border/60">
       {items.map((m) => (
         <li key={m.id} id={m.id} className="grid grid-cols-[1fr_auto] gap-4 py-4">
@@ -235,6 +240,10 @@ function MemoryList({
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
+            <div className="flex gap-1">
+              <ActionBtn tone="muted" onClick={() => setEditItem(m)}>Edit</ActionBtn>
+              <ActionBtn tone="muted" onClick={() => setVersionsItem(m)}>History</ActionBtn>
+            </div>
             {m.status === "proposed" && (
               <>
                 <ActionBtn onClick={() => act.mutate({ id: m.id, action: "confirm" })}>Confirm</ActionBtn>
@@ -258,6 +267,22 @@ function MemoryList({
         </li>
       ))}
     </ul>
+    {editItem && (
+      <MemoryEditorDialog
+        item={editItem}
+        orgId={activeOrgId}
+        onClose={() => setEditItem(null)}
+        onSaved={() => { setEditItem(null); onChanged(); }}
+      />
+    )}
+    {versionsItem && (
+      <VersionHistoryDrawer
+        item={versionsItem}
+        orgId={activeOrgId}
+        onClose={() => setVersionsItem(null)}
+      />
+    )}
+    </>
   );
 }
 
@@ -392,6 +417,139 @@ function CreateMemoryDialog({
           <button disabled={pending} onClick={submit} className="rounded-md bg-foreground px-3 py-1.5 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
             {pending ? "Saving…" : "Create"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MemoryEditorDialog({
+  item, orgId, onClose, onSaved,
+}: {
+  item: SamMemoryItem;
+  orgId: string | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const updateFn = useServerFn(updateMemory);
+  const [title, setTitle] = useState(item.title);
+  const [statement, setStatement] = useState(item.statement);
+  const [category, setCategory] = useState(item.category);
+  const [changeReason, setChangeReason] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function save() {
+    if (!orgId || !title.trim() || !statement.trim()) return;
+    setPending(true);
+    try {
+      await updateFn({
+        data: {
+          organizationId: orgId,
+          id: item.id,
+          patch: {
+            title: title.trim(),
+            statement: statement.trim(),
+            category: category.trim() || "general",
+          },
+          change_reason: changeReason.trim() || undefined,
+        },
+      });
+      toast.success("Memory updated");
+      onSaved();
+    } catch (e) {
+      toast.error((e as Error).message || "Update failed");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-background p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4">
+          <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">SAM · Memory</div>
+          <h2 className="mt-0.5 font-display text-[20px] text-foreground">Edit memory</h2>
+        </div>
+        <div className="space-y-3 text-[13px]">
+          <label className="block">
+            <span className="text-muted-foreground">Category</span>
+            <input value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 w-full rounded-md bg-secondary/40 px-2 py-2 outline-none" />
+          </label>
+          <label className="block">
+            <span className="text-muted-foreground">Title</span>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-md bg-secondary/40 px-2 py-2 outline-none" />
+          </label>
+          <label className="block">
+            <span className="text-muted-foreground">Statement</span>
+            <textarea value={statement} onChange={(e) => setStatement(e.target.value)} rows={5} className="mt-1 w-full resize-none rounded-md bg-secondary/40 px-2 py-2 outline-none" />
+          </label>
+          <label className="block">
+            <span className="text-muted-foreground">Change reason (optional)</span>
+            <input value={changeReason} onChange={(e) => setChangeReason(e.target.value)} placeholder="Why is this being changed?" className="mt-1 w-full rounded-md bg-secondary/40 px-2 py-2 outline-none" />
+          </label>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-md px-3 py-1.5 text-[12.5px] text-muted-foreground hover:text-foreground">Cancel</button>
+          <button disabled={pending} onClick={save} className="rounded-md bg-foreground px-3 py-1.5 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
+            {pending ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VersionHistoryDrawer({
+  item, orgId, onClose,
+}: {
+  item: SamMemoryItem;
+  orgId: string | null;
+  onClose: () => void;
+}) {
+  const listFn = useServerFn(listMemoryVersions);
+  const versionsQ = useQuery({
+    enabled: !!orgId,
+    queryKey: ["sam.memory.versions", orgId, item.id],
+    queryFn: async (): Promise<SamMemoryVersion[]> =>
+      (await listFn({ data: { organizationId: orgId!, id: item.id } })) as SamMemoryVersion[],
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60" onClick={onClose}>
+      <div className="flex h-full w-full max-w-md flex-col border-l border-border bg-background" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-border p-5">
+          <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">SAM · Memory</div>
+          <h2 className="mt-0.5 font-display text-[18px] text-foreground">Version history</h2>
+          <p className="mt-1 text-[12px] text-muted-foreground line-clamp-2">{item.title}</p>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">
+          {versionsQ.isLoading ? (
+            <div className="h-24 animate-pulse rounded-lg bg-card/30" />
+          ) : (versionsQ.data ?? []).length === 0 ? (
+            <p className="text-[12.5px] text-muted-foreground">No versions recorded.</p>
+          ) : (
+            <ul className="space-y-3">
+              {(versionsQ.data ?? []).map((v) => {
+                const snap = (v.snapshot ?? {}) as Record<string, unknown>;
+                return (
+                  <li key={v.id} className="rounded-lg border border-border/60 bg-card/30 p-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">v{v.version_number} · {v.change_type}</span>
+                      <span className="text-[10.5px] text-muted-foreground/70">{v.created_at.slice(0,16).replace("T"," ")}</span>
+                    </div>
+                    <div className="mt-1 text-[13px] text-foreground">{String(snap.title ?? "")}</div>
+                    <p className="mt-0.5 text-[12px] text-muted-foreground line-clamp-3">{String(snap.statement ?? "")}</p>
+                    {v.change_reason && (
+                      <p className="mt-1 text-[11px] italic text-muted-foreground/80">{v.change_reason}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="border-t border-border p-4 text-right">
+          <button onClick={onClose} className="rounded-md px-3 py-1.5 text-[12.5px] text-muted-foreground hover:text-foreground">Close</button>
         </div>
       </div>
     </div>
