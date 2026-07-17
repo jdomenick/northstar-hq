@@ -90,6 +90,57 @@ export const ListDestinationsInput = z.object({ organizationId: uuid, ventureId:
 export const ExplainBlockedInput = z.object({ organizationId: uuid, ventureId: uuid, contentItemId: uuid });
 export const PublishOpInput = z.object({ organizationId: uuid, ventureId: uuid, contentItemId: uuid });
 
+/* Retrieval / status ----------------------------------------------------- */
+
+export const RetrieveApprovalQueueInput = z.object({
+  organizationId: uuid,
+  ventureId: uuid.nullable().optional(),
+  limit: z.number().int().min(1).max(200).default(50),
+});
+export const RetrieveScheduledContentInput = z.object({
+  organizationId: uuid,
+  ventureId: uuid.nullable().optional(),
+  fromIso: z.string().datetime().optional(),
+  toIso: z.string().datetime().optional(),
+  limit: z.number().int().min(1).max(200).default(100),
+});
+export const RetrievePublicationStatusInput = z.object({
+  organizationId: uuid, ventureId: uuid, contentItemId: uuid,
+});
+export const RetrievePerformanceInput = z.object({
+  organizationId: uuid, ventureId: uuid,
+  contentItemId: uuid.optional(),
+  sinceIso: z.string().datetime().optional(),
+  limit: z.number().int().min(1).max(500).default(100),
+});
+export const RetrieveLearningsInput = z.object({
+  organizationId: uuid, ventureId: uuid,
+  platform: z.string().max(60).optional(),
+  limit: z.number().int().min(1).max(100).default(30),
+});
+export const RecommendNextPlanInput = z.object({
+  organizationId: uuid, ventureId: uuid,
+  lookbackDays: z.number().int().min(1).max(180).default(30),
+});
+export const ValidateSocialConnectionInput = z.object({
+  organizationId: uuid, ventureId: uuid.nullable().optional(),
+  platform: z.string().min(1).max(60),
+});
+export const SuggestCreativeBriefInput = z.object({
+  organizationId: uuid, ventureId: uuid,
+  contentItemId: uuid,
+  focus: z.string().max(500).optional(),
+});
+
+export type RetrieveApprovalQueueInput = z.infer<typeof RetrieveApprovalQueueInput>;
+export type RetrieveScheduledContentInput = z.infer<typeof RetrieveScheduledContentInput>;
+export type RetrievePublicationStatusInput = z.infer<typeof RetrievePublicationStatusInput>;
+export type RetrievePerformanceInput = z.infer<typeof RetrievePerformanceInput>;
+export type RetrieveLearningsInput = z.infer<typeof RetrieveLearningsInput>;
+export type RecommendNextPlanInput = z.infer<typeof RecommendNextPlanInput>;
+export type ValidateSocialConnectionInput = z.infer<typeof ValidateSocialConnectionInput>;
+export type SuggestCreativeBriefInput = z.infer<typeof SuggestCreativeBriefInput>;
+
 // Inferred TS types matching each schema. Consumers use these for handler
 // signatures without repeatedly writing z.infer.
 export type CreateSocialPlanInput = z.infer<typeof CreateSocialPlanInput>;

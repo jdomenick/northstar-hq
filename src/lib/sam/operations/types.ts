@@ -56,6 +56,15 @@ export const SAM_OPERATION_NAMES = [
   // Connections / status
   "explainBlockedPublication",
   "listPublishingDestinations",
+  // Retrieval / status
+  "retrieveApprovalQueue",
+  "retrieveScheduledContent",
+  "retrievePublicationStatus",
+  "retrievePerformance",
+  "retrieveLearnings",
+  "recommendNextPlan",
+  "validateSocialConnection",
+  "suggestCreativeBrief",
 ] as const;
 
 export type SamOperationName = (typeof SAM_OPERATION_NAMES)[number];
@@ -72,7 +81,9 @@ export interface AffectedRecord {
     | "content_ops_autonomy"
     | "content_ops_approval"
     | "content_media_asset"
-    | "content_media_attachment";
+    | "content_media_attachment"
+    | "content_learning"
+    | "social_account";
   id: string;
   /** Route the UI can link to for this record, if any. */
   href?: string | null;
