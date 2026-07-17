@@ -64,7 +64,6 @@ export const SAM_OPERATION_NAMES = [
   "retrieveLearnings",
   "recommendNextPlan",
   "validateSocialConnection",
-  "suggestCreativeBrief",
 ] as const;
 
 export type SamOperationName = (typeof SAM_OPERATION_NAMES)[number];
