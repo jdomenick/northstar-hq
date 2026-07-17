@@ -56,21 +56,21 @@ function CommitmentDetail() {
   const displayedStatus: string = overdue && c.status !== "overdue" ? "overdue" : c.status;
 
   async function patch(next: Partial<Commitment>) {
-    try { await update.mutateAsync({ id: c!.id, patch: next, prev: c }); }
+    try { await update.mutateAsync({ id: c!.id, patch: next, prev: c! }); }
     catch (err) { toast.error(err instanceof Error ? err.message : "Update failed"); }
   }
 
   async function complete() {
-    try { await update.mutateAsync({ id: c!.id, patch: { status: "completed" }, prev: c }); toast.success("Marked complete"); }
+    try { await update.mutateAsync({ id: c!.id, patch: { status: "completed" }, prev: c! }); toast.success("Marked complete"); }
     catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
   }
   async function reopen() {
-    try { await update.mutateAsync({ id: c!.id, patch: { status: "in_progress" }, prev: c }); toast.success("Reopened"); }
+    try { await update.mutateAsync({ id: c!.id, patch: { status: "in_progress" }, prev: c! }); toast.success("Reopened"); }
     catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
   }
   async function cancel() {
     if (!confirm("Cancel this commitment? It stays on record.")) return;
-    try { await update.mutateAsync({ id: c!.id, patch: { status: "canceled" }, prev: c }); toast.success("Canceled"); }
+    try { await update.mutateAsync({ id: c!.id, patch: { status: "canceled" }, prev: c! }); toast.success("Canceled"); }
     catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
   }
   async function onArchive() {

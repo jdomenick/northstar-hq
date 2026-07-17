@@ -26,6 +26,7 @@ import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authe
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
+import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -114,6 +115,12 @@ const AuthenticatedDecisionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedDecisionsRoute,
   } as any)
+const AuthenticatedCommitmentsIdRoute =
+  AuthenticatedCommitmentsIdRouteImport.update({
+    id: '/commitments/$id',
+    path: '/commitments/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
+  '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/ventures'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/commitments/$id'
     | '/decisions/$id'
     | '/projects/$id'
     | '/ventures/$id'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/'
+    | '/commitments/$id'
     | '/decisions/$id'
     | '/projects/$id'
     | '/ventures/$id'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/_authenticated/'
+    | '/_authenticated/commitments/$id'
     | '/_authenticated/decisions/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/ventures/$id'
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDecisionsIdRouteImport
       parentRoute: typeof AuthenticatedDecisionsRoute
     }
+    '/_authenticated/commitments/$id': {
+      id: '/_authenticated/commitments/$id'
+      path: '/commitments/$id'
+      fullPath: '/commitments/$id'
+      preLoaderRoute: typeof AuthenticatedCommitmentsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -409,6 +429,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCommitmentsIdRoute: typeof AuthenticatedCommitmentsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -421,6 +442,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCommitmentsIdRoute: AuthenticatedCommitmentsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
