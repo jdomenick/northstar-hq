@@ -69,11 +69,27 @@ function notYet(reg: Registration): void {
 }
 
 // Integration family
-notYet({ key: "website_sync", displayName: "Website Sync", family: "integration",
-  supportedScopes: ["integration"], defaultPriority: "normal", defaultTimeoutSeconds: 300,
-  defaultMaxAttempts: 4, retryPolicy: { kind: "exponential", maxAttempts: 4, baseDelaySeconds: 60, maxDelaySeconds: 1800 },
-  idempotencyStrategy: "org_source_window", dependencyBehavior: "independent",
-  createsExternalSideEffects: false, mayRequireApproval: false, handlerVersion: "v0" });
+// website_sync is the first implemented handler (3D.2c-ii). Handler lives
+// in src/lib/automation/jobs/website-sync.server.ts and self-registers
+// when src/lib/automation/executor.server.ts is loaded.
+registerJob({
+  key: "website_sync",
+  displayName: "Website Sync",
+  family: "integration",
+  supportedScopes: ["integration"],
+  defaultPriority: "normal",
+  defaultTimeoutSeconds: 300,
+  defaultMaxAttempts: 4,
+  retryPolicy: { kind: "exponential", maxAttempts: 4, baseDelaySeconds: 60, maxDelaySeconds: 1800 },
+  idempotencyStrategy: "org_source_window",
+  dependencyBehavior: "independent",
+  createsExternalSideEffects: false,
+  mayRequireApproval: false,
+  handlerVersion: "v1",
+  implementationStatus: "implemented",
+  inputSchema: permissiveSchema,
+  outputSchema: permissiveSchema,
+});
 notYet({ key: "website_discovery", displayName: "Website Discovery", family: "integration",
   supportedScopes: ["integration"], defaultPriority: "normal", defaultTimeoutSeconds: 300,
   defaultMaxAttempts: 3, retryPolicy: { kind: "exponential", maxAttempts: 3, baseDelaySeconds: 60 },
