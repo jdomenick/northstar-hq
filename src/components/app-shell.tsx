@@ -295,22 +295,26 @@ export function AppShell({ children }: { children: ReactNode }) {
               </CommandItem>
             ))}
           </CommandGroup>
-          <CommandGroup heading="Ventures">
-            {["Healing Path", "Elite Fleet Rides", "Light In The Tunnel", "Personal Brand"].map(
-              (v) => (
-                <CommandItem
-                  key={v}
-                  value={v}
-                  onSelect={() => {
-                    setCmdOpen(false);
-                    navigate({ to: "/ventures" });
-                  }}
-                >
-                  <Building2 className="mr-2 h-4 w-4" />
-                  {v}
-                </CommandItem>
-              ),
-            )}
+          <CommandGroup heading="Quick actions">
+            {[
+              "Create your first venture",
+              "Add a business",
+              "Add a nonprofit",
+              "Add a personal brand",
+              "Add a new initiative",
+            ].map((v) => (
+              <CommandItem
+                key={v}
+                value={v}
+                onSelect={() => {
+                  setCmdOpen(false);
+                  navigate({ to: "/ventures" });
+                }}
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                {v}
+              </CommandItem>
+            ))}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
