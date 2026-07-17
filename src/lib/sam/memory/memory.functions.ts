@@ -377,3 +377,117 @@ export const getMemoryReliability = createServerFn({ method: "POST" })
     if (!r) throw new SamError("memory_not_found");
     return r;
   });
+
+// ---- supersedeMemory (Phase 3D.3a) ----------------------------------------
+// "Replace with a newer truth". Marks the old row `superseded` and inserts a
+// fresh confirmed row carrying the corrected values + `superseded_by` link.
+// History is preserved  -  the old row is never deleted, and its
+// `sam_memory_versions` snapshots remain intact.
+export const supersedeMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => SupersedeMemoryInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMembership(supabase, data.organizationId, userId);
+
+    const { data: prior } = await supabase
+      .from("sam_memory_items")
+      .select("*")
+      .eq("id", data.id)
+      .eq("organization_id", data.organizationId)
+      .maybeSingle();
+    if (!prior) throw new SamError("memory_not_found");
+
+    const confidence = data.replacement.confidence_score ?? 0.85;
+
+    const { data: replacement, error: insErr } = await supabase
+      .from("sam_memory_items")
+      .insert({
+        organization_id: prior.organization_id,
+        owner_user_id: prior.owner_user_id,
+        venture_id: prior.venture_id,
+        layer: prior.layer,
+        memory_kind: data.replacement.memory_kind ?? prior.memory_kind ?? null,
+        category: data.replacement.category ?? prior.category,
+        title: data.replacement.title,
+        statement: data.replacement.statement,
+        structured_value: (data.replacement.structured_value as never) ?? null,
+        status: "confirmed",
+        confidence_score: confidence,
+        confidence_band: bandForScore(confidence),
+        source_type: "correction",
+        source_entity_type: "sam_memory_items",
+        source_entity_id: prior.id,
+        effective_at: data.replacement.effective_at ?? new Date().toISOString(),
+        expires_at: data.replacement.expires_at ?? null,
+        last_confirmed_at: new Date().toISOString(),
+        confirmed_by: userId,
+        created_by: userId,
+      })
+      .select("*")
+      .single();
+    if (insErr || !replacement) {
+      throw new SamError("unknown_error", insErr?.message);
+    }
+
+    const { error: updErr } = await supabase
+      .from("sam_memory_items")
+      .update({
+        status: "superseded",
+        superseded_by: replacement.id,
+      })
+      .eq("id", prior.id)
+      .eq("organization_id", prior.organization_id);
+    if (updErr) {
+      // Best-effort rollback so we do not leave an orphaned replacement.
+      await supabase
+        .from("sam_memory_items")
+        .delete()
+        .eq("id", replacement.id)
+        .eq("organization_id", prior.organization_id);
+      throw new SamError("unknown_error", updErr.message);
+    }
+
+    // Record the correction as feedback for the learning framework.
+    await supabase.from("sam_memory_feedback").insert({
+      organization_id: prior.organization_id,
+      memory_item_id: prior.id,
+      user_id: userId,
+      feedback_type: "inaccurate",
+      correction_text: data.change_reason ?? "Superseded by newer memory",
+    });
+
+    return { prior_id: prior.id, replacement };
+  });
+
+// ---- setMemoryKind (Phase 3D.3a) ------------------------------------------
+// Convenience helper for classifying a legacy memory row into the typed
+// working/episodic/semantic/operational/strategic taxonomy without a full
+// updateMemory payload.
+export const setMemoryKind = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        organizationId: z.string().uuid(),
+        id: z.string().uuid(),
+        memory_kind: z
+          .enum(["working", "episodic", "semantic", "operational", "strategic"])
+          .nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMembership(supabase, data.organizationId, userId);
+    const { data: row, error } = await supabase
+      .from("sam_memory_items")
+      .update({ memory_kind: data.memory_kind })
+      .eq("id", data.id)
+      .eq("organization_id", data.organizationId)
+      .select("*")
+      .single();
+    if (error) throw new SamError("unknown_error", error.message);
+    if (!row) throw new SamError("memory_not_found");
+    return row;
+  });
