@@ -1095,6 +1095,7 @@ export type Database = {
         Args: { _org: string; _user: string }
         Returns: Database["public"]["Enums"]["org_role"]
       }
+      shares_org_with: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
       commitment_status:
