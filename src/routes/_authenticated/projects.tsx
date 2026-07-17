@@ -12,6 +12,7 @@ import { PageBody, PageHeader } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import {
   useCreateProject,
+  useGoals,
   useProjects,
   useVentures,
   type Priority,
@@ -467,6 +468,7 @@ function NewProjectDialog({
   onClose: () => void;
 }) {
   const create = useCreateProject(orgId);
+  const goalsQ = useGoals(orgId);
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [ventureId, setVentureId] = useState(ventures[0]?.id ?? "");
@@ -474,6 +476,7 @@ function NewProjectDialog({
   const [priority, setPriority] = useState<Priority>("normal");
   const [status, setStatus] = useState<ProjectStatus>("planned");
   const [deadline, setDeadline] = useState("");
+  const [goalId, setGoalId] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -489,6 +492,7 @@ function NewProjectDialog({
         priority,
         status,
         deadline: deadline || null,
+        goal_id: goalId || null,
       });
       toast.success("Project created");
       onClose();
@@ -580,6 +584,19 @@ function NewProjectDialog({
               />
             </Field>
           </div>
+          <Field label="Linked goal (optional)">
+            <select
+              value={goalId}
+              onChange={(e) => setGoalId(e.target.value)}
+              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+            >
+              <option value="">— None —</option>
+              {(goalsQ.data ?? [])
+                .filter((g) => g.venture_id === ventureId || g.venture_id == null)
+                .filter((g) => g.status !== "archived")
+                .map((g) => (<option key={g.id} value={g.id}>{g.title}</option>))}
+            </select>
+          </Field>
         </div>
         <div className="mt-8 flex items-center justify-end gap-2">
           <button

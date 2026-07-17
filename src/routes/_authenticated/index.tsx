@@ -6,11 +6,20 @@ import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
 import {
   useActivity,
+  useCommitments,
   useDecisions,
+  useGoals,
   useInsights,
   useProjects,
   useVentures,
 } from "@/lib/data-hooks";
+import {
+  isCommitmentDueSoon,
+  isCommitmentOverdue,
+  isDecisionWaiting,
+  isGoalAtRisk,
+  scorePriority,
+} from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Command,
@@ -30,8 +39,11 @@ function Command() {
   const ventures = useVentures(activeOrgId);
   const projects = useProjects(activeOrgId);
   const decisions = useDecisions(activeOrgId);
+  const commitments = useCommitments(activeOrgId);
+  const goals = useGoals(activeOrgId);
   const insights = useInsights(activeOrgId);
   const activity = useActivity(activeOrgId, 6);
+  const userId = user?.id ?? null;
 
   const [dateLine, setDateLine] = useState<string>("");
   useEffect(() => {
@@ -50,12 +62,15 @@ function Command() {
   const atRisk = (projects.data ?? []).filter(
     (p) => p.status === "at_risk" || p.status === "blocked",
   );
-  const waiting = (decisions.data ?? []).filter(
-    (d) =>
-      d.status === "under_review" ||
-      d.status === "waiting_for_founder" ||
-      d.status === "draft",
-  );
+  const waiting = (decisions.data ?? []).filter((d) => isDecisionWaiting(d, userId));
+  const myOverdue = (commitments.data ?? []).filter((c) => c.owner_user_id === userId && isCommitmentOverdue(c));
+  const myDueSoon = (commitments.data ?? []).filter((c) => c.owner_user_id === userId && isCommitmentDueSoon(c));
+  const goalsAtRisk = (goals.data ?? []).filter(isGoalAtRisk);
+  const priorityItems = [
+    ...(commitments.data ?? []).map((c) => ({ kind: "commitment" as const, id: c.id, title: c.title, sub: c.due_date ? `due ${c.due_date}` : c.status.replaceAll("_"," "), score: scorePriority({ commitment: c, userId }) })),
+    ...(decisions.data ?? []).map((d) => ({ kind: "decision" as const, id: d.id, title: d.title, sub: d.status.replaceAll("_"," "), score: scorePriority({ decision: d, userId }) })),
+    ...(projects.data ?? []).map((p) => ({ kind: "project" as const, id: p.id, title: p.name, sub: p.status.replaceAll("_"," "), score: scorePriority({ project: p, userId }) })),
+  ].filter((x) => x.score >= 30).sort((a, b) => b.score - a.score).slice(0, 6);
   const opportunity = (insights.data ?? []).find((i) => i.severity === "opportunity");
 
   const firstName =
@@ -84,9 +99,9 @@ function Command() {
           <dl className="mt-14 grid grid-cols-2 gap-x-10 gap-y-8 md:grid-cols-4">
             {[
               { label: "Decisions waiting", value: waiting.length },
+              { label: "Overdue on you", value: myOverdue.length },
               { label: "Projects at risk", value: atRisk.length },
-              { label: "Ventures active", value: activeVentures.length },
-              { label: "Signals", value: (insights.data ?? []).length },
+              { label: "Goals at risk", value: goalsAtRisk.length },
             ].map((s) => (
               <div key={s.label}>
                 <dd className="font-display text-[44px] leading-none tabular-nums text-foreground">
@@ -104,25 +119,26 @@ function Command() {
       <PageBody>
         <Section
           title="Today's priorities"
-          hint="Draft priorities from your decisions. Operator curation connects next."
+          hint="Prioritized using ownership, deadlines, risk, and waiting status."
         >
-          {waiting.length === 0 ? (
-            <EmptyLine text="Nothing waiting on you. Add a decision to see it here." />
+          {priorityItems.length === 0 ? (
+            <EmptyLine text="Nothing critical right now." />
           ) : (
             <ul className="-mx-2">
-              {waiting.slice(0, 5).map((d, i, arr) => (
-                <li key={d.id}>
+              {priorityItems.map((it, i, arr) => (
+                <li key={`${it.kind}-${it.id}`}>
                   <Link
-                    to="/decisions"
+                    to={it.kind === "decision" ? "/decisions/$id" : it.kind === "commitment" ? "/commitments/$id" : "/projects/$id"}
+                    params={{ id: it.id }}
                     className="group flex w-full items-center gap-6 rounded-lg px-2 py-5 text-left hover:bg-secondary/40"
                   >
                     <span className="w-6 font-display text-[15px] text-muted-foreground/70">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[15px] text-foreground">{d.title}</div>
+                      <div className="truncate text-[15px] text-foreground">{it.title}</div>
                       <div className="mt-1 text-[12px] text-muted-foreground">
-                        {d.status.replaceAll("_", " ")}
+                        {it.kind} · {it.sub}
                       </div>
                     </div>
                     <ArrowUpRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -150,13 +166,52 @@ function Command() {
                 {waiting.slice(0, 3).map((d) => (
                   <Link
                     key={d.id}
-                    to="/decisions"
+                    to="/decisions/$id"
+                    params={{ id: d.id }}
                     className="group block -mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40"
                   >
                     <div className="text-[14.5px] leading-snug text-foreground">{d.title}</div>
                     <div className="mt-1.5 text-[12px] text-muted-foreground">
                       {d.status.replaceAll("_", " ")}
                     </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section
+            title="Commitments due"
+            action={<Link to="/accountability" className="text-[12px] text-muted-foreground hover:text-foreground">All →</Link>}
+          >
+            {[...myOverdue, ...myDueSoon].length === 0 ? (
+              <EmptyLine text="Nothing on your plate this week." />
+            ) : (
+              <div className="space-y-1">
+                {[...myOverdue, ...myDueSoon].slice(0, 5).map((c) => {
+                  const overdue = myOverdue.includes(c);
+                  return (
+                    <Link key={c.id} to="/commitments/$id" params={{ id: c.id }} className="group block -mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40">
+                      <div className="text-[14.5px] leading-snug text-foreground">{c.title}</div>
+                      <div className={"mt-1.5 text-[12px] " + (overdue ? "text-[oklch(0.72_0.14_25)]" : "text-muted-foreground")}>
+                        {overdue ? "Overdue" : "Due"} {c.due_date}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+
+          <Section title="Goals at risk" action={<Link to="/goals" className="text-[12px] text-muted-foreground hover:text-foreground">All →</Link>}>
+            {goalsAtRisk.length === 0 ? (
+              <EmptyLine text="No goals at risk." />
+            ) : (
+              <div className="space-y-1">
+                {goalsAtRisk.slice(0, 4).map((g) => (
+                  <Link key={g.id} to="/goals/$id" params={{ id: g.id }} className="group block -mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40">
+                    <div className="text-[14.5px] leading-snug text-foreground">{g.title}</div>
+                    <div className="mt-1.5 text-[12px] text-muted-foreground">Target {g.target_date ?? "—"}</div>
                   </Link>
                 ))}
               </div>
@@ -176,7 +231,7 @@ function Command() {
             ) : (
               <div className="space-y-1">
                 {atRisk.map((p) => (
-                  <div key={p.id} className="-mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40">
+                  <Link key={p.id} to="/projects/$id" params={{ id: p.id }} className="block -mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40">
                     <div className="text-[14.5px] leading-snug text-foreground">{p.name}</div>
                     <div className="mt-1.5 text-[12px] text-muted-foreground">
                       {p.status.replaceAll("_", " ")}
@@ -191,7 +246,7 @@ function Command() {
                         {p.risk_summary}
                       </div>
                     )}
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

@@ -8,7 +8,10 @@ import { useOrg } from "@/lib/org-context";
 import {
   useArchiveProject,
   useActivity,
+  useCommitments,
   useCreateTask,
+  useDecisions,
+  useGoals,
   useProject,
   useTasks,
   useUpdateProject,
@@ -22,6 +25,7 @@ import {
 } from "@/lib/data-hooks";
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
+import { isCommitmentOverdue } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -46,6 +50,9 @@ function ProjectDetail() {
   const venturesQ = useVentures(activeOrgId);
   const tasksQ = useTasks({ orgId: activeOrgId, projectId: id });
   const activityQ = useActivity(activeOrgId, 30);
+  const decisionsQ = useDecisions(activeOrgId);
+  const commitmentsQ = useCommitments(activeOrgId);
+  const goalsQ = useGoals(activeOrgId);
   const update = useUpdateProject(activeOrgId);
   const archive = useArchiveProject(activeOrgId);
   const canWrite = can.writeContent(activeMembership?.role);
@@ -130,7 +137,7 @@ function ProjectDetail() {
       <PageBody>
         <Tabs defaultValue="overview">
           <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
-            {["overview", "tasks", "activity"].map((t) => (
+            {["overview", "tasks", "decisions", "commitments", "goal", "activity"].map((t) => (
               <TabsTrigger
                 key={t}
                 value={t}
@@ -216,6 +223,51 @@ function ProjectDetail() {
 
           <TabsContent value="tasks">
             <TaskList projectId={p.id} ventureId={p.venture_id} tasks={tasksQ.data ?? []} canWrite={canWrite} />
+          </TabsContent>
+
+          <TabsContent value="decisions">
+            <RelatedSimple
+              empty="No decisions linked to this project yet."
+              items={(decisionsQ.data ?? []).filter((d) => d.project_id === p.id).map((d) => ({
+                id: d.id, title: d.title, sub: d.status.replaceAll("_", " "), to: "/decisions/$id" as const,
+              }))}
+            />
+          </TabsContent>
+
+          <TabsContent value="commitments">
+            <RelatedSimple
+              empty="No commitments on this project yet."
+              items={(commitmentsQ.data ?? []).filter((c) => c.project_id === p.id).map((c) => ({
+                id: c.id, title: c.title,
+                sub: (isCommitmentOverdue(c) ? "Overdue" : c.status.replaceAll("_", " ")) + (c.due_date ? ` · due ${c.due_date}` : ""),
+                to: "/commitments/$id" as const,
+              }))}
+            />
+          </TabsContent>
+
+          <TabsContent value="goal">
+            <div className="space-y-4">
+              <label className="block">
+                <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">Linked goal</div>
+                <select
+                  disabled={!canWrite}
+                  value={p.goal_id ?? ""}
+                  onChange={(e) => patch({ goal_id: e.target.value || null })}
+                  className="w-full max-w-md rounded-md bg-secondary/40 px-3 py-2 text-[13.5px] text-foreground outline-none hover:bg-secondary/60 disabled:opacity-60"
+                >
+                  <option value="">— No goal linked —</option>
+                  {(goalsQ.data ?? [])
+                    .filter((g) => g.venture_id === p.venture_id || g.venture_id == null)
+                    .filter((g) => g.status !== "archived")
+                    .map((g) => (<option key={g.id} value={g.id}>{g.title}</option>))}
+                </select>
+              </label>
+              {p.goal_id && (
+                <Link to="/goals/$id" params={{ id: p.goal_id }} className="text-[13.5px] text-foreground hover:underline">
+                  Open linked goal →
+                </Link>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="activity">
@@ -567,5 +619,19 @@ function TaskList({
         </ul>
       )}
     </div>
+  );
+}
+type RelatedTo = "/decisions/$id" | "/commitments/$id" | "/goals/$id";
+function RelatedSimple({ items, empty }: { items: { id: string; title: string; sub: string; to: RelatedTo }[]; empty: string }) {
+  if (items.length === 0) return <p className="text-[13.5px] text-muted-foreground">{empty}</p>;
+  return (
+    <ul className="divide-y divide-border/60">
+      {items.map((it) => (
+        <li key={it.id} className="py-4">
+          <Link to={it.to} params={{ id: it.id }} className="text-[14px] text-foreground hover:underline">{it.title}</Link>
+          <div className="text-[12px] text-muted-foreground">{it.sub}</div>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -21,10 +21,14 @@ import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
+import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticated/goals.$id'
+import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
+import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -86,6 +90,11 @@ const AuthenticatedIntegrationsRoute =
     path: '/integrations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
@@ -107,13 +116,31 @@ const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedProjectsRoute,
 } as any)
+const AuthenticatedGoalsIdRoute = AuthenticatedGoalsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedGoalsRoute,
+} as any)
+const AuthenticatedDecisionsIdRoute =
+  AuthenticatedDecisionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDecisionsRoute,
+  } as any)
+const AuthenticatedCommitmentsIdRoute =
+  AuthenticatedCommitmentsIdRouteImport.update({
+    id: '/commitments/$id',
+    path: '/commitments/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -122,6 +149,9 @@ export interface FileRoutesByFullPath {
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -129,7 +159,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -139,6 +170,9 @@ export interface FileRoutesByTo {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
+  '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -148,7 +182,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
-  '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
+  '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
@@ -158,6 +193,9 @@ export interface FileRoutesById {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/_authenticated/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -169,6 +207,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/accountability'
     | '/decisions'
+    | '/goals'
     | '/integrations'
     | '/knowledge'
     | '/operator'
@@ -177,6 +216,9 @@ export interface FileRouteTypes {
     | '/ventures'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/commitments/$id'
+    | '/decisions/$id'
+    | '/goals/$id'
     | '/projects/$id'
     | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -185,6 +227,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/accountability'
     | '/decisions'
+    | '/goals'
     | '/integrations'
     | '/knowledge'
     | '/operator'
@@ -194,6 +237,9 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/'
+    | '/commitments/$id'
+    | '/decisions/$id'
+    | '/goals/$id'
     | '/projects/$id'
     | '/ventures/$id'
   id:
@@ -203,6 +249,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/_authenticated/accountability'
     | '/_authenticated/decisions'
+    | '/_authenticated/goals'
     | '/_authenticated/integrations'
     | '/_authenticated/knowledge'
     | '/_authenticated/operator'
@@ -212,6 +259,9 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/_authenticated/'
+    | '/_authenticated/commitments/$id'
+    | '/_authenticated/decisions/$id'
+    | '/_authenticated/goals/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/ventures/$id'
   fileRoutesById: FileRoutesById
@@ -308,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/goals': {
+      id: '/_authenticated/goals'
+      path: '/goals'
+      fullPath: '/goals'
+      preLoaderRoute: typeof AuthenticatedGoalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/decisions': {
       id: '/_authenticated/decisions'
       path: '/decisions'
@@ -336,8 +393,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
       parentRoute: typeof AuthenticatedProjectsRoute
     }
+    '/_authenticated/goals/$id': {
+      id: '/_authenticated/goals/$id'
+      path: '/$id'
+      fullPath: '/goals/$id'
+      preLoaderRoute: typeof AuthenticatedGoalsIdRouteImport
+      parentRoute: typeof AuthenticatedGoalsRoute
+    }
+    '/_authenticated/decisions/$id': {
+      id: '/_authenticated/decisions/$id'
+      path: '/$id'
+      fullPath: '/decisions/$id'
+      preLoaderRoute: typeof AuthenticatedDecisionsIdRouteImport
+      parentRoute: typeof AuthenticatedDecisionsRoute
+    }
+    '/_authenticated/commitments/$id': {
+      id: '/_authenticated/commitments/$id'
+      path: '/commitments/$id'
+      fullPath: '/commitments/$id'
+      preLoaderRoute: typeof AuthenticatedCommitmentsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
+
+interface AuthenticatedDecisionsRouteChildren {
+  AuthenticatedDecisionsIdRoute: typeof AuthenticatedDecisionsIdRoute
+}
+
+const AuthenticatedDecisionsRouteChildren: AuthenticatedDecisionsRouteChildren =
+  {
+    AuthenticatedDecisionsIdRoute: AuthenticatedDecisionsIdRoute,
+  }
+
+const AuthenticatedDecisionsRouteWithChildren =
+  AuthenticatedDecisionsRoute._addFileChildren(
+    AuthenticatedDecisionsRouteChildren,
+  )
+
+interface AuthenticatedGoalsRouteChildren {
+  AuthenticatedGoalsIdRoute: typeof AuthenticatedGoalsIdRoute
+}
+
+const AuthenticatedGoalsRouteChildren: AuthenticatedGoalsRouteChildren = {
+  AuthenticatedGoalsIdRoute: AuthenticatedGoalsIdRoute,
+}
+
+const AuthenticatedGoalsRouteWithChildren =
+  AuthenticatedGoalsRoute._addFileChildren(AuthenticatedGoalsRouteChildren)
 
 interface AuthenticatedProjectsRouteChildren {
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
@@ -367,7 +470,8 @@ const AuthenticatedVenturesRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
-  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
+  AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
@@ -375,11 +479,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCommitmentsIdRoute: typeof AuthenticatedCommitmentsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
-  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
+  AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
@@ -387,6 +493,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCommitmentsIdRoute: AuthenticatedCommitmentsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
