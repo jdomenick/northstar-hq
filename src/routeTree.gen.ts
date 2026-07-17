@@ -9,38 +9,214 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VenturesRouteImport } from './routes/ventures'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as OperatorRouteImport } from './routes/operator'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as IntegrationsRouteImport } from './routes/integrations'
+import { Route as DecisionsRouteImport } from './routes/decisions'
+import { Route as AccountabilityRouteImport } from './routes/accountability'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VenturesIdRouteImport } from './routes/ventures.$id'
 
+const VenturesRoute = VenturesRouteImport.update({
+  id: '/ventures',
+  path: '/ventures',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorRoute = OperatorRouteImport.update({
+  id: '/operator',
+  path: '/operator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationsRoute = IntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecisionsRoute = DecisionsRouteImport.update({
+  id: '/decisions',
+  path: '/decisions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountabilityRoute = AccountabilityRouteImport.update({
+  id: '/accountability',
+  path: '/accountability',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VenturesIdRoute = VenturesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => VenturesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
+  '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
+  '/knowledge': typeof KnowledgeRoute
+  '/operator': typeof OperatorRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
+  '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
+  '/knowledge': typeof KnowledgeRoute
+  '/operator': typeof OperatorRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
+  '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
+  '/knowledge': typeof KnowledgeRoute
+  '/operator': typeof OperatorRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/ventures': typeof VenturesRouteWithChildren
+  '/ventures/$id': typeof VenturesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/accountability'
+    | '/decisions'
+    | '/integrations'
+    | '/knowledge'
+    | '/operator'
+    | '/projects'
+    | '/settings'
+    | '/ventures'
+    | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/accountability'
+    | '/decisions'
+    | '/integrations'
+    | '/knowledge'
+    | '/operator'
+    | '/projects'
+    | '/settings'
+    | '/ventures'
+    | '/ventures/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/accountability'
+    | '/decisions'
+    | '/integrations'
+    | '/knowledge'
+    | '/operator'
+    | '/projects'
+    | '/settings'
+    | '/ventures'
+    | '/ventures/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountabilityRoute: typeof AccountabilityRoute
+  DecisionsRoute: typeof DecisionsRoute
+  IntegrationsRoute: typeof IntegrationsRoute
+  KnowledgeRoute: typeof KnowledgeRoute
+  OperatorRoute: typeof OperatorRoute
+  ProjectsRoute: typeof ProjectsRoute
+  SettingsRoute: typeof SettingsRoute
+  VenturesRoute: typeof VenturesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ventures': {
+      id: '/ventures'
+      path: '/ventures'
+      fullPath: '/ventures'
+      preLoaderRoute: typeof VenturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator': {
+      id: '/operator'
+      path: '/operator'
+      fullPath: '/operator'
+      preLoaderRoute: typeof OperatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integrations': {
+      id: '/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof IntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decisions': {
+      id: '/decisions'
+      path: '/decisions'
+      fullPath: '/decisions'
+      preLoaderRoute: typeof DecisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accountability': {
+      id: '/accountability'
+      path: '/accountability'
+      fullPath: '/accountability'
+      preLoaderRoute: typeof AccountabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +224,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ventures/$id': {
+      id: '/ventures/$id'
+      path: '/$id'
+      fullPath: '/ventures/$id'
+      preLoaderRoute: typeof VenturesIdRouteImport
+      parentRoute: typeof VenturesRoute
+    }
   }
 }
 
+interface VenturesRouteChildren {
+  VenturesIdRoute: typeof VenturesIdRoute
+}
+
+const VenturesRouteChildren: VenturesRouteChildren = {
+  VenturesIdRoute: VenturesIdRoute,
+}
+
+const VenturesRouteWithChildren = VenturesRoute._addFileChildren(
+  VenturesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountabilityRoute: AccountabilityRoute,
+  DecisionsRoute: DecisionsRoute,
+  IntegrationsRoute: IntegrationsRoute,
+  KnowledgeRoute: KnowledgeRoute,
+  OperatorRoute: OperatorRoute,
+  ProjectsRoute: ProjectsRoute,
+  SettingsRoute: SettingsRoute,
+  VenturesRoute: VenturesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
