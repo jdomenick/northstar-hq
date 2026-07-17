@@ -26,7 +26,14 @@ import {
 } from "@/components/ui/command";
 import { useNavigate } from "@tanstack/react-router";
 
-const NAV = [
+type NavItem = {
+  to: "/" | "/ventures" | "/projects" | "/decisions" | "/knowledge" | "/accountability" | "/operator" | "/integrations" | "/settings";
+  label: string;
+  icon: typeof CommandIcon;
+  exact?: boolean;
+};
+
+const NAV: NavItem[] = [
   { to: "/", label: "Command", icon: CommandIcon, exact: true },
   { to: "/ventures", label: "Ventures", icon: Building2 },
   { to: "/projects", label: "Projects", icon: FolderKanban },
@@ -36,7 +43,7 @@ const NAV = [
   { to: "/operator", label: "Operator", icon: Sparkles },
   { to: "/integrations", label: "Integrations", icon: Plug },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
-] as const;
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
