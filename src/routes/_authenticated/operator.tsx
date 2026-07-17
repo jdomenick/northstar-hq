@@ -6,8 +6,8 @@ export const Route = createFileRoute("/_authenticated/operator")({
   component: OperatorPage,
   head: () => ({
     meta: [
-      { title: "Operator — Northstar" },
-      { name: "description", content: "The intelligence at the center of Northstar." },
+      { title: "SAM — Northstar" },
+      { name: "description", content: "SAM, the intelligence at the center of Northstar." },
     ],
   }),
 });
@@ -29,22 +29,22 @@ function OperatorPage() {
       <div className="mx-auto w-full max-w-2xl flex-1 px-6 pb-32 pt-20 md:pt-28">
         <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
           <Sparkles className="h-3 w-3" strokeWidth={2} />
-          Operator
+          SAM
         </div>
         <h1 className="mt-6 font-display text-[40px] leading-[1.05] text-foreground md:text-[52px]">
           What do you want to understand?
         </h1>
         <p className="mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-          Operator sees every venture, project, decision, document, and conversation you've
+          SAM sees every venture, project, decision, document, and conversation you've
           connected. Ask in plain English.
         </p>
 
         <div className="mt-16 rounded-xl border border-dashed border-border/70 bg-card/30 p-6">
           <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">
-            Operator is not active yet
+            SAM is not active yet
           </div>
           <p className="mt-3 text-[15px] leading-[1.7] text-muted-foreground">
-            Operator intelligence is coming in a later phase. When enabled, it will read
+            SAM intelligence will be activated in Phase 3. When enabled, SAM will read
             across your ventures, projects, decisions, commitments, and documents to
             surface honest, sourced briefings — not generated filler.
           </p>
@@ -76,13 +76,13 @@ function OperatorPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={1}
-            placeholder="Ask Operator anything…"
-            aria-label="Ask Operator"
+            placeholder="Ask SAM anything…"
+            aria-label="Ask SAM"
             className="flex-1 resize-none bg-transparent px-3 py-2.5 text-[14.5px] text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
           />
           <button
             aria-label="Send message"
-            title="Operator is not active yet"
+            title="SAM is not active yet"
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background hover:opacity-90 disabled:opacity-30"
             disabled
           >
