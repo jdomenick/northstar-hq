@@ -40,6 +40,7 @@ import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
 import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
+import { Route as AuthenticatedContentOpsEditorIdRouteImport } from './routes/_authenticated/content-ops.editor.$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -205,13 +206,19 @@ const AuthenticatedSettingsIntegrationsConnectionIdRoute =
     path: '/$connectionId',
     getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
   } as any)
+const AuthenticatedContentOpsEditorIdRoute =
+  AuthenticatedContentOpsEditorIdRouteImport.update({
+    id: '/editor/$id',
+    path: '/editor/$id',
+    getParentRoute: () => AuthenticatedContentOpsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/content-ops': typeof AuthenticatedContentOpsRoute
+  '/content-ops': typeof AuthenticatedContentOpsRouteWithChildren
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -233,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -242,7 +250,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
-  '/content-ops': typeof AuthenticatedContentOpsRoute
+  '/content-ops': typeof AuthenticatedContentOpsRouteWithChildren
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -276,7 +285,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
-  '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
+  '/_authenticated/content-ops': typeof AuthenticatedContentOpsRouteWithChildren
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/_authenticated/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
+  '/_authenticated/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
   '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/integrations'
     | '/ventures/$id'
+    | '/content-ops/editor/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/integrations'
     | '/ventures/$id'
+    | '/content-ops/editor/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -398,6 +410,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/ventures/$id'
+    | '/_authenticated/content-ops/editor/$id'
     | '/_authenticated/settings/integrations/$connectionId'
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -631,8 +644,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRouteImport
       parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
     }
+    '/_authenticated/content-ops/editor/$id': {
+      id: '/_authenticated/content-ops/editor/$id'
+      path: '/editor/$id'
+      fullPath: '/content-ops/editor/$id'
+      preLoaderRoute: typeof AuthenticatedContentOpsEditorIdRouteImport
+      parentRoute: typeof AuthenticatedContentOpsRoute
+    }
   }
 }
+
+interface AuthenticatedContentOpsRouteChildren {
+  AuthenticatedContentOpsEditorIdRoute: typeof AuthenticatedContentOpsEditorIdRoute
+}
+
+const AuthenticatedContentOpsRouteChildren: AuthenticatedContentOpsRouteChildren =
+  {
+    AuthenticatedContentOpsEditorIdRoute: AuthenticatedContentOpsEditorIdRoute,
+  }
+
+const AuthenticatedContentOpsRouteWithChildren =
+  AuthenticatedContentOpsRoute._addFileChildren(
+    AuthenticatedContentOpsRouteChildren,
+  )
 
 interface AuthenticatedDecisionsRouteChildren {
   AuthenticatedDecisionsIdRoute: typeof AuthenticatedDecisionsIdRoute
@@ -758,7 +792,7 @@ const AuthenticatedVenturesRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
-  AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRoute
+  AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRouteWithChildren
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRouteWithChildren
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
@@ -775,7 +809,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
-  AuthenticatedContentOpsRoute: AuthenticatedContentOpsRoute,
+  AuthenticatedContentOpsRoute: AuthenticatedContentOpsRouteWithChildren,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRouteWithChildren,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
