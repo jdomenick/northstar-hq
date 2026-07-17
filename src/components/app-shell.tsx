@@ -53,20 +53,44 @@ type NavItem = {
   exact?: boolean;
 };
 
-const NAV: NavItem[] = [
-  { to: "/", label: "Command", icon: CommandIcon, exact: true },
-  { to: "/ventures", label: "Ventures", icon: Building2 },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/decisions", label: "Decisions", icon: GitBranch },
-  { to: "/goals", label: "Goals", icon: Target },
-  { to: "/knowledge", label: "Knowledge", icon: BookOpen },
-  { to: "/documents", label: "Documents", icon: FileText },
-  { to: "/accountability", label: "Accountability", icon: ShieldCheck },
-  { to: "/sam", label: "SAM", icon: Sparkles },
-  { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
-  { to: "/integrations", label: "Integrations", icon: Plug },
-  { to: "/settings", label: "Settings", icon: SettingsIcon },
+type NavGroup = { heading: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    heading: "Today",
+    items: [
+      { to: "/", label: "The Brief", icon: CommandIcon, exact: true },
+      { to: "/sam", label: "Ask SAM", icon: Sparkles },
+    ],
+  },
+  {
+    heading: "Operate",
+    items: [
+      { to: "/ventures", label: "Ventures", icon: Building2 },
+      { to: "/projects", label: "Projects", icon: FolderKanban },
+      { to: "/accountability", label: "Accountability", icon: ShieldCheck },
+    ],
+  },
+  {
+    heading: "Think",
+    items: [
+      { to: "/decisions", label: "Decisions", icon: GitBranch },
+      { to: "/goals", label: "Goals", icon: Target },
+      { to: "/knowledge", label: "Knowledge", icon: BookOpen },
+      { to: "/documents", label: "Documents", icon: FileText },
+    ],
+  },
+  {
+    heading: "System",
+    items: [
+      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
+      { to: "/integrations", label: "Integrations", icon: Plug },
+      { to: "/settings", label: "Settings", icon: SettingsIcon },
+    ],
+  },
 ];
+
+const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -129,16 +153,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="flex min-h-screen w-full bg-background text-foreground paper-grain">
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "w-[68px]" : "w-[248px]",
+          "hidden md:flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          collapsed ? "w-[72px]" : "w-[236px]",
         )}
       >
-        <div className="flex h-16 items-center gap-2.5 px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-foreground text-background text-[13px] font-semibold">
+        <div className="flex h-20 items-center gap-3 px-5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-foreground font-display text-[20px] leading-none text-background">
             N
           </div>
           <div
@@ -147,54 +171,70 @@ export function AppShell({ children }: { children: ReactNode }) {
               collapsed ? "pointer-events-none opacity-0" : "opacity-100",
             )}
           >
-            <div className="font-display text-[18px]">Northstar</div>
-            <div className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
+            <div className="font-display text-[22px] tracking-tight text-foreground">
+              Northstar
+            </div>
+            <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.24em] text-muted-foreground">
               Executive OS
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-0.5 px-2 pt-4" aria-label="Primary">
-          {NAV.map((item) => {
-            const active = isActive(item.to, item.exact);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                title={collapsed ? item.label : undefined}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "group relative flex h-9 items-center gap-3 rounded-md px-2.5 text-[13px] font-medium",
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                  collapsed && "justify-center px-0",
-                )}
-              >
-                {active && !collapsed && (
-                  <span className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-foreground/80" />
-                )}
-                <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
-                <span
-                  className={cn(
-                    "truncate transition-opacity duration-150",
-                    collapsed ? "hidden" : "opacity-100",
-                  )}
-                >
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-2" aria-label="Primary">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={group.heading} className={cn(gi > 0 && "mt-6")}>
+              {!collapsed && (
+                <div className="mb-2 px-2.5 text-[9.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground/70">
+                  {group.heading}
+                </div>
+              )}
+              {collapsed && gi > 0 && (
+                <div className="mx-auto mb-3 h-px w-6 bg-sidebar-border" />
+              )}
+              <div className="space-y-[2px]">
+                {group.items.map((item) => {
+                  const active = isActive(item.to, item.exact);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      title={collapsed ? item.label : undefined}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "group relative flex h-9 items-center gap-3 rounded-md px-2.5 text-[13px]",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                        collapsed && "justify-center px-0",
+                      )}
+                    >
+                      {active && !collapsed && (
+                        <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 bg-foreground" />
+                      )}
+                      <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
+                      <span
+                        className={cn(
+                          "truncate transition-opacity duration-150",
+                          collapsed ? "hidden" : "opacity-100",
+                        )}
+                      >
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="p-2">
+        <div className="border-t border-sidebar-border p-2">
           <button
             onClick={() => setCollapsed((v) => !v)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "flex h-9 w-full items-center gap-3 rounded-md px-2.5 text-[12px] text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+              "flex h-9 w-full items-center gap-3 rounded-md px-2.5 text-[11.5px] uppercase tracking-[0.18em] text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
               collapsed && "justify-center px-0",
             )}
           >
@@ -217,40 +257,49 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-[260px] border-r border-border bg-sidebar p-3">
-            <div className="flex h-14 items-center gap-2 px-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground text-background text-[13px] font-semibold">
+          <aside className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto border-r border-sidebar-border bg-sidebar p-4">
+            <div className="flex h-14 items-center gap-3 px-1">
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-foreground font-display text-[20px] leading-none text-background">
                 N
               </div>
-              <div className="font-display text-[17px]">Northstar</div>
+              <div className="font-display text-[22px] tracking-tight">Northstar</div>
             </div>
-            <nav className="mt-2 space-y-0.5">
-              {NAV.map((item) => {
-                const active = isActive(item.to, item.exact);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-2.5 py-2.5 text-[14px]",
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" strokeWidth={1.75} />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <nav className="mt-4">
+              {NAV_GROUPS.map((group, gi) => (
+                <div key={group.heading} className={cn(gi > 0 && "mt-5")}>
+                  <div className="mb-1.5 px-2.5 text-[9.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground/70">
+                    {group.heading}
+                  </div>
+                  <div className="space-y-[2px]">
+                    {group.items.map((item) => {
+                      const active = isActive(item.to, item.exact);
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md px-2.5 py-2 text-[14px]",
+                            active
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                              : "text-sidebar-foreground/80",
+                          )}
+                        >
+                          <Icon className="h-4 w-4" strokeWidth={1.75} />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </aside>
         </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-background/70 px-4 backdrop-blur-xl md:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:px-8">
           <button
             className="md:hidden -ml-1 rounded-md p-2 text-muted-foreground hover:bg-accent"
             onClick={() => setMobileOpen(true)}
@@ -261,13 +310,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <button
             onClick={() => setCmdOpen(true)}
-            className="group flex h-9 w-full max-w-md items-center gap-2.5 rounded-lg bg-secondary/40 px-3 text-left text-[13px] text-muted-foreground hover:bg-secondary/70"
+            className="group flex h-10 w-full max-w-xl items-center gap-3 rounded-full border border-border/70 bg-card/60 px-4 text-left text-[13px] text-muted-foreground shadow-[0_1px_0_oklch(0.14_0_0/0.03)] transition hover:border-foreground/25 hover:bg-card"
           >
-            <Search className="h-3.5 w-3.5" strokeWidth={2} />
+            <Search className="h-3.5 w-3.5 text-foreground/60" strokeWidth={2} />
             <span className="flex-1 truncate">
-              Search ventures, decisions, docs…
+              Ask SAM, or find anything across the operation
             </span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded bg-background/70 px-1.5 font-mono text-[10px] text-muted-foreground/80">
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/70 bg-background px-1.5 font-mono text-[10px] text-muted-foreground/80">
               ⌘K
             </kbd>
           </button>
@@ -278,7 +327,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[12px] font-medium text-foreground hover:opacity-90">
+              <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-card text-[12px] font-medium text-foreground hover:bg-accent">
                 {initials || "N"}
               </button>
             </DropdownMenuTrigger>
