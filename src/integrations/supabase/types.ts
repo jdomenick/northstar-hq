@@ -1969,6 +1969,95 @@ export type Database = {
           },
         ]
       }
+      organization_social_settings: {
+        Row: {
+          allow_holiday_publishing: boolean
+          allow_weekend_publishing: boolean
+          created_at: string
+          default_approval_policy: string
+          default_automation_mode: string
+          default_timezone: string
+          emergency_stop: boolean
+          emergency_stop_reason: string | null
+          emergency_stopped_at: string | null
+          emergency_stopped_by: string | null
+          global_required_disclaimers: Json
+          maximum_posts_per_day: number
+          maximum_posts_per_platform_per_day: number
+          organization_id: string
+          policy_version: string
+          prohibited_topics: Json
+          publishing_confirmation_version: string | null
+          publishing_enabled_at: string | null
+          publishing_enabled_by: string | null
+          publishing_master_switch: boolean
+          restricted_categories: Json
+          social_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allow_holiday_publishing?: boolean
+          allow_weekend_publishing?: boolean
+          created_at?: string
+          default_approval_policy?: string
+          default_automation_mode?: string
+          default_timezone?: string
+          emergency_stop?: boolean
+          emergency_stop_reason?: string | null
+          emergency_stopped_at?: string | null
+          emergency_stopped_by?: string | null
+          global_required_disclaimers?: Json
+          maximum_posts_per_day?: number
+          maximum_posts_per_platform_per_day?: number
+          organization_id: string
+          policy_version?: string
+          prohibited_topics?: Json
+          publishing_confirmation_version?: string | null
+          publishing_enabled_at?: string | null
+          publishing_enabled_by?: string | null
+          publishing_master_switch?: boolean
+          restricted_categories?: Json
+          social_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allow_holiday_publishing?: boolean
+          allow_weekend_publishing?: boolean
+          created_at?: string
+          default_approval_policy?: string
+          default_automation_mode?: string
+          default_timezone?: string
+          emergency_stop?: boolean
+          emergency_stop_reason?: string | null
+          emergency_stopped_at?: string | null
+          emergency_stopped_by?: string | null
+          global_required_disclaimers?: Json
+          maximum_posts_per_day?: number
+          maximum_posts_per_platform_per_day?: number
+          organization_id?: string
+          policy_version?: string
+          prohibited_topics?: Json
+          publishing_confirmation_version?: string | null
+          publishing_enabled_at?: string | null
+          publishing_enabled_by?: string | null
+          publishing_master_switch?: boolean
+          restricted_categories?: Json
+          social_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_social_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -3366,6 +3455,817 @@ export type Database = {
           },
         ]
       }
+      social_accounts: {
+        Row: {
+          account_type: string | null
+          approval_policy: string
+          asset_id: string | null
+          automation_mode: string
+          connection_status: string
+          consecutive_failures: number
+          created_at: string
+          created_by: string | null
+          credential_reference: string | null
+          default_schedule: Json
+          default_timezone: string
+          deleted_at: string | null
+          display_name: string
+          external_account_id: string | null
+          granted_scopes: Json
+          health_band: string
+          health_score: number | null
+          id: string
+          last_failed_publication_at: string | null
+          last_metrics_sync_at: string | null
+          last_successful_publication_at: string | null
+          last_verified_at: string | null
+          metadata: Json
+          organization_id: string
+          platform: string
+          publishing_enabled: boolean
+          updated_at: string
+          username: string | null
+          venture_id: string
+        }
+        Insert: {
+          account_type?: string | null
+          approval_policy?: string
+          asset_id?: string | null
+          automation_mode?: string
+          connection_status?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          credential_reference?: string | null
+          default_schedule?: Json
+          default_timezone?: string
+          deleted_at?: string | null
+          display_name: string
+          external_account_id?: string | null
+          granted_scopes?: Json
+          health_band?: string
+          health_score?: number | null
+          id?: string
+          last_failed_publication_at?: string | null
+          last_metrics_sync_at?: string | null
+          last_successful_publication_at?: string | null
+          last_verified_at?: string | null
+          metadata?: Json
+          organization_id: string
+          platform: string
+          publishing_enabled?: boolean
+          updated_at?: string
+          username?: string | null
+          venture_id: string
+        }
+        Update: {
+          account_type?: string | null
+          approval_policy?: string
+          asset_id?: string | null
+          automation_mode?: string
+          connection_status?: string
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          credential_reference?: string | null
+          default_schedule?: Json
+          default_timezone?: string
+          deleted_at?: string | null
+          display_name?: string
+          external_account_id?: string | null
+          granted_scopes?: Json
+          health_band?: string
+          health_score?: number | null
+          id?: string
+          last_failed_publication_at?: string | null
+          last_metrics_sync_at?: string | null
+          last_successful_publication_at?: string | null
+          last_verified_at?: string | null
+          metadata?: Json
+          organization_id?: string
+          platform?: string
+          publishing_enabled?: boolean
+          updated_at?: string
+          username?: string | null
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_accounts_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_campaigns: {
+        Row: {
+          approval_policy: string
+          approved_at: string | null
+          approved_by: string | null
+          approved_templates: Json
+          audience: Json
+          automation_mode: string
+          budget_metadata: Json | null
+          calls_to_action: Json
+          content_mix: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_at: string | null
+          id: string
+          links: Json
+          name: string
+          objective: string | null
+          organization_id: string
+          pause_reason: string | null
+          paused: boolean
+          platforms: Json
+          posting_frequency: Json
+          prohibited_claims: Json
+          required_disclaimers: Json
+          start_at: string | null
+          status: string
+          themes: Json
+          updated_at: string
+          venture_id: string
+        }
+        Insert: {
+          approval_policy?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_templates?: Json
+          audience?: Json
+          automation_mode?: string
+          budget_metadata?: Json | null
+          calls_to_action?: Json
+          content_mix?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          links?: Json
+          name: string
+          objective?: string | null
+          organization_id: string
+          pause_reason?: string | null
+          paused?: boolean
+          platforms?: Json
+          posting_frequency?: Json
+          prohibited_claims?: Json
+          required_disclaimers?: Json
+          start_at?: string | null
+          status?: string
+          themes?: Json
+          updated_at?: string
+          venture_id: string
+        }
+        Update: {
+          approval_policy?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_templates?: Json
+          audience?: Json
+          automation_mode?: string
+          budget_metadata?: Json | null
+          calls_to_action?: Json
+          content_mix?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          links?: Json
+          name?: string
+          objective?: string | null
+          organization_id?: string
+          pause_reason?: string | null
+          paused?: boolean
+          platforms?: Json
+          posting_frequency?: Json
+          prohibited_claims?: Json
+          required_disclaimers?: Json
+          start_at?: string | null
+          status?: string
+          themes?: Json
+          updated_at?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_campaigns_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_content_items: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          approved_content_version: number | null
+          automation_generated: boolean
+          body: string
+          brand_profile_version: number | null
+          campaign_id: string | null
+          confidence_score: number | null
+          content_plan_id: string | null
+          content_type: string
+          content_version: number
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          duplicate_fingerprint: string
+          external_post_id: string | null
+          external_post_url: string | null
+          first_comment: string | null
+          hashtags: Json
+          human_reviewed: boolean
+          id: string
+          link_url: string | null
+          media_requirements: Json
+          media_status: string
+          metadata: Json
+          organization_id: string
+          platform: string
+          policy_version: string
+          published_at: string | null
+          publishing_window_end: string | null
+          publishing_window_start: string | null
+          risk_band: string
+          risk_reasons: Json
+          scheduled_for: string | null
+          social_account_id: string | null
+          source_lineage: Json
+          status: string
+          title: string | null
+          updated_at: string
+          venture_id: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_content_version?: number | null
+          automation_generated?: boolean
+          body: string
+          brand_profile_version?: number | null
+          campaign_id?: string | null
+          confidence_score?: number | null
+          content_plan_id?: string | null
+          content_type?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duplicate_fingerprint: string
+          external_post_id?: string | null
+          external_post_url?: string | null
+          first_comment?: string | null
+          hashtags?: Json
+          human_reviewed?: boolean
+          id?: string
+          link_url?: string | null
+          media_requirements?: Json
+          media_status?: string
+          metadata?: Json
+          organization_id: string
+          platform: string
+          policy_version?: string
+          published_at?: string | null
+          publishing_window_end?: string | null
+          publishing_window_start?: string | null
+          risk_band?: string
+          risk_reasons?: Json
+          scheduled_for?: string | null
+          social_account_id?: string | null
+          source_lineage?: Json
+          status?: string
+          title?: string | null
+          updated_at?: string
+          venture_id: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_content_version?: number | null
+          automation_generated?: boolean
+          body?: string
+          brand_profile_version?: number | null
+          campaign_id?: string | null
+          confidence_score?: number | null
+          content_plan_id?: string | null
+          content_type?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duplicate_fingerprint?: string
+          external_post_id?: string | null
+          external_post_url?: string | null
+          first_comment?: string | null
+          hashtags?: Json
+          human_reviewed?: boolean
+          id?: string
+          link_url?: string | null
+          media_requirements?: Json
+          media_status?: string
+          metadata?: Json
+          organization_id?: string
+          platform?: string
+          policy_version?: string
+          published_at?: string | null
+          publishing_window_end?: string | null
+          publishing_window_start?: string | null
+          risk_band?: string
+          risk_reasons?: Json
+          scheduled_for?: string | null
+          social_account_id?: string | null
+          source_lineage?: Json
+          status?: string
+          title?: string | null
+          updated_at?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_content_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_items_content_plan_id_fkey"
+            columns: ["content_plan_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_items_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_items_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_content_metrics: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          completion_rate: number | null
+          connector_version: string
+          content_item_id: string
+          conversions: number | null
+          created_at: string
+          engagement_rate: number | null
+          external_post_id: string
+          follows: number | null
+          id: string
+          impressions: number | null
+          leads: number | null
+          likes: number | null
+          link_clicks: number | null
+          measured_at: string
+          measurement_window: string
+          organization_id: string
+          platform: string
+          raw_metrics_summary: Json
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          social_account_id: string
+          venture_id: string
+          views: number | null
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          completion_rate?: number | null
+          connector_version?: string
+          content_item_id: string
+          conversions?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          external_post_id: string
+          follows?: number | null
+          id?: string
+          impressions?: number | null
+          leads?: number | null
+          likes?: number | null
+          link_clicks?: number | null
+          measured_at?: string
+          measurement_window?: string
+          organization_id: string
+          platform: string
+          raw_metrics_summary?: Json
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_account_id: string
+          venture_id: string
+          views?: number | null
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          completion_rate?: number | null
+          connector_version?: string
+          content_item_id?: string
+          conversions?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          external_post_id?: string
+          follows?: number | null
+          id?: string
+          impressions?: number | null
+          leads?: number | null
+          likes?: number | null
+          link_clicks?: number | null
+          measured_at?: string
+          measurement_window?: string
+          organization_id?: string
+          platform?: string
+          raw_metrics_summary?: Json
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_account_id?: string
+          venture_id?: string
+          views?: number | null
+          watch_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_content_metrics_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_metrics_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_metrics_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_content_plans: {
+        Row: {
+          approval_policy: string
+          approved_at: string | null
+          approved_by: string | null
+          audience: Json
+          automation_mode: string
+          calls_to_action: Json
+          campaign_id: string | null
+          content_frequency: Json
+          content_mix: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_date: string | null
+          id: string
+          name: string
+          objective: string | null
+          organization_id: string
+          platforms: Json
+          source_lineage: Json
+          start_date: string | null
+          status: string
+          themes: Json
+          updated_at: string
+          venture_id: string
+        }
+        Insert: {
+          approval_policy?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          audience?: Json
+          automation_mode?: string
+          calls_to_action?: Json
+          campaign_id?: string | null
+          content_frequency?: Json
+          content_mix?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          objective?: string | null
+          organization_id: string
+          platforms?: Json
+          source_lineage?: Json
+          start_date?: string | null
+          status?: string
+          themes?: Json
+          updated_at?: string
+          venture_id: string
+        }
+        Update: {
+          approval_policy?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          audience?: Json
+          automation_mode?: string
+          calls_to_action?: Json
+          campaign_id?: string | null
+          content_frequency?: Json
+          content_mix?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          objective?: string | null
+          organization_id?: string
+          platforms?: Json
+          source_lineage?: Json
+          start_date?: string | null
+          status?: string
+          themes?: Json
+          updated_at?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_content_plans_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_plans_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_content_versions: {
+        Row: {
+          body: string
+          brand_profile_version: number | null
+          change_reason: string | null
+          content_hash: string
+          content_item_id: string
+          created_at: string
+          first_comment: string | null
+          generated_by: string
+          generated_by_actor_id: string | null
+          hashtags: Json
+          id: string
+          link_url: string | null
+          media_requirements: Json
+          organization_id: string
+          policy_version: string
+          source_lineage: Json
+          title: string | null
+          version: number
+        }
+        Insert: {
+          body: string
+          brand_profile_version?: number | null
+          change_reason?: string | null
+          content_hash: string
+          content_item_id: string
+          created_at?: string
+          first_comment?: string | null
+          generated_by?: string
+          generated_by_actor_id?: string | null
+          hashtags?: Json
+          id?: string
+          link_url?: string | null
+          media_requirements?: Json
+          organization_id: string
+          policy_version?: string
+          source_lineage?: Json
+          title?: string | null
+          version: number
+        }
+        Update: {
+          body?: string
+          brand_profile_version?: number | null
+          change_reason?: string | null
+          content_hash?: string
+          content_item_id?: string
+          created_at?: string
+          first_comment?: string | null
+          generated_by?: string
+          generated_by_actor_id?: string | null
+          hashtags?: Json
+          id?: string
+          link_url?: string | null
+          media_requirements?: Json
+          organization_id?: string
+          policy_version?: string
+          source_lineage?: Json
+          title?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_content_versions_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_content_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_publication_attempts: {
+        Row: {
+          attempt_number: number
+          automation_job_id: string | null
+          completed_at: string | null
+          connector_version: string
+          content_item_id: string
+          content_version: number
+          created_at: string
+          duration_ms: number | null
+          error_code: string | null
+          external_post_id: string | null
+          external_post_url: string | null
+          external_reference: string | null
+          id: string
+          idempotency_key: string
+          metadata: Json
+          organization_id: string
+          platform: string
+          response_summary: Json
+          social_account_id: string
+          started_at: string
+          status: string
+          venture_id: string
+        }
+        Insert: {
+          attempt_number: number
+          automation_job_id?: string | null
+          completed_at?: string | null
+          connector_version?: string
+          content_item_id: string
+          content_version: number
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          external_post_id?: string | null
+          external_post_url?: string | null
+          external_reference?: string | null
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          organization_id: string
+          platform: string
+          response_summary?: Json
+          social_account_id: string
+          started_at?: string
+          status?: string
+          venture_id: string
+        }
+        Update: {
+          attempt_number?: number
+          automation_job_id?: string | null
+          completed_at?: string | null
+          connector_version?: string
+          content_item_id?: string
+          content_version?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          external_post_id?: string | null
+          external_post_url?: string | null
+          external_reference?: string | null
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          organization_id?: string
+          platform?: string
+          response_summary?: Json
+          social_account_id?: string
+          started_at?: string
+          status?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_publication_attempts_automation_job_id_fkey"
+            columns: ["automation_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_publication_attempts_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_publication_attempts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_publication_attempts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_publication_attempts_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -3447,6 +4347,231 @@ export type Database = {
             foreignKeyName: "tasks_venture_id_fkey"
             columns: ["venture_id"]
             isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venture_brand_profiles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_calls_to_action: Json
+          approved_examples: Json
+          approved_links: Json
+          archived_at: string | null
+          audience: Json
+          brand_name: string
+          core_messages: Json
+          created_at: string
+          created_by: string | null
+          crisis_keywords: Json
+          effective_at: string | null
+          emoji_policy: string
+          hashtag_policy: Json
+          id: string
+          long_description: string | null
+          metadata: Json
+          mission: string | null
+          organization_id: string
+          platform_preferences: Json
+          products: Json
+          profanity_policy: string
+          prohibited_claims: Json
+          prohibited_topics: Json
+          rejected_examples: Json
+          required_disclaimers: Json
+          restricted_topics: Json
+          review_requirements: Json
+          services: Json
+          short_description: string | null
+          status: string
+          tone_attributes: Json
+          updated_at: string
+          venture_id: string
+          version: number
+          visual_guidance: Json
+          voice_attributes: Json
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_calls_to_action?: Json
+          approved_examples?: Json
+          approved_links?: Json
+          archived_at?: string | null
+          audience?: Json
+          brand_name: string
+          core_messages?: Json
+          created_at?: string
+          created_by?: string | null
+          crisis_keywords?: Json
+          effective_at?: string | null
+          emoji_policy?: string
+          hashtag_policy?: Json
+          id?: string
+          long_description?: string | null
+          metadata?: Json
+          mission?: string | null
+          organization_id: string
+          platform_preferences?: Json
+          products?: Json
+          profanity_policy?: string
+          prohibited_claims?: Json
+          prohibited_topics?: Json
+          rejected_examples?: Json
+          required_disclaimers?: Json
+          restricted_topics?: Json
+          review_requirements?: Json
+          services?: Json
+          short_description?: string | null
+          status?: string
+          tone_attributes?: Json
+          updated_at?: string
+          venture_id: string
+          version: number
+          visual_guidance?: Json
+          voice_attributes?: Json
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_calls_to_action?: Json
+          approved_examples?: Json
+          approved_links?: Json
+          archived_at?: string | null
+          audience?: Json
+          brand_name?: string
+          core_messages?: Json
+          created_at?: string
+          created_by?: string | null
+          crisis_keywords?: Json
+          effective_at?: string | null
+          emoji_policy?: string
+          hashtag_policy?: Json
+          id?: string
+          long_description?: string | null
+          metadata?: Json
+          mission?: string | null
+          organization_id?: string
+          platform_preferences?: Json
+          products?: Json
+          profanity_policy?: string
+          prohibited_claims?: Json
+          prohibited_topics?: Json
+          rejected_examples?: Json
+          required_disclaimers?: Json
+          restricted_topics?: Json
+          review_requirements?: Json
+          services?: Json
+          short_description?: string | null
+          status?: string
+          tone_attributes?: Json
+          updated_at?: string
+          venture_id?: string
+          version?: number
+          visual_guidance?: Json
+          voice_attributes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venture_brand_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_brand_profiles_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venture_social_settings: {
+        Row: {
+          allowed_platforms: Json
+          approval_policy: string
+          automation_mode: string
+          created_at: string
+          default_timezone: string
+          maximum_posts_per_day: number
+          organization_id: string
+          pause_reason: string | null
+          paused: boolean
+          paused_at: string | null
+          paused_by: string | null
+          policy_version: string
+          prohibited_topics: Json
+          publishing_enabled: boolean
+          required_disclaimers: Json
+          required_review_categories: Json
+          restricted_topics: Json
+          social_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+          venture_id: string
+        }
+        Insert: {
+          allowed_platforms?: Json
+          approval_policy?: string
+          automation_mode?: string
+          created_at?: string
+          default_timezone?: string
+          maximum_posts_per_day?: number
+          organization_id: string
+          pause_reason?: string | null
+          paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          policy_version?: string
+          prohibited_topics?: Json
+          publishing_enabled?: boolean
+          required_disclaimers?: Json
+          required_review_categories?: Json
+          restricted_topics?: Json
+          social_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          venture_id: string
+        }
+        Update: {
+          allowed_platforms?: Json
+          approval_policy?: string
+          automation_mode?: string
+          created_at?: string
+          default_timezone?: string
+          maximum_posts_per_day?: number
+          organization_id?: string
+          pause_reason?: string | null
+          paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          policy_version?: string
+          prohibited_topics?: Json
+          publishing_enabled?: boolean
+          required_disclaimers?: Json
+          required_review_categories?: Json
+          restricted_topics?: Json
+          social_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venture_social_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_social_settings_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: true
             referencedRelation: "ventures"
             referencedColumns: ["id"]
           },
