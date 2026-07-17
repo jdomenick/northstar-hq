@@ -25,25 +25,6 @@ import { blocked, failed, fromThrown, success } from "./result-builders";
 import type { AffectedRecord, OperationResult, SamOperationName } from "./types";
 import { resolveConnectorStatus, platformDisplayName } from "./connector-status";
 import { generateRewrite, type RewriteStyle } from "./ai-rewrite.server";
-export {
-  CreateSocialPlanInput,
-  CreatePlatformVariantsInput,
-  EditVariantInput,
-  ApprovalRefInput,
-  RejectVariantInput,
-  RequestRevisionInput,
-  ApproveBatchInput,
-  ScheduleVariantOpInput,
-  UnscheduleOpInput,
-  ScheduleBatchOpInput,
-  PauseOpInput,
-  ResumeOpInput,
-  AttachAssetInput,
-  DetachAssetInput,
-  ListDestinationsInput,
-  ExplainBlockedInput,
-  PublishOpInput,
-} from "./schemas";
 import {
   CreateSocialPlanInput,
   CreatePlatformVariantsInput,
@@ -63,6 +44,7 @@ import {
   ExplainBlockedInput,
   PublishOpInput,
 } from "./schemas";
+export * from "./schemas";
 
 import { createStrategy } from "@/lib/content-ops/strategy.functions";
 import { createVariant, saveVariant, submitForApproval, requestRevision } from "@/lib/content-ops/editor.functions";
@@ -132,19 +114,6 @@ async function loadVariantForEdit(
 /* --------------------------------------------------------------------------
  * PLANNING
  * ------------------------------------------------------------------------ */
-
-export const CreateSocialPlanInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  name: z.string().min(3).max(200),
-  objective: z.string().max(2000).optional(),
-  strategyPeriodStart: z.string().datetime(),
-  strategyPeriodEnd: z.string().datetime(),
-  platforms: z.array(z.string()).min(1).max(12),
-  pillars: z.array(z.object({ id: z.string(), name: z.string(), targetRatio: z.number().min(0).max(1).optional() })).default([]),
-  postingCadencePerWeek: z.record(z.string(), z.number().int().min(0).max(50)).default({}),
-  promotionRatioLimit: z.number().min(0).max(1).nullable().optional(),
-});
 
 export async function createSocialPlan(
   ctx: OpContext,
@@ -225,14 +194,6 @@ export async function createSocialPlan(
  * VARIANT CREATION
  * ------------------------------------------------------------------------ */
 
-export const CreatePlatformVariantsInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  parentContentItemId: uuid,
-  platforms: z.array(z.string()).min(1).max(12),
-  contentType: z.string().default("post"),
-});
-
 export async function createPlatformVariants(
   ctx: OpContext,
   input: z.infer<typeof CreatePlatformVariantsInput>,
@@ -283,14 +244,6 @@ export async function createPlatformVariants(
 /* --------------------------------------------------------------------------
  * AI-ASSISTED EDITING
  * ------------------------------------------------------------------------ */
-
-export const EditVariantInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  contentItemId: uuid,
-  instruction: z.string().max(1000).optional(),
-  overrideApproved: z.boolean().default(false),
-});
 
 async function runEdit(
   ctx: OpContext,
@@ -389,13 +342,6 @@ export const rewriteVariant = (ctx: OpContext, i: z.infer<typeof EditVariantInpu
  * APPROVAL
  * ------------------------------------------------------------------------ */
 
-const ApprovalRefInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  contentItemId: uuid,
-  notes: z.string().max(2000).optional(),
-});
-
 export async function submitVariantForApproval(ctx: OpContext, input: z.infer<typeof ApprovalRefInput>): Promise<OperationResult> {
   const start = Date.now();
   const b = (r: AffectedRecord[] = []) => base("submitForApproval", input.organizationId, input.ventureId, ctx.userId, start, r);
@@ -448,14 +394,6 @@ export async function requestVariantRevision(ctx: OpContext, input: z.infer<type
   } catch (err) { return fromThrown(b(), err); }
 }
 
-export const ApproveBatchInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  contentItemIds: z.array(uuid).min(1).max(50),
-  notes: z.string().max(2000).optional(),
-  confirmationToken: z.string().min(8).max(200),
-});
-
 export async function approveBatch(ctx: OpContext, input: z.infer<typeof ApproveBatchInput>): Promise<OperationResult> {
   const start = Date.now();
   const records: AffectedRecord[] = input.contentItemIds.map((id) => ({ entityType: "social_content_item", id, href: toEditorHref(id) }));
@@ -473,17 +411,6 @@ export async function approveBatch(ctx: OpContext, input: z.infer<typeof Approve
 /* --------------------------------------------------------------------------
  * SCHEDULING
  * ------------------------------------------------------------------------ */
-
-export const ScheduleVariantOpInput = z.object({
-  organizationId: uuid,
-  ventureId: uuid,
-  contentItemId: uuid,
-  scheduledForUtc: z.string().datetime().optional(),
-  wallTime: z.object({
-    year: z.number().int(), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31),
-    hour: z.number().int().min(0).max(23), minute: z.number().int().min(0).max(59),
-  }).optional(),
-});
 
 function toScheduleResult(op: SamOperationName, ctx: OpContext, input: z.infer<typeof ScheduleVariantOpInput>, res: {
   scheduledForUtc: string; jobId: string | null; executable: boolean; failures: unknown[]; calendarState?: string;
