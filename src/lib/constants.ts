@@ -131,6 +131,45 @@ export const INTEGRATION_FRAMEWORK_VERSION = "northstar.integrations.v1.0.0";
 export const CONTENT_INGESTION_VERSION = "northstar.ingestion.v1.0.0";
 export const CONTENT_NORMALIZATION_VERSION = "northstar.ingestion.normalization.v1";
 export const CONTENT_FRESHNESS_VERSION = "northstar.ingestion.freshness.v1";
+export const CONTENT_CHANGE_DETECTION_VERSION = "northstar.ingestion.change.v1";
+export const CONTENT_CLASSIFICATION_VERSION = "northstar.ingestion.classify.v1";
+export const ASSET_MODEL_VERSION = "northstar.assets.v1.0.0";
+export const SIGNAL_MODEL_VERSION = "northstar.signals.v1.0.0";
+export const INTELLIGENCE_CENTER_VERSION = "northstar.intelligence.v1.0.0";
+
+// Change significance thresholds (fraction of characters changed vs previous
+// content plus deterministic structural signals). Pure - no provider synthesis.
+export const CONTENT_CHANGE_THRESHOLDS = {
+  minorRatio: 0.02,
+  moderateRatio: 0.15,
+  majorRatio: 0.4,
+} as const;
+
+// Extensible criticality/health/status labels used by assets. Not hardcoded
+// enums; these are only display defaults - the DB uses text + CHECKs.
+export const ASSET_CRITICALITY_LEVELS = ["low", "medium", "high", "critical"] as const;
+export type AssetCriticality = (typeof ASSET_CRITICALITY_LEVELS)[number];
+export const ASSET_HEALTH_STATES = ["unknown", "healthy", "degraded", "at_risk", "failing"] as const;
+export type AssetHealth = (typeof ASSET_HEALTH_STATES)[number];
+export const ASSET_STATUS_STATES = ["active", "paused", "archived", "error"] as const;
+export type AssetStatus = (typeof ASSET_STATUS_STATES)[number];
+
+// Signal taxonomy. Extensible - stored as text in DB. These are the initial
+// deterministic signals the change-detection engine emits.
+export const SIGNAL_TYPES = [
+  "content_changed",
+  "content_created",
+  "content_removed",
+  "freshness_stale",
+  "freshness_inaccessible",
+  "sync_failed",
+  "sync_succeeded",
+  "classification_changed",
+  "other",
+] as const;
+export type SignalType = (typeof SIGNAL_TYPES)[number];
+export const SIGNAL_SEVERITIES = ["info", "low", "medium", "high", "critical"] as const;
+export type SignalSeverity = (typeof SIGNAL_SEVERITIES)[number];
 
 export const INTEGRATION_LIMITS = {
   // Website crawling
