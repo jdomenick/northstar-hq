@@ -13,6 +13,7 @@ import { Route as VenturesRouteImport } from './routes/ventures'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as DecisionsRouteImport } from './routes/decisions'
+import { Route as AccountabilityRouteImport } from './routes/accountability'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VenturesIdRouteImport } from './routes/ventures.$id'
 
@@ -36,6 +37,11 @@ const DecisionsRoute = DecisionsRouteImport.update({
   path: '/decisions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountabilityRoute = AccountabilityRouteImport.update({
+  id: '/accountability',
+  path: '/accountability',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const VenturesIdRoute = VenturesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
   '/knowledge': typeof KnowledgeRoute
   '/projects': typeof ProjectsRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
   '/knowledge': typeof KnowledgeRoute
   '/projects': typeof ProjectsRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
   '/knowledge': typeof KnowledgeRoute
   '/projects': typeof ProjectsRoute
@@ -76,6 +85,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accountability'
     | '/decisions'
     | '/knowledge'
     | '/projects'
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accountability'
     | '/decisions'
     | '/knowledge'
     | '/projects'
@@ -92,6 +103,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/accountability'
     | '/decisions'
     | '/knowledge'
     | '/projects'
@@ -101,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountabilityRoute: typeof AccountabilityRoute
   DecisionsRoute: typeof DecisionsRoute
   KnowledgeRoute: typeof KnowledgeRoute
   ProjectsRoute: typeof ProjectsRoute
@@ -137,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DecisionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accountability': {
+      id: '/accountability'
+      path: '/accountability'
+      fullPath: '/accountability'
+      preLoaderRoute: typeof AccountabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -168,6 +188,7 @@ const VenturesRouteWithChildren = VenturesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountabilityRoute: AccountabilityRoute,
   DecisionsRoute: DecisionsRoute,
   KnowledgeRoute: KnowledgeRoute,
   ProjectsRoute: ProjectsRoute,
