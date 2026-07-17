@@ -91,7 +91,7 @@ export async function writeSocialAudit(supabase: SB, p: SocialAuditParams): Prom
   }
   const record: Database["public"]["Tables"]["activity_events"]["Insert"] = {
     organization_id: p.organizationId,
-    actor_id: p.actorId,
+    actor_user_id: p.actorId,
     action: `social.${p.event}`,
     entity_type: p.entityType,
     entity_id: p.entityId,
