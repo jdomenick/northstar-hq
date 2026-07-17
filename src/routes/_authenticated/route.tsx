@@ -48,10 +48,11 @@ function AuthenticatedLayout() {
 
 function FullscreenLoader({ label }: { label: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/60" />
-        <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70">
+    <div className="flex min-h-screen items-center justify-center bg-background paper-grain">
+      <div className="flex flex-col items-center gap-5">
+        <div className="font-display text-[36px] leading-none text-foreground">Northstar</div>
+        <div className="h-px w-16 bg-foreground/40" />
+        <div className="text-[10.5px] uppercase tracking-[0.28em] text-foreground/60">
           {label}
         </div>
       </div>
