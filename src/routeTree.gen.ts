@@ -18,6 +18,7 @@ import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as AuthenticatedVenturesRouteImport } from './routes/_authenticated/ventures'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSamRouteImport } from './routes/_authenticated/sam'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
@@ -83,6 +84,11 @@ const AuthenticatedSamRoute = AuthenticatedSamRouteImport.update({
   path: '/sam',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
   id: '/operator',
   path: '/operator',
@@ -137,9 +143,9 @@ const AuthenticatedSamMemoryRoute = AuthenticatedSamMemoryRouteImport.update({
   getParentRoute: () => AuthenticatedSamRoute,
 } as any)
 const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
-  id: '/projects/$id',
-  path: '/projects/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedProjectsRoute,
 } as any)
 const AuthenticatedKnowledgeIdRoute =
   AuthenticatedKnowledgeIdRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRouteWithChildren
   '/operator': typeof AuthenticatedOperatorRoute
+  '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/sam': typeof AuthenticatedSamRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRouteWithChildren
   '/operator': typeof AuthenticatedOperatorRoute
+  '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/sam': typeof AuthenticatedSamRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRouteWithChildren
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/sam': typeof AuthenticatedSamRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/ventures': typeof AuthenticatedVenturesRouteWithChildren
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/knowledge'
     | '/operator'
+    | '/projects'
     | '/sam'
     | '/settings'
     | '/ventures'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/knowledge'
     | '/operator'
+    | '/projects'
     | '/sam'
     | '/settings'
     | '/ventures'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/knowledge'
     | '/_authenticated/operator'
+    | '/_authenticated/projects'
     | '/_authenticated/sam'
     | '/_authenticated/settings'
     | '/_authenticated/ventures'
@@ -453,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/operator': {
       id: '/_authenticated/operator'
       path: '/operator'
@@ -525,10 +544,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/projects/$id': {
       id: '/_authenticated/projects/$id'
-      path: '/projects/$id'
+      path: '/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedProjectsRoute
     }
     '/_authenticated/knowledge/$id': {
       id: '/_authenticated/knowledge/$id'
@@ -649,6 +668,19 @@ const AuthenticatedKnowledgeRouteWithChildren =
     AuthenticatedKnowledgeRouteChildren,
   )
 
+interface AuthenticatedProjectsRouteChildren {
+  AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
+}
+
+const AuthenticatedProjectsRouteChildren: AuthenticatedProjectsRouteChildren = {
+  AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
+}
+
+const AuthenticatedProjectsRouteWithChildren =
+  AuthenticatedProjectsRoute._addFileChildren(
+    AuthenticatedProjectsRouteChildren,
+  )
+
 interface AuthenticatedSamRouteChildren {
   AuthenticatedSamMemoryRoute: typeof AuthenticatedSamMemoryRoute
 }
@@ -713,12 +745,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRouteWithChildren
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedSamRoute: typeof AuthenticatedSamRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedCommitmentsIdRoute: typeof AuthenticatedCommitmentsIdRoute
-  AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -729,12 +761,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRouteWithChildren,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedSamRoute: AuthenticatedSamRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedCommitmentsIdRoute: AuthenticatedCommitmentsIdRoute,
-  AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
