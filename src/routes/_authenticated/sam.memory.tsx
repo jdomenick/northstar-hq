@@ -11,6 +11,7 @@ import { useVentures } from "@/lib/data-hooks";
 import {
   listMemory,
   createMemory,
+  updateMemory,
   confirmMemory,
   rejectMemory,
   disputeMemory,
@@ -19,8 +20,9 @@ import {
   restoreMemory,
   listMemoryConflicts,
   resolveMemoryConflict,
+  listMemoryVersions,
 } from "@/lib/sam/memory/memory.functions";
-import type { SamMemoryItem, SamMemoryLayer, SamMemoryStatus } from "@/lib/data-hooks";
+import type { SamMemoryItem, SamMemoryLayer, SamMemoryStatus, SamMemoryVersion } from "@/lib/data-hooks";
 
 export const Route = createFileRoute("/_authenticated/sam/memory")({
   component: SamMemoryPage,
@@ -180,6 +182,8 @@ function MemoryList({
   emphasize?: SamMemoryStatus;
 }) {
   const { activeOrgId } = useOrg();
+  const [editItem, setEditItem] = useState<SamMemoryItem | null>(null);
+  const [versionsItem, setVersionsItem] = useState<SamMemoryItem | null>(null);
   const confirmFn = useServerFn(confirmMemory);
   const rejectFn = useServerFn(rejectMemory);
   const disputeFn = useServerFn(disputeMemory);
@@ -205,6 +209,7 @@ function MemoryList({
   if (items.length === 0) return <p className="text-[13px] text-muted-foreground">No memory items match.</p>;
 
   return (
+    <>
     <ul className="divide-y divide-border/60">
       {items.map((m) => (
         <li key={m.id} id={m.id} className="grid grid-cols-[1fr_auto] gap-4 py-4">
@@ -235,6 +240,10 @@ function MemoryList({
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
+            <div className="flex gap-1">
+              <ActionBtn tone="muted" onClick={() => setEditItem(m)}>Edit</ActionBtn>
+              <ActionBtn tone="muted" onClick={() => setVersionsItem(m)}>History</ActionBtn>
+            </div>
             {m.status === "proposed" && (
               <>
                 <ActionBtn onClick={() => act.mutate({ id: m.id, action: "confirm" })}>Confirm</ActionBtn>
@@ -258,6 +267,22 @@ function MemoryList({
         </li>
       ))}
     </ul>
+    {editItem && (
+      <MemoryEditorDialog
+        item={editItem}
+        orgId={activeOrgId}
+        onClose={() => setEditItem(null)}
+        onSaved={() => { setEditItem(null); onChanged(); }}
+      />
+    )}
+    {versionsItem && (
+      <VersionHistoryDrawer
+        item={versionsItem}
+        orgId={activeOrgId}
+        onClose={() => setVersionsItem(null)}
+      />
+    )}
+    </>
   );
 }
 
