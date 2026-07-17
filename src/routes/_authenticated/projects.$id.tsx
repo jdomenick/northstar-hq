@@ -61,7 +61,7 @@ function ProjectDetail() {
   if (projectQ.isLoading) {
     return (
       <PageBody>
-        <div className="h-40 animate-pulse rounded-2xl bg-card/30" />
+        <div className="h-40 animate-pulse border-b border-foreground/15" />
       </PageBody>
     );
   }
@@ -111,7 +111,7 @@ function ProjectDetail() {
         <div className="mx-auto max-w-6xl">
           <Link
             to="/projects"
-            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Projects
           </Link>
@@ -126,7 +126,7 @@ function ProjectDetail() {
           canArchive && p.status !== "archived" && (
             <button
               onClick={onArchive}
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              className="inline-flex items-center gap-1.5 border border-foreground/25 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-foreground/70 hover:border-foreground hover:text-foreground"
             >
               <Archive className="h-3.5 w-3.5" /> Archive
             </button>
@@ -136,12 +136,12 @@ function ProjectDetail() {
 
       <PageBody>
         <Tabs defaultValue="overview">
-          <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
+          <TabsList className="mb-10 h-auto flex-wrap justify-start gap-0 border-b border-foreground/80 bg-transparent p-0">
             {["overview", "tasks", "decisions", "commitments", "goal", "activity"].map((t) => (
               <TabsTrigger
                 key={t}
                 value={t}
-                className="relative rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[12.5px] capitalize text-muted-foreground hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                className="relative -mb-px rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-[10.5px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 {t}
               </TabsTrigger>
