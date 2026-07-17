@@ -38,6 +38,14 @@ import {
   type ListDestinationsInput as ListDestinationsInputT,
   type ExplainBlockedInput as ExplainBlockedInputT,
   type PublishOpInput as PublishOpInputT,
+  type RetrieveApprovalQueueInput as RetrieveApprovalQueueInputT,
+  type RetrieveScheduledContentInput as RetrieveScheduledContentInputT,
+  type RetrievePublicationStatusInput as RetrievePublicationStatusInputT,
+  type RetrievePerformanceInput as RetrievePerformanceInputT,
+  type RetrieveLearningsInput as RetrieveLearningsInputT,
+  type RecommendNextPlanInput as RecommendNextPlanInputT,
+  type ValidateSocialConnectionInput as ValidateSocialConnectionInputT,
+  type SuggestCreativeBriefInput as SuggestCreativeBriefInputT,
 } from "./schemas";
 export * from "./schemas";
 
@@ -584,6 +592,288 @@ export async function publishApprovedVariant(ctx: OpContext, input: PublishOpInp
 }
 
 export const retryPublicationOp = publishApprovedVariant;
+
+/* --------------------------------------------------------------------------
+ * RETRIEVAL / STATUS
+ * ------------------------------------------------------------------------ */
+
+export async function retrieveApprovalQueue(
+  ctx: OpContext, input: RetrieveApprovalQueueInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("retrieveApprovalQueue", input.organizationId, input.ventureId ?? null, ctx.userId, start);
+  let q = ctx.supabase
+    .from("social_content_items")
+    .select("id, venture_id, platform, content_type, title, hook, approval_status, status, updated_at, scheduled_for")
+    .eq("organization_id", input.organizationId)
+    .in("approval_status", ["pending", "awaiting_review", "in_review"])
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(input.limit);
+  if (input.ventureId) q = q.eq("venture_id", input.ventureId);
+  const { data, error } = await q;
+  if (error) return failed({ ...b, reasonCode: "server_error", message: "approval queue query failed" });
+  const rows = (data ?? []).map((r) => ({
+    contentItemId: r.id, ventureId: r.venture_id, platform: r.platform,
+    contentType: r.content_type, title: r.title, hook: r.hook,
+    approvalStatus: r.approval_status, itemStatus: r.status,
+    scheduledFor: r.scheduled_for, updatedAt: r.updated_at,
+    href: editorHref(r.id),
+  }));
+  return success({
+    ...b,
+    summary: `${rows.length} item(s) awaiting approval.`,
+    data: { count: rows.length, items: rows },
+  });
+}
+
+export async function retrieveScheduledContent(
+  ctx: OpContext, input: RetrieveScheduledContentInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("retrieveScheduledContent", input.organizationId, input.ventureId ?? null, ctx.userId, start);
+  let q = ctx.supabase
+    .from("social_content_items")
+    .select("id, venture_id, platform, content_type, title, status, scheduled_for")
+    .eq("organization_id", input.organizationId)
+    .in("status", ["scheduled", "queued", "publishing"])
+    .is("deleted_at", null)
+    .order("scheduled_for", { ascending: true, nullsFirst: false })
+    .limit(input.limit);
+  if (input.ventureId) q = q.eq("venture_id", input.ventureId);
+  if (input.fromIso) q = q.gte("scheduled_for", input.fromIso);
+  if (input.toIso) q = q.lt("scheduled_for", input.toIso);
+  const { data, error } = await q;
+  if (error) return failed({ ...b, reasonCode: "server_error", message: "scheduled query failed" });
+  const rows = (data ?? []).map((r) => ({
+    contentItemId: r.id, ventureId: r.venture_id, platform: r.platform,
+    contentType: r.content_type, title: r.title, status: r.status,
+    scheduledFor: r.scheduled_for, href: editorHref(r.id),
+  }));
+  return success({
+    ...b, summary: `${rows.length} scheduled item(s).`,
+    data: { count: rows.length, items: rows },
+  });
+}
+
+export async function retrievePublicationStatus(
+  ctx: OpContext, input: RetrievePublicationStatusInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const records: AffectedRecord[] = [{ entityType: "social_content_item", id: input.contentItemId, href: editorHref(input.contentItemId) }];
+  const b = base("retrievePublicationStatus", input.organizationId, input.ventureId, ctx.userId, start, records);
+  const { data: item } = await ctx.supabase
+    .from("social_content_items")
+    .select("id, platform, status, approval_status, scheduled_for, external_post_id, external_permalink")
+    .eq("id", input.contentItemId)
+    .eq("organization_id", input.organizationId)
+    .maybeSingle();
+  if (!item) return failed({ ...b, reasonCode: "not_found", message: "content item not found" });
+  const { data: attempts } = await ctx.supabase
+    .from("social_publication_attempts")
+    .select("id, status, attempted_at, error_code, error_message")
+    .eq("content_item_id", input.contentItemId)
+    .order("attempted_at", { ascending: false })
+    .limit(10);
+  return success({
+    ...b,
+    summary: `Status: ${item.status} (${item.approval_status}).`,
+    data: {
+      contentItemId: item.id, platform: item.platform, status: item.status,
+      approvalStatus: item.approval_status, scheduledFor: item.scheduled_for,
+      externalPostId: item.external_post_id, externalPermalink: item.external_permalink,
+      recentAttempts: attempts ?? [],
+    },
+  });
+}
+
+export async function retrievePerformance(
+  ctx: OpContext, input: RetrievePerformanceInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("retrievePerformance", input.organizationId, input.ventureId, ctx.userId, start);
+  let q = ctx.supabase
+    .from("social_content_metrics")
+    .select("id, content_item_id, platform, collected_at, impressions, reach, likes, comments, shares, clicks, saves")
+    .eq("organization_id", input.organizationId)
+    .eq("venture_id", input.ventureId)
+    .order("collected_at", { ascending: false })
+    .limit(input.limit);
+  if (input.contentItemId) q = q.eq("content_item_id", input.contentItemId);
+  if (input.sinceIso) q = q.gte("collected_at", input.sinceIso);
+  const { data, error } = await q;
+  if (error) return failed({ ...b, reasonCode: "server_error", message: "metrics query failed" });
+  const rows = data ?? [];
+  if (rows.length === 0) {
+    return blocked({
+      ...b,
+      summary: "No performance metrics have been collected yet.",
+      reasonCode: "no_metrics_available",
+      detail: {},
+      actionRoute: null,
+    });
+  }
+  return success({
+    ...b, summary: `${rows.length} metric snapshot(s).`,
+    data: { count: rows.length, samples: rows },
+  });
+}
+
+export async function retrieveLearnings(
+  ctx: OpContext, input: RetrieveLearningsInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("retrieveLearnings", input.organizationId, input.ventureId, ctx.userId, start);
+  let q = ctx.supabase
+    .from("content_learnings")
+    .select("id, observed_metric, observed_delta, sample_size, confidence, platform, content_pillar, hook_pattern, recommendation, valid_from, valid_until, superseded_by")
+    .eq("organization_id", input.organizationId)
+    .eq("venture_id", input.ventureId)
+    .is("superseded_by", null)
+    .order("valid_from", { ascending: false })
+    .limit(input.limit);
+  if (input.platform) q = q.eq("platform", input.platform);
+  const { data, error } = await q;
+  if (error) return failed({ ...b, reasonCode: "server_error", message: "learnings query failed" });
+  const rows = data ?? [];
+  const records: AffectedRecord[] = rows.slice(0, 25).map((r) => ({ entityType: "content_learning", id: r.id, href: null }));
+  return success({
+    ...b, affectedRecords: records,
+    summary: `${rows.length} active learning(s).`,
+    data: { count: rows.length, learnings: rows },
+  });
+}
+
+export async function recommendNextPlan(
+  ctx: OpContext, input: RecommendNextPlanInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("recommendNextPlan", input.organizationId, input.ventureId, ctx.userId, start);
+  const since = new Date(Date.now() - input.lookbackDays * 86_400_000).toISOString();
+  const [learnings, metrics, items] = await Promise.all([
+    ctx.supabase.from("content_learnings")
+      .select("observed_metric, observed_delta, sample_size, confidence, platform, hook_pattern, recommendation")
+      .eq("organization_id", input.organizationId)
+      .eq("venture_id", input.ventureId)
+      .is("superseded_by", null)
+      .order("confidence", { ascending: false, nullsFirst: false })
+      .limit(20),
+    ctx.supabase.from("social_content_metrics")
+      .select("platform, impressions, likes, comments, shares")
+      .eq("organization_id", input.organizationId)
+      .eq("venture_id", input.ventureId)
+      .gte("collected_at", since)
+      .limit(500),
+    ctx.supabase.from("social_content_items")
+      .select("platform, status")
+      .eq("organization_id", input.organizationId)
+      .eq("venture_id", input.ventureId)
+      .in("status", ["published", "scheduled"])
+      .gte("updated_at", since)
+      .limit(500),
+  ]);
+
+  // Aggregate per platform.
+  const perPlatform: Record<string, { posts: number; avgImpressions: number; avgEngagement: number }> = {};
+  for (const m of metrics.data ?? []) {
+    const p = m.platform ?? "unknown";
+    const agg = perPlatform[p] ?? { posts: 0, avgImpressions: 0, avgEngagement: 0 };
+    const eng = (m.likes ?? 0) + (m.comments ?? 0) + (m.shares ?? 0);
+    agg.avgImpressions = (agg.avgImpressions * agg.posts + (m.impressions ?? 0)) / (agg.posts + 1);
+    agg.avgEngagement = (agg.avgEngagement * agg.posts + eng) / (agg.posts + 1);
+    agg.posts += 1;
+    perPlatform[p] = agg;
+  }
+  const sortedByEng = Object.entries(perPlatform)
+    .sort((a, b) => b[1].avgEngagement - a[1].avgEngagement);
+  const recommendedPlatforms = sortedByEng.slice(0, 3).map(([p]) => p);
+  const highConfidenceLearnings = (learnings.data ?? [])
+    .filter((l) => (l.confidence ?? 0) >= 0.6 && (l.sample_size ?? 0) >= 5)
+    .slice(0, 5)
+    .map((l) => ({
+      platform: l.platform, metric: l.observed_metric, delta: l.observed_delta,
+      confidence: l.confidence, sampleSize: l.sample_size,
+      recommendation: l.recommendation, hook: l.hook_pattern,
+    }));
+
+  return success({
+    ...b,
+    summary: `${recommendedPlatforms.length} platform focus, ${highConfidenceLearnings.length} confident learning(s), ${items.data?.length ?? 0} recent post(s).`,
+    recommendedNextAction: recommendedPlatforms.length
+      ? `Concentrate the next plan on: ${recommendedPlatforms.join(", ")}.`
+      : "Collect more performance data before recommending platform mix.",
+    data: {
+      lookbackDays: input.lookbackDays,
+      perPlatform, recommendedPlatforms, learnings: highConfidenceLearnings,
+      recentPostCount: items.data?.length ?? 0,
+    },
+  });
+}
+
+export async function validateSocialConnection(
+  ctx: OpContext, input: ValidateSocialConnectionInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const b = base("validateSocialConnection", input.organizationId, input.ventureId ?? null, ctx.userId, start);
+  const status = resolveConnectorStatus(input.platform);
+  if (!status.ready) {
+    return blocked({
+      ...b,
+      summary: `${status.displayName}: ${status.reasonCode?.replace(/_/g, " ") ?? "not ready"}.`,
+      reasonCode: status.reasonCode ?? "connector_not_implemented",
+      detail: status.detail,
+      actionRoute: status.settingsRoute,
+    });
+  }
+  return success({
+    ...b,
+    summary: `${status.displayName} is publish-ready.`,
+    data: { platform: input.platform, requiredScopes: status.requiredScopes },
+  });
+}
+
+export async function updateVariant(
+  ctx: OpContext, input: EditVariantInputT,
+): Promise<OperationResult> {
+  // Alias for regenerate/edit surface: routes plain text instruction through
+  // the AI rewrite pipeline, same as rewriteVariant.
+  return runEdit(ctx, "updateVariant", "generic", input);
+}
+
+export async function suggestCreativeBrief(
+  ctx: OpContext, input: SuggestCreativeBriefInputT,
+): Promise<OperationResult> {
+  const start = Date.now();
+  const records: AffectedRecord[] = [{ entityType: "social_content_item", id: input.contentItemId, href: editorHref(input.contentItemId) }];
+  const b = base("suggestCreativeBrief", input.organizationId, input.ventureId, ctx.userId, start, records);
+  const load = await loadVariantForEdit(ctx.supabase, input.organizationId, input.contentItemId);
+  if (!load.ok) return failed({ ...b, reasonCode: load.reason, message: load.message });
+  const row = load.row;
+  const cfg = ((): { maxBodyBytes: number } => {
+    try { return getPlatformConfig(row.platform) as never; } catch { return { maxBodyBytes: 2000 }; }
+  })();
+  const rewrite = await generateRewrite({
+    orgId: input.organizationId,
+    style: "generic",
+    platform: row.platform,
+    currentBody: row.body,
+    currentHook: row.hook,
+    currentCta: row.cta,
+    instruction:
+      "Draft a short creative brief (3-5 bullet points) describing the desired image/video to accompany this post. "
+      + (input.focus ? `Focus: ${input.focus}. ` : "")
+      + "Do not write the post body; output the brief only.",
+    bodyCharLimit: Math.min(cfg.maxBodyBytes, 1500),
+  });
+  if (!rewrite.ok) {
+    return failed({ ...b, reasonCode: rewrite.reason, message: "creative brief generation unavailable" });
+  }
+  return success({
+    ...b,
+    summary: "Creative brief suggested.",
+    data: { contentItemId: input.contentItemId, brief: rewrite.body, modelId: rewrite.modelId },
+  });
+}
 
 // Keep z referenced so tree-shaking sees the import as used.
 export const __schemasVersion = z.literal("sam.operations.v1.0.0");
