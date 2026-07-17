@@ -17,19 +17,25 @@ import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="flex min-h-screen items-center justify-center bg-background paper-grain px-6">
+      <div className="w-full max-w-lg text-center">
+        <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/60">
+          Northstar , 404
+        </div>
+        <div className="mt-4 border-y border-foreground/80 py-6">
+          <h1 className="font-display text-[80px] leading-none tracking-tight text-foreground md:text-[112px]">
+            Not in the register
+          </h1>
+        </div>
+        <p className="mx-auto mt-6 max-w-md text-[14px] leading-[1.75] text-foreground/70">
+          The page you are looking for does not exist, has been moved, or was never filed.
         </p>
-        <div className="mt-6">
+        <div className="mt-8">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center bg-foreground px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.18em] text-background hover:bg-foreground/85"
           >
-            Go home
+            Return home
           </Link>
         </div>
       </div>
@@ -45,29 +51,34 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+    <div className="flex min-h-screen items-center justify-center bg-background paper-grain px-6">
+      <div className="w-full max-w-lg text-center">
+        <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/60">
+          Something interrupted this
+        </div>
+        <div className="mt-4 border-y border-foreground/80 py-6">
+          <h1 className="font-display text-[40px] leading-[1.05] tracking-tight text-foreground md:text-[52px]">
+            This page did not load.
+          </h1>
+        </div>
+        <p className="mx-auto mt-6 max-w-md text-[14px] leading-[1.75] text-foreground/70">
+          Northstar hit an unexpected error on our end. Try again, or return home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center bg-foreground px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.18em] text-background hover:bg-foreground/85"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center border border-foreground/25 bg-transparent px-5 py-2.5 text-[11.5px] font-medium uppercase tracking-[0.18em] text-foreground hover:bg-foreground/[0.04]"
           >
-            Go home
+            Return home
           </a>
         </div>
       </div>
