@@ -664,7 +664,7 @@ export async function retrievePublicationStatus(
   const b = base("retrievePublicationStatus", input.organizationId, input.ventureId, ctx.userId, start, records);
   const { data: item } = await ctx.supabase
     .from("social_content_items")
-    .select("id, platform, status, approval_status, scheduled_for, external_post_id, external_permalink")
+    .select("id, platform, status, approval_status, scheduled_for, external_post_id, external_post_url")
     .eq("id", input.contentItemId)
     .eq("organization_id", input.organizationId)
     .maybeSingle();
@@ -681,7 +681,7 @@ export async function retrievePublicationStatus(
     data: {
       contentItemId: item.id, platform: item.platform, status: item.status,
       approvalStatus: item.approval_status, scheduledFor: item.scheduled_for,
-      externalPostId: item.external_post_id, externalPermalink: item.external_permalink,
+      externalPostId: item.external_post_id, externalPermalink: item.external_post_url,
       recentAttempts: attempts ?? [],
     },
   });
