@@ -2,7 +2,7 @@
 // balanced list of planned slots with pillar and promotion-ratio constraints.
 // LLM-free: the caller may later call structured generation for each slot.
 
-import { CONTENT_OPS_LIMITS, CONTENT_OPS_PLANNING_ENGINE_VERSION } from "./constants";
+import { CONTENT_OPS_LIMITS, CONTENT_OPS_PLANNING_VERSION } from "./constants";
 import type { ContentPillar } from "./schemas";
 
 export interface PlanningSlot {
@@ -35,7 +35,7 @@ export function planContentCalendar(input: PlanningInput): PlanningOutput {
   const start = new Date(input.strategyPeriodStart);
   const end = new Date(input.strategyPeriodEnd);
   if (!(end.getTime() > start.getTime())) {
-    return { engineVersion: CONTENT_OPS_PLANNING_ENGINE_VERSION, slots: [], notes: ["invalid_period"] };
+    return { engineVersion: CONTENT_OPS_PLANNING_VERSION, slots: [], notes: ["invalid_period"] };
   }
   const days = Math.min(
     Math.ceil((end.getTime() - start.getTime()) / 86_400_000),
@@ -75,5 +75,5 @@ export function planContentCalendar(input: PlanningInput): PlanningOutput {
   if (actualPromoRatio > promoLimit) {
     notes.push(`promotion_ratio_${actualPromoRatio.toFixed(2)}_exceeds_limit_${promoLimit}`);
   }
-  return { engineVersion: CONTENT_OPS_PLANNING_ENGINE_VERSION, slots, notes };
+  return { engineVersion: CONTENT_OPS_PLANNING_VERSION, slots, notes };
 }
