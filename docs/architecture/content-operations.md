@@ -289,3 +289,45 @@ not-yet-implemented service is not "done".
 
 Any further deviation must be added to this section in the same PR that
 introduces it.
+
+## Stage 2 - 5 Progress
+
+Stage 2 (migration): shipped additive extensions to
+`venture_brand_profiles`, `social_campaigns`, `social_content_items`, and
+`social_publication_attempts`; new tables `content_ops_autonomy`,
+`content_ops_autonomy_history`, `content_ops_kill_switches`,
+`content_learnings`, `content_ops_approvals`. RLS + scope triggers
+enabled.
+
+Stage 3 (server services, `src/lib/content-ops/`): `constants`, `errors`,
+`membership.server`, Zod `schemas`. Server functions:
+`autonomy.functions` (get/set + emergency pause + kill switches +
+`assertPublishingAllowed`), `profile.functions`, `strategy.functions`,
+`calendar.functions`, `content.functions`, `approvals.functions` (single +
+batch, deliberate confirmation token required),
+`scheduling.functions` (blocks unapproved items; enqueues
+`social.publish` automation job), `metrics.functions`, `learnings.functions`.
+
+Stage 4 (planning + generation): `planning.server` deterministic slot
+planner (pillar balance + promo ratio); `generation.server` validates
+structured LLM output against `GenerationOutputSchema`. Provider adapter
+contract updated (`PublishInput`/`PublishResult`/`MetricsResult`,
+`implementationStatus` widened to include `blocked_no_credentials`).
+`beehiivAdapter` registered as truthfully blocked
+(`blocked_no_credentials`); requires `BEEHIIV_API_KEY` +
+`BEEHIIV_PUBLICATION_ID` and `posts:write` scope. Publish is a noop until
+those are present and the adapter's POST/verify flow is wired.
+
+Stage 5 (UI): `src/routes/_authenticated/content-ops.tsx` renders the
+workspace in Paper & Ink (Autonomy panel, Awaiting approval, Scheduled,
+Strategies, Learnings). Uses the first accessible venture; a venture
+switcher lands in a later stage.
+
+### Live publishing status
+
+Beehiiv: BLOCKED - `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` are not
+present in the environment. Provide both, confirm the account has
+`posts:write` on the target publication, then wire the POST + verify
+calls in `src/lib/social/providers/beehiiv.ts`. No other platform has
+valid credentials in the environment either, so no silent switch is
+possible; end-to-end publishing remains blocked pending credentials.

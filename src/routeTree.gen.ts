@@ -25,6 +25,7 @@ import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authent
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
+import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authenticated/content-ops'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
@@ -120,6 +121,11 @@ const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   path: '/decisions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedContentOpsRoute = AuthenticatedContentOpsRouteImport.update({
+  id: '/content-ops',
+  path: '/content-ops',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAccountabilityRoute =
   AuthenticatedAccountabilityRouteImport.update({
     id: '/accountability',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
+  '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/_authenticated/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/accountability'
+    | '/content-ops'
     | '/decisions'
     | '/documents'
     | '/goals'
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/accountability'
+    | '/content-ops'
     | '/decisions'
     | '/documents'
     | '/goals'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/onboarding'
     | '/_authenticated/accountability'
+    | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
     | '/_authenticated/documents'
     | '/_authenticated/goals'
@@ -512,6 +524,13 @@ declare module '@tanstack/react-router' {
       path: '/decisions'
       fullPath: '/decisions'
       preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/content-ops': {
+      id: '/_authenticated/content-ops'
+      path: '/content-ops'
+      fullPath: '/content-ops'
+      preLoaderRoute: typeof AuthenticatedContentOpsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/accountability': {
@@ -739,6 +758,7 @@ const AuthenticatedVenturesRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
+  AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRouteWithChildren
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
@@ -755,6 +775,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
+  AuthenticatedContentOpsRoute: AuthenticatedContentOpsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRouteWithChildren,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
