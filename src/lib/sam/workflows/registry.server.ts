@@ -25,10 +25,11 @@ const DEFAULT_OUTPUT_SCHEMA = z
 function make(def: Omit<WorkflowDefinition, "version" | "deterministicAnalyzer" | "outputSchema"> & {
   version?: string;
   outputSchema?: WorkflowDefinition["outputSchema"];
+  deterministicAnalyzer?: WorkflowDefinition["deterministicAnalyzer"];
 }): WorkflowDefinition {
   return {
     version: def.version ?? WORKFLOW_ENGINE_VERSION,
-    deterministicAnalyzer: "not_implemented",
+    deterministicAnalyzer: def.deterministicAnalyzer ?? "not_implemented",
     outputSchema: def.outputSchema ?? DEFAULT_OUTPUT_SCHEMA,
     ...def,
   };
@@ -47,6 +48,8 @@ const DEFS: Record<WorkflowType, WorkflowDefinition> = {
     maxContextRecords: 25,
     optionalProviderSynthesis: true,
     requireCitations: true,
+    deterministicAnalyzer: "daily_briefing",
+    version: "sam.workflow.daily_briefing.v1.0.0",
   }),
   weekly_review: make({
     key: "weekly_review",
@@ -60,6 +63,8 @@ const DEFS: Record<WorkflowType, WorkflowDefinition> = {
     maxContextRecords: 40,
     optionalProviderSynthesis: true,
     requireCitations: true,
+    deterministicAnalyzer: "weekly_review",
+    version: "sam.workflow.weekly_review.v1.0.0",
   }),
   decision_review: make({
     key: "decision_review",
@@ -73,6 +78,8 @@ const DEFS: Record<WorkflowType, WorkflowDefinition> = {
     maxContextRecords: 20,
     optionalProviderSynthesis: true,
     requireCitations: true,
+    deterministicAnalyzer: "decision_review",
+    version: "sam.workflow.decision_review.v1.0.0",
   }),
   commitment_review: make({
     key: "commitment_review",
