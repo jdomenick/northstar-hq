@@ -332,7 +332,9 @@ export async function assembleWorkflowContext(
     related = {
       goals: [],
       projects: selectedDecision.project_id
-        ? (projects as Array<{ id: string; name: string; status: string | null }>).filter((p) => p.id === selectedDecision.project_id)
+        ? projects
+            .filter((p) => p.id === selectedDecision.project_id)
+            .map((p) => ({ id: p.id, name: p.name, status: p.status }))
         : [],
       tasks: (relTasks.data ?? []) as never,
       commitments: (relCommits.data ?? []) as never,
