@@ -197,16 +197,16 @@ function LibraryPage() {
           fileSizeBytes: file.size, displayName: file.name,
         } });
         try {
-          const { error: upErr } = await supabase.storage.from(row.storage_bucket)
-            .upload(row.storage_path!, file, { contentType: file.type || undefined, upsert: true });
+          const { error: upErr } = await supabase.storage.from(row.bucket)
+            .upload(row.storagePath, file, { contentType: file.type || undefined, upsert: true });
           if (upErr) throw upErr;
           await finalizeFn({ data: {
-            organizationId: activeOrgId, mediaAssetId: row.id,
+            organizationId: activeOrgId, mediaAssetId: row.assetId,
             fileSizeBytes: file.size, mimeType: file.type || null,
           } });
         } catch (err) {
           await failFn({ data: {
-            organizationId: activeOrgId, mediaAssetId: row.id,
+            organizationId: activeOrgId, mediaAssetId: row.assetId,
             error: err instanceof Error ? err.message : "upload failed",
           } }).catch(() => {});
           throw err;
@@ -224,7 +224,7 @@ function LibraryPage() {
   if (!activeOrgId) return null;
 
   const folderTree = (foldersQ.data?.tree ?? []) as FolderNode[];
-  const assets = (assetsQ.data?.assets ?? []) as LibraryAsset[];
+  const assets = ((assetsQ.data?.assets ?? []) as unknown) as LibraryAsset[];
 
   return (
     <div>
@@ -285,7 +285,7 @@ function LibraryPage() {
             </div>
             <div className="mb-2 mt-4 px-2.5 text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">Folders</div>
             {foldersQ.isLoading ? <EditorialSkeleton /> :
-              foldersQ.error ? <ErrorLine error={foldersQ.error} /> :
+              foldersQ.error ? <ErrorLine message={foldersQ.error instanceof Error ? foldersQ.error.message : "Failed to load folders"} /> :
               folderTree.length === 0 ? (
                 <div className="px-2.5 py-2 text-[11.5px] text-muted-foreground/70">No folders yet</div>
               ) : (
@@ -359,7 +359,7 @@ function LibraryPage() {
             )}
 
             {assetsQ.isLoading ? <EditorialSkeleton /> :
-              assetsQ.error ? <ErrorLine error={assetsQ.error} /> :
+              assetsQ.error ? <ErrorLine message={assetsQ.error instanceof Error ? assetsQ.error.message : "Failed to load assets"} /> :
               assets.length === 0 ? (
                 <div className="py-16 text-center text-[13.5px] text-muted-foreground">
                   {query || folderId || view !== "all" ? "No assets match this view." : "No assets yet. Upload your first file."}
