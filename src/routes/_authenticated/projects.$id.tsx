@@ -225,6 +225,51 @@ function ProjectDetail() {
             <TaskList projectId={p.id} ventureId={p.venture_id} tasks={tasksQ.data ?? []} canWrite={canWrite} />
           </TabsContent>
 
+          <TabsContent value="decisions">
+            <RelatedSimple
+              empty="No decisions linked to this project yet."
+              items={(decisionsQ.data ?? []).filter((d) => d.project_id === p.id).map((d) => ({
+                id: d.id, title: d.title, sub: d.status.replaceAll("_", " "), to: "/decisions/$id" as const,
+              }))}
+            />
+          </TabsContent>
+
+          <TabsContent value="commitments">
+            <RelatedSimple
+              empty="No commitments on this project yet."
+              items={(commitmentsQ.data ?? []).filter((c) => c.project_id === p.id).map((c) => ({
+                id: c.id, title: c.title,
+                sub: (isCommitmentOverdue(c) ? "Overdue" : c.status.replaceAll("_", " ")) + (c.due_date ? ` · due ${c.due_date}` : ""),
+                to: "/commitments/$id" as const,
+              }))}
+            />
+          </TabsContent>
+
+          <TabsContent value="goal">
+            <div className="space-y-4">
+              <label className="block">
+                <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">Linked goal</div>
+                <select
+                  disabled={!canWrite}
+                  value={p.goal_id ?? ""}
+                  onChange={(e) => patch({ goal_id: e.target.value || null })}
+                  className="w-full max-w-md rounded-md bg-secondary/40 px-3 py-2 text-[13.5px] text-foreground outline-none hover:bg-secondary/60 disabled:opacity-60"
+                >
+                  <option value="">— No goal linked —</option>
+                  {(goalsQ.data ?? [])
+                    .filter((g) => g.venture_id === p.venture_id || g.venture_id == null)
+                    .filter((g) => g.status !== "archived")
+                    .map((g) => (<option key={g.id} value={g.id}>{g.title}</option>))}
+                </select>
+              </label>
+              {p.goal_id && (
+                <Link to="/goals/$id" params={{ id: p.goal_id }} className="text-[13.5px] text-foreground hover:underline">
+                  Open linked goal →
+                </Link>
+              )}
+            </div>
+          </TabsContent>
+
           <TabsContent value="activity">
             {projectActivity.length === 0 ? (
               <p className="text-[13.5px] text-muted-foreground">No activity yet.</p>
