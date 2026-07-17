@@ -46,6 +46,10 @@ export type SamErrorCode =
   | "workflow_persistence_failed"
   | "workflow_not_found"
   | "workflow_access_denied"
+  | "op_context_not_found"
+  | "op_context_scope_invalid"
+  | "op_context_forbidden"
+  | "op_context_persistence_failed"
   | "unknown_error";
 
 export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
@@ -93,6 +97,10 @@ export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
   workflow_persistence_failed: "SAM couldn't save this workflow run. Please retry.",
   workflow_not_found: "That workflow run is no longer available.",
   workflow_access_denied: "You don't have access to that workflow run.",
+  op_context_not_found: "That operating context has not been set up yet.",
+  op_context_scope_invalid: "That operating context does not match the given organization or venture.",
+  op_context_forbidden: "You don't have permission to edit the operating context.",
+  op_context_persistence_failed: "SAM couldn't save the operating context. Please retry.",
   unknown_error: "Something went wrong. Please retry.",
 };
 
