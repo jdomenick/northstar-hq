@@ -281,7 +281,7 @@ export async function buildContext(
     ...uncertainRows.map((m) => m.id),
   ];
 
-  // Conflict count — cheap deterministic check inline.
+  // Conflict count  -  cheap deterministic check inline.
   const { detectConflicts } = await import("./memory/conflict");
   const conflict_count = detectConflicts(rawMemory).length;
 

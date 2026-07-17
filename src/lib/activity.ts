@@ -15,7 +15,7 @@ export type ActivityInput = {
 
 /**
  * Fire-and-forget activity logger. Never blocks the caller's mutation.
- * Silently swallows errors — activity logging is a nice-to-have, not
+ * Silently swallows errors  -  activity logging is a nice-to-have, not
  * a hard dependency of the underlying mutation.
  */
 export async function logActivity(input: ActivityInput): Promise<void> {

@@ -1,5 +1,5 @@
 // Server-side authentication and scope resolution for workflows.
-// The client never sends authoritative organization_id — it is resolved
+// The client never sends authoritative organization_id  -  it is resolved
 // from the caller's active membership. Venture scope, minimum role, and
 // date range are all validated here.
 

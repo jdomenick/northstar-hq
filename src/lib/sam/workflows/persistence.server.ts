@@ -1,5 +1,5 @@
 // Persistence helpers for workflow runs. RLS-safe, org-scoped.
-// Failed runs retain a sanitized failure code — never a raw stack.
+// Failed runs retain a sanitized failure code  -  never a raw stack.
 // Deterministic findings can be persisted even when provider synthesis fails.
 
 import type { SupabaseClient } from "@supabase/supabase-js";

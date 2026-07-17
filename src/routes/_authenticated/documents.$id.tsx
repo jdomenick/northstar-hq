@@ -20,7 +20,7 @@ import { DOC_STATUS_LABEL } from "./documents";
 
 export const Route = createFileRoute("/_authenticated/documents/$id")({
   component: DocumentDetail,
-  head: () => ({ meta: [{ title: "Document — Northstar" }] }),
+  head: () => ({ meta: [{ title: "Document  -  Northstar" }] }),
 });
 
 function DocumentDetail() {
@@ -142,7 +142,7 @@ function DocumentDetail() {
                 <Section title="File">
                   <div className="grid grid-cols-2 gap-6 text-[13.5px]">
                     <Row label="Name" value={d.file_name} />
-                    <Row label="Type" value={d.file_type ?? "—"} />
+                    <Row label="Type" value={d.file_type ?? " - "} />
                     <Row label="Size" value={formatFileSize(d.file_size)} />
                     <Row label="Status" value={DOC_STATUS_LABEL[d.processing_status]} />
                     <Row label="Uploaded by" value={actorName(profiles.get(d.uploaded_by ?? ""))} />

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
   component: KnowledgeLayout,
   head: () => ({
     meta: [
-      { title: "Knowledge — Northstar" },
+      { title: "Knowledge  -  Northstar" },
       { name: "description", content: "Playbooks, notes, decisions, and verified truths across every venture." },
     ],
   }),
@@ -315,7 +315,7 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
           <X className="h-4 w-4" />
         </button>
         <h2 className="font-display text-[24px] text-foreground">New knowledge</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">A durable record — verified truth over time.</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">A durable record  -  verified truth over time.</p>
         <div className="mt-6 space-y-4 text-[13.5px]">
           <Fld label="Title">
             <input required autoFocus value={title} onChange={(e) => { setDirty(true); setTitle(e.target.value); }} className="w-full bg-transparent outline-none" />
@@ -334,7 +334,7 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
             </Fld>
           </div>
           <Fld label="Content">
-            <textarea value={content} onChange={(e) => { setDirty(true); setContent(e.target.value); }} rows={8} className="w-full resize-y bg-transparent outline-none" placeholder="Write the knowledge itself — facts, guidelines, context…" />
+            <textarea value={content} onChange={(e) => { setDirty(true); setContent(e.target.value); }} rows={8} className="w-full resize-y bg-transparent outline-none" placeholder="Write the knowledge itself  -  facts, guidelines, context…" />
           </Fld>
           <div className="grid grid-cols-2 gap-3">
             <Fld label="Source">

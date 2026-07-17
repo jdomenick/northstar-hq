@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/ventures")({
   component: VenturesLayout,
   head: () => ({
     meta: [
-      { title: "Ventures — Northstar" },
+      { title: "Ventures  -  Northstar" },
       { name: "description", content: "Every venture you run, in one calm view." },
     ],
   }),
@@ -105,7 +105,7 @@ function EmptyState({ onCreate }: { onCreate?: () => void }) {
         <div className="mx-auto h-10 w-10 rounded-full bg-secondary/50" />
         <h3 className="mt-6 font-display text-2xl text-foreground">No ventures yet</h3>
         <p className="mt-2 text-[13.5px] text-muted-foreground">
-          Add your first venture — a business, project portfolio, or initiative.
+          Add your first venture  -  a business, project portfolio, or initiative.
         </p>
         {onCreate && (
           <button

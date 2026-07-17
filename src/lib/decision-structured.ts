@@ -1,5 +1,5 @@
 // Structured item shapes stored inside decisions.options_considered / evidence / risks JSONB fields.
-// Users never see raw JSON — these helpers normalize legacy shapes into typed lists.
+// Users never see raw JSON  -  these helpers normalize legacy shapes into typed lists.
 
 export type OptionItem = {
   id: string;

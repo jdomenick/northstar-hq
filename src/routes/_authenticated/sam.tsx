@@ -31,10 +31,10 @@ export const Route = createFileRoute("/_authenticated/sam")({
   component: SamPage,
   head: () => ({
     meta: [
-      { title: "SAM — Northstar" },
+      { title: "SAM  -  Northstar" },
       {
         name: "description",
-        content: "SAM — Northstar's executive intelligence system.",
+        content: "SAM  -  Northstar's executive intelligence system.",
       },
     ],
   }),
@@ -380,7 +380,7 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
       </h2>
       <p className="mt-3 text-[14px] text-muted-foreground">
         SAM reads your organization's live data. Answers cite the records they
-        rely on. SAM is read-only — it does not take actions on your behalf.
+        rely on. SAM is read-only  -  it does not take actions on your behalf.
       </p>
       <div className="mt-8 space-y-1">
         {suggestions.map((s) => (
@@ -409,7 +409,7 @@ function MessageView({ msg }: { msg: Msg }) {
           {msg.content}
           {msg.status === "failed" && (
             <div className="mt-1 text-[11px] text-destructive">
-              Response failed — try again.
+              Response failed  -  try again.
             </div>
           )}
         </div>
@@ -647,7 +647,7 @@ function Composer({
             }
           }}
           rows={1}
-          placeholder="Ask SAM anything — Shift+Enter for a new line"
+          placeholder="Ask SAM anything  -  Shift+Enter for a new line"
           aria-label="Ask SAM"
           className="flex-1 resize-none bg-transparent px-3 py-2.5 text-[14.5px] text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
           disabled={disabled}

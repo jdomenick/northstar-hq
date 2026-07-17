@@ -21,7 +21,7 @@ import { isCommitmentOverdue } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/commitments/$id")({
   component: CommitmentDetail,
-  head: () => ({ meta: [{ title: "Commitment — Northstar" }] }),
+  head: () => ({ meta: [{ title: "Commitment  -  Northstar" }] }),
 });
 
 const STATUS_LABEL: Record<CommitmentStatus, string> = {
@@ -140,7 +140,7 @@ function CommitmentDetail() {
               options={Object.entries(STATUS_LABEL).map(([v, l]) => ({ value: v, label: l }))} />
             <MetaDate label="Due date" value={c.due_date} disabled={!canWrite}
               onCommit={(v) => patch({ due_date: v })} />
-            <MetaStatic label="Original due" value={c.original_due_date ?? "—"} />
+            <MetaStatic label="Original due" value={c.original_due_date ?? " - "} />
             <MetaStatic label="Postponements" value={String(c.postponement_count ?? 0)} />
           </div>
         </Section>

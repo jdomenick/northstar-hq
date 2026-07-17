@@ -1,4 +1,4 @@
-// Historical reliability service — computes a rolling reliability score
+// Historical reliability service  -  computes a rolling reliability score
 // for a memory item (or memory items in aggregate) from the historical
 // feedback + version + status trail. Read-only helper; does not mutate
 // the memory row so background jobs can call it as often as they want.

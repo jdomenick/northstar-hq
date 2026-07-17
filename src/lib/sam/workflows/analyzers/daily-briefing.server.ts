@@ -1,7 +1,7 @@
 // Daily Briefing analyzer. Deterministic-first: identifies the founder's
 // current attention priorities using rule predicates over the assembled
 // context. Provider synthesis (optional) only summarizes and orders the
-// narrative — it does not add findings or citations.
+// narrative  -  it does not add findings or citations.
 
 import {
   DAILY_BRIEFING_VERSION,

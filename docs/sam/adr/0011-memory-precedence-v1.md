@@ -1,4 +1,4 @@
-# ADR-0011 — Memory Precedence v1
+# ADR-0011  -  Memory Precedence v1
 
 Status: Accepted (Phase 3B)
 
@@ -6,7 +6,7 @@ Status: Accepted (Phase 3B)
 
 Multiple memory items can be relevant to the same executive question. SAM
 needs a deterministic, versioned rule for which item wins when they
-disagree — with no dependence on the model provider.
+disagree  -  with no dependence on the model provider.
 
 ## Decision
 

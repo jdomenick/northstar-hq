@@ -1,6 +1,6 @@
 // Duplicate-run protection. Blocks concurrent pending/running runs for the
 // same (org, user, workflow_type, venture, date range) tuple within a
-// bounded time window. Best-effort server-side check — race window exists;
+// bounded time window. Best-effort server-side check  -  race window exists;
 // documented limitation.
 
 import type { SupabaseClient } from "@supabase/supabase-js";

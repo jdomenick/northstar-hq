@@ -23,7 +23,7 @@ import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./knowledge";
 
 export const Route = createFileRoute("/_authenticated/knowledge/$id")({
   component: KnowledgeDetail,
-  head: () => ({ meta: [{ title: "Knowledge — Northstar" }] }),
+  head: () => ({ meta: [{ title: "Knowledge  -  Northstar" }] }),
 });
 
 function KnowledgeDetail() {
@@ -203,16 +203,16 @@ function KnowledgeDetail() {
                 </Section>
                 <Section title="Details">
                   <div className="grid grid-cols-2 gap-6 text-[13.5px]">
-                    <Row label="Source" value={r.source ?? "—"} />
-                    <Row label="Source URL" value={r.source_url ? <a href={r.source_url} className="text-foreground underline" target="_blank" rel="noreferrer">{r.source_url}</a> : "—"} />
-                    <Row label="Tags" value={(r.tags ?? []).length ? (r.tags ?? []).map((t) => `#${t}`).join("  ") : "—"} />
-                    <Row label="Effective date" value={r.effective_date ?? "—"} />
-                    <Row label="Expiration date" value={r.expiration_date ?? "—"} />
+                    <Row label="Source" value={r.source ?? " - "} />
+                    <Row label="Source URL" value={r.source_url ? <a href={r.source_url} className="text-foreground underline" target="_blank" rel="noreferrer">{r.source_url}</a> : " - "} />
+                    <Row label="Tags" value={(r.tags ?? []).length ? (r.tags ?? []).map((t) => `#${t}`).join("  ") : " - "} />
+                    <Row label="Effective date" value={r.effective_date ?? " - "} />
+                    <Row label="Expiration date" value={r.expiration_date ?? " - "} />
                     <Row label="Created by" value={actorName(profiles.get(r.created_by ?? ""))} />
                     <Row label="Created" value={r.created_at.slice(0, 10)} />
                     <Row label="Updated" value={r.updated_at.slice(0, 10)} />
-                    <Row label="Verified by" value={r.verified_by ? actorName(profiles.get(r.verified_by)) : "—"} />
-                    <Row label="Verified at" value={r.verified_at ? r.verified_at.slice(0, 10) : "—"} />
+                    <Row label="Verified by" value={r.verified_by ? actorName(profiles.get(r.verified_by)) : " - "} />
+                    <Row label="Verified at" value={r.verified_at ? r.verified_at.slice(0, 10) : " - "} />
                   </div>
                 </Section>
                 <Section title="Related documents">

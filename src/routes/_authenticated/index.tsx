@@ -89,7 +89,7 @@ function Command() {
             Good morning, {firstName}.
           </h1>
           <p className="mt-8 max-w-2xl text-[17px] leading-[1.7] text-foreground/85 md:text-[19px]">
-            {activeMembership?.organizations?.name ?? "Your workspace"} — one operating system.
+            {activeMembership?.organizations?.name ?? "Your workspace"}  -  one operating system.
             <span className="text-muted-foreground">
               {" "}SAM intelligence connects in Phase 3. Until then, this is your live picture
               across every venture.
@@ -211,7 +211,7 @@ function Command() {
                 {goalsAtRisk.slice(0, 4).map((g) => (
                   <Link key={g.id} to="/goals/$id" params={{ id: g.id }} className="group block -mx-4 rounded-lg px-4 py-4 hover:bg-secondary/40">
                     <div className="text-[14.5px] leading-snug text-foreground">{g.title}</div>
-                    <div className="mt-1.5 text-[12px] text-muted-foreground">Target {g.target_date ?? "—"}</div>
+                    <div className="mt-1.5 text-[12px] text-muted-foreground">Target {g.target_date ?? " - "}</div>
                   </Link>
                 ))}
               </div>

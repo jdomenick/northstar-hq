@@ -11,7 +11,7 @@ Aggregating learning across tenants can improve models but creates real data-lea
 All learning rows, metrics, and calibration are scoped to a single `organization_id`. There is no cross-tenant aggregation, ever.
 
 ## Alternatives considered
-- **Anonymized cross-org aggregation.** Rejected — anonymization is fragile at low n; not worth the trust cost.
+- **Anonymized cross-org aggregation.** Rejected  -  anonymization is fragile at low n; not worth the trust cost.
 
 ## Rationale
 Trust and defensibility beat the marginal model-quality gain from shared learning.

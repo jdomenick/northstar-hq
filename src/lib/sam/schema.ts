@@ -30,7 +30,7 @@ export const UnsupportedActionSchema = z.object({
   suggested_manual_path: z.string().nullable(),
 });
 
-// Executive response contract — see docs/sam/04-reasoning.md.
+// Executive response contract  -  see docs/sam/04-reasoning.md.
 export const SamResponseSchema = z.object({
   answer: z.string(),
   executive_summary: z.string().nullable(),

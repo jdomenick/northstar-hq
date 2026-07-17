@@ -1,4 +1,4 @@
-// Deterministic confidence engine — see docs/sam/05-confidence.md.
+// Deterministic confidence engine  -  see docs/sam/05-confidence.md.
 // Northstar owns the score; the model's self-reported hint is metadata only.
 
 import { WEIGHTS_VERSION } from "./constitution";
@@ -6,7 +6,7 @@ import { CONFIDENCE_FRAMEWORK_VERSION } from "@/lib/constants";
 import type { SamResponse } from "./schema";
 import type { AssembledContext } from "./context-builder.server";
 
-// v2 method bump — see docs/sam/05-confidence.md and Phase 3B report.
+// v2 method bump  -  see docs/sam/05-confidence.md and Phase 3B report.
 export const CONFIDENCE_METHOD = "v2.deterministic";
 
 export type ConfidenceBand = "low" | "moderate" | "high" | "very_high";
@@ -93,7 +93,7 @@ export function computeConfidence(
   // historicalReliability: neutral until learning framework is wired
   const historicalReliability = 0.5;
 
-  // memorySupport — confirmed memory available and recent
+  // memorySupport  -  confirmed memory available and recent
   const trusted = context.memory?.trusted ?? [];
   const memorySupport = trusted.length
     ? Math.min(1, trusted.reduce((acc, m) => acc + m.confidence, 0) / trusted.length)

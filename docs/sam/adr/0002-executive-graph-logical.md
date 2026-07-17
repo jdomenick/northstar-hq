@@ -11,7 +11,7 @@ SAM needs graph-shaped traversals across entities that already live in Postgres 
 Model the Executive Graph as a logical projection over the existing relational schema. Pure functions in `src/lib/sam/graph/*` materialize nodes and edges on demand from Supabase reads.
 
 ## Alternatives considered
-- **Neo4j / DuckDB PGQ.** Rejected — operational cost, second RLS story, premature.
+- **Neo4j / DuckDB PGQ.** Rejected  -  operational cost, second RLS story, premature.
 - **Postgres recursive CTEs only.** Kept as an implementation detail behind the projection.
 
 ## Rationale

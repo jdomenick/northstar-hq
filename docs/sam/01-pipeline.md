@@ -1,4 +1,4 @@
-# 01 — Intelligence Pipeline
+# 01  -  Intelligence Pipeline
 
 Every SAM invocation flows through the same twelve stages. The pipeline is
 deterministic in structure; only Stage 7 (Executive Reasoning) delegates
@@ -70,7 +70,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
   (org, venture, project, entity id if any), calling surface (Command,
   Decision detail, Briefing).
 - **Outputs.** `{ intent, scope, entityRefs[], requestedDetailLevel }`.
-- **Dependencies.** None — pure function over request + scope.
+- **Dependencies.** None  -  pure function over request + scope.
 - **Extensibility.** New intents register via an `IntentRegistry` (string
   key → classifier fn + downstream contract). Zero-training rule matcher
   first, LLM-assisted fallback later.
@@ -99,7 +99,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
 
 ### 4. Knowledge Retrieval
 - **Purpose.** Pull the most relevant Knowledge Records and Documents for
-  the intent — deterministic filters first (venture, tag, importance,
+  the intent  -  deterministic filters first (venture, tag, importance,
   verification, recency). Semantic retrieval is a Phase-3 add via the
   same interface.
 - **Inputs.** ContextBundle, intent, GraphSlice.
@@ -122,9 +122,9 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
   loaded from Organization Memory (doc 03).
 
 ### 6. Memory Engine
-- **Purpose.** Fetch the memory slices the reasoning engine will need —
+- **Purpose.** Fetch the memory slices the reasoning engine will need  - 
   founder preferences, org norms, venture history, prior recommendations
-  on this entity — and resolve conflicts per doc 03.
+  on this entity  -  and resolve conflicts per doc 03.
 - **Inputs.** ContextBundle, intent, entityRefs.
 - **Outputs.** `MemoryBundle` grouped by layer with per-item confidence
   and source.
@@ -138,7 +138,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
   Provider Abstraction Layer.
 - **Inputs.** `ReasoningRequest { intent, contextBundle, graphSlice,
   knowledgeSet, ruleFindings, memoryBundle, promptVersion }`.
-- **Outputs.** `ReasoningTrace` — structured internal record of every
+- **Outputs.** `ReasoningTrace`  -  structured internal record of every
   reasoning slot (objectives, evidence for/against, gaps, risks,
   opportunities, alignment, candidate actions). Never shown to users
   verbatim.
@@ -199,9 +199,9 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
 
 - Stages 1–6 and 8–12 are deterministic. Only stage 7 is probabilistic.
 - Every stage receives and returns typed contracts. No stage reads
-  Supabase ad-hoc — retrieval is centralized in stages 3, 4, 6.
+  Supabase ad-hoc  -  retrieval is centralized in stages 3, 4, 6.
 - Any stage can short-circuit with a `Deferred` result ("insufficient
-  data") which the formatter renders as an honest empty state — never a
+  data") which the formatter renders as an honest empty state  -  never a
   hallucinated answer.
 - The whole pipeline runs inside an org-scoped server function so RLS is
   enforced by the database, not by SAM.

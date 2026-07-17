@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR)
 
 ADRs are the official engineering history of SAM. Every non-obvious
-decision — architectural, structural, or policy — is captured as a
+decision  -  architectural, structural, or policy  -  is captured as a
 numbered ADR under this directory. ADRs are append-only; if a decision
 changes, write a new ADR that supersedes the old one and set the old
 ADR's status to `Superseded by ADR-NNNN`.
@@ -31,8 +31,8 @@ What situation forced this decision? What are the constraints?
 What did we decide? Be specific and imperative.
 
 ## Alternatives considered
-- Alt A — why rejected
-- Alt B — why rejected
+- Alt A  -  why rejected
+- Alt B  -  why rejected
 
 ## Rationale
 Why the chosen decision beats the alternatives given today's constraints.
@@ -61,6 +61,6 @@ Why the chosen decision beats the alternatives given today's constraints.
 - [ADR-0007: Every claim requires a citation](./0007-citations-required.md)
 - [ADR-0008: Audit rows are mandatory for delivery](./0008-audit-mandatory.md)
 ## Phase 3B
-- [0010 — Memory privacy scopes](./0010-memory-privacy-scopes.md)
-- [0011 — Memory precedence v1](./0011-memory-precedence-v1.md)
-- [0012 — Executive graph as relational projection](./0012-executive-graph-relational-projection.md)
+- [0010  -  Memory privacy scopes](./0010-memory-privacy-scopes.md)
+- [0011  -  Memory precedence v1](./0011-memory-precedence-v1.md)
+- [0012  -  Executive graph as relational projection](./0012-executive-graph-relational-projection.md)

@@ -324,7 +324,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {hasQuery && !searchQ.isFetching && results && results.total === 0 && (
             <CommandEmpty>No matches in this organization.</CommandEmpty>
           )}
-          {!hasQuery && <CommandEmpty>Type to search — or pick an action below.</CommandEmpty>}
+          {!hasQuery && <CommandEmpty>Type to search  -  or pick an action below.</CommandEmpty>}
 
           {hasQuery && results && (
             <>

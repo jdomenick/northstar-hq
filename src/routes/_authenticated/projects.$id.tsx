@@ -29,7 +29,7 @@ import { isCommitmentOverdue } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
-  head: () => ({ meta: [{ title: "Project — Northstar" }] }),
+  head: () => ({ meta: [{ title: "Project  -  Northstar" }] }),
 });
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {
@@ -255,7 +255,7 @@ function ProjectDetail() {
                   onChange={(e) => patch({ goal_id: e.target.value || null })}
                   className="w-full max-w-md rounded-md bg-secondary/40 px-3 py-2 text-[13.5px] text-foreground outline-none hover:bg-secondary/60 disabled:opacity-60"
                 >
-                  <option value="">— No goal linked —</option>
+                  <option value=""> -  No goal linked  - </option>
                   {(goalsQ.data ?? [])
                     .filter((g) => g.venture_id === p.venture_id || g.venture_id == null)
                     .filter((g) => g.status !== "archived")
@@ -392,7 +392,7 @@ function EditableText({
           if (v !== value) onCommit(v);
         }}
         className="w-full resize-none bg-transparent text-[14px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground/40 disabled:opacity-60"
-        placeholder="—"
+        placeholder=" - "
       />
     </label>
   );

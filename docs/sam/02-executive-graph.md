@@ -1,7 +1,7 @@
-# 02 — Executive Graph
+# 02  -  Executive Graph
 
 The Executive Graph is Northstar's proprietary knowledge structure. It is a
-logical model — not a graph database. It projects the existing relational
+logical model  -  not a graph database. It projects the existing relational
 schema into a typed node/edge space that every SAM stage reasons over.
 
 ## Node types
@@ -32,7 +32,7 @@ Every node exposes:
 Node {
   id: string
   type: NodeType
-  orgId: string           // RLS anchor — never crosses this
+  orgId: string           // RLS anchor  -  never crosses this
   ventureId?: string
   title: string
   status?: string
@@ -94,7 +94,7 @@ The graph is materialized on demand by pure functions in
 `src/lib/sam/graph/*` (Phase 3):
 
 - `projectNode(row, type) → Node`
-- `edgesForNode(node, policy) → Edge[]` — each edge type has one resolver
+- `edgesForNode(node, policy) → Edge[]`  -  each edge type has one resolver
   that reads from Supabase via existing data hooks or dedicated
   server functions.
 - `traverse(seedIds, policy) → GraphSlice`

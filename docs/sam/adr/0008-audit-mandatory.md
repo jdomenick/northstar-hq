@@ -11,7 +11,7 @@ Auditing added after the fact is always incomplete. Enterprise, SOC2, and intern
 Every SAM invocation writes its `sam_invocations` row and child context/provider rows before the response is shown to the user. A failed audit write blocks delivery.
 
 ## Alternatives considered
-- **Async / best-effort audit.** Rejected — creates silent gaps.
+- **Async / best-effort audit.** Rejected  -  creates silent gaps.
 
 ## Rationale
 Delivery-blocking audit is the only guarantee that history is complete.

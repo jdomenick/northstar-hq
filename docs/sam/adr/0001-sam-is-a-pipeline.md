@@ -17,9 +17,9 @@ Citation → Formatter → Audit). The LLM is only invoked at stage 7 and
 only through the Provider Abstraction Layer.
 
 ## Alternatives considered
-- **Direct LLM chat with tool calls.** Rejected — vendor lock-in, no
+- **Direct LLM chat with tool calls.** Rejected  -  vendor lock-in, no
   proprietary structure, no auditability floor.
-- **RAG-only wrapper.** Rejected — retrieval alone doesn't encode
+- **RAG-only wrapper.** Rejected  -  retrieval alone doesn't encode
   executive reasoning, rules, or memory conflict resolution.
 
 ## Rationale

@@ -39,7 +39,7 @@ export interface GraphEdge {
 }
 
 // ---------------------------------------------------------------------------
-// Neighbours for a single node — mixes derived edges (FKs) with stored ones.
+// Neighbours for a single node  -  mixes derived edges (FKs) with stored ones.
 // ---------------------------------------------------------------------------
 export async function getEntityNeighbors(
   supabase: SupabaseClient<Database>,
@@ -132,7 +132,7 @@ export async function getEntityNeighbors(
   return { nodes, edges };
 }
 
-// Convenience — venture graph slice used by context builder.
+// Convenience  -  venture graph slice used by context builder.
 export async function getVentureGraph(
   supabase: SupabaseClient<Database>,
   orgId: string,

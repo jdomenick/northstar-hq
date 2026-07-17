@@ -250,7 +250,7 @@ export async function runWorkflow(
       failureCode: null,
     });
 
-    // Completion learning event — persisted so future runs can learn.
+    // Completion learning event  -  persisted so future runs can learn.
     try {
       await supabase.from("sam_learning_events").insert({
         organization_id: scope.orgId,
@@ -287,7 +287,7 @@ export async function runWorkflow(
     try {
       await failRun(supabase, runId, err.code, latency);
     } catch {
-      /* swallow — we're already in the failure path */
+      /* swallow  -  we're already in the failure path */
     }
     // Failure learning event.
     try {

@@ -1,4 +1,4 @@
-# 10 — Audit Trail
+# 10  -  Audit Trail
 
 Every SAM invocation is fully reconstructible from its audit rows. Audit
 is not optional and not sampled. Without a complete audit row, the
@@ -83,4 +83,4 @@ sam_invocation_feedback {
 ## Extensibility
 
 - New signals (safety-classifier verdicts, tool-call traces) are additive columns; older rows remain valid.
-- External audit export (SOC2, enterprise) reads a read-only replica view — never the write path.
+- External audit export (SOC2, enterprise) reads a read-only replica view  -  never the write path.

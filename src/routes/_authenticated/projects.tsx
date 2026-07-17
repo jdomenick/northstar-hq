@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/projects")({
   component: ProjectsLayout,
   head: () => ({
     meta: [
-      { title: "Projects — Northstar" },
+      { title: "Projects  -  Northstar" },
       {
         name: "description",
         content: "Every project across every venture, in one executive view.",
@@ -130,7 +130,7 @@ function ProjectsIndex() {
       <PageHeader
         eyebrow="Projects"
         title="Projects"
-        description="Every project, its owner, its next step, and its risk — nothing more."
+        description="Every project, its owner, its next step, and its risk  -  nothing more."
         actions={
           canCreate && (
             <button
@@ -286,7 +286,7 @@ function ProjectsTable({
                 )}
               </td>
               <td className="hidden px-2 py-5 text-muted-foreground md:table-cell">
-                {ventureMap.get(p.venture_id) ?? "—"}
+                {ventureMap.get(p.venture_id) ?? " - "}
               </td>
               <td className="px-2 py-5">
                 <StatusPill status={p.status} />
@@ -305,7 +305,7 @@ function ProjectsTable({
                 </div>
               </td>
               <td className="hidden px-2 py-5 text-right tabular-nums text-muted-foreground md:table-cell">
-                {p.deadline ?? "—"}
+                {p.deadline ?? " - "}
               </td>
             </tr>
           ))}
@@ -361,7 +361,7 @@ function ProjectsBoard({
               >
                 <div className="text-[13px] leading-snug text-foreground">{p.name}</div>
                 <div className="mt-1.5 text-[11.5px] text-muted-foreground">
-                  {ventureMap.get(p.venture_id) ?? "—"}
+                  {ventureMap.get(p.venture_id) ?? " - "}
                   {p.deadline ? ` · ${p.deadline}` : ""}
                 </div>
               </Link>
@@ -590,7 +590,7 @@ function NewProjectDialog({
               onChange={(e) => setGoalId(e.target.value)}
               className="w-full bg-transparent text-[15px] text-foreground outline-none"
             >
-              <option value="">— None —</option>
+              <option value=""> -  None  - </option>
               {(goalsQ.data ?? [])
                 .filter((g) => g.venture_id === ventureId || g.venture_id == null)
                 .filter((g) => g.status !== "archived")

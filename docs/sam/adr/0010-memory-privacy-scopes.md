@@ -1,4 +1,4 @@
-# ADR-0010 — Memory Privacy Scopes
+# ADR-0010  -  Memory Privacy Scopes
 
 Status: Accepted (Phase 3B)
 
@@ -28,4 +28,4 @@ expose one member's private preferences to the rest of the team.
   explicit product decision requiring a schema-level flag and a new ADR;
   RLS defaults never allow the leak.
 - Founder memory created before the user has an active membership is
-  unreachable — the app must guarantee membership at creation time.
+  unreachable  -  the app must guarantee membership at creation time.

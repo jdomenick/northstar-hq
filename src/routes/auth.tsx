@@ -9,7 +9,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({
     meta: [
-      { title: "Sign in — Northstar" },
+      { title: "Sign in  -  Northstar" },
       { name: "description", content: "Sign in to your executive operating system." },
     ],
   }),
@@ -45,7 +45,7 @@ function AuthPage() {
         });
         if (error) throw error;
         if (!data.session) {
-          toast.success("Account created — sign in to continue");
+          toast.success("Account created  -  sign in to continue");
           setMode("signin");
           setPassword("");
         } else {
