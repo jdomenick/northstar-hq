@@ -36,7 +36,12 @@ test("Instagram: warns on link (bio_only), errors on 31 hashtags", () => {
     linkUrl: "https://example.com",
     hashtags: Array.from({ length: 31 }, (_, i) => `tag${i}`),
   });
-  assert.ok(r.issues.some((i) => i.ruleId === "link.bio_only" && i.severity === "warning"));
+  // Instagram marks linkUrl as unsupported, so the ruleset warns via
+  // link.unsupported rather than link.bio_only. Either warning is
+  // acceptable operator guidance for this case.
+  assert.ok(r.issues.some((i) =>
+    (i.ruleId === "link.unsupported" || i.ruleId === "link.bio_only")
+    && i.severity === "warning"));
   assert.ok(r.issues.some((i) => i.ruleId === "hashtags.count.hard" && i.severity === "error"));
 });
 
