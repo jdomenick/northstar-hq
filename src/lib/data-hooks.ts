@@ -11,9 +11,14 @@ export type ActivityEvent = Database["public"]["Tables"]["activity_events"]["Row
 export type ExecutiveInsight = Database["public"]["Tables"]["executive_insights"]["Row"];
 export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export type Goal = Database["public"]["Tables"]["goals"]["Row"];
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type ProjectStatus = Database["public"]["Enums"]["project_status"];
 export type Priority = Database["public"]["Enums"]["priority_level"];
 export type TaskStatus = Database["public"]["Enums"]["task_status"];
+export type DecisionStatus = Database["public"]["Enums"]["decision_status"];
+export type CommitmentStatus = Database["public"]["Enums"]["commitment_status"];
+export type GoalStatus = Database["public"]["Enums"]["goal_status"];
 
 export function useVentures(orgId: string | null) {
   return useQuery({
