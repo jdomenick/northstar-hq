@@ -159,13 +159,13 @@ function DecisionDetail() {
             onChange={(next) => patch({ risks: next as unknown as Decision["risks"] })} />
         </Section>
 
-        <Section title="Operator recommendation">
+        <Section title="SAM recommendation">
           <div className="rounded-2xl bg-card/40 p-6">
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
-              <Sparkles className="h-3.5 w-3.5" /> Analyze with Operator
+              <Sparkles className="h-3.5 w-3.5" /> Analyze with SAM
             </div>
             <p className="mt-3 text-[13.5px] text-muted-foreground">
-              Operator intelligence will be activated in Phase 3.
+              SAM intelligence will be activated in Phase 3.
             </p>
             <button disabled className="mt-4 rounded-md bg-secondary/60 px-3.5 py-1.5 text-[12px] text-muted-foreground/70">
               Analyze — disabled

@@ -54,7 +54,7 @@ const NAV: NavItem[] = [
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/accountability", label: "Accountability", icon: ShieldCheck },
-  { to: "/operator", label: "Operator", icon: Sparkles },
+  { to: "/operator", label: "SAM", icon: Sparkles },
   { to: "/integrations", label: "Integrations", icon: Plug },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];

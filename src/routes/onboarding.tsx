@@ -168,7 +168,7 @@ function OnboardingFlow() {
           description="Northstar uses this to personalize your executive briefings."
         >
           <TextField label="Full name" value={fullName} onChange={setFullName} required />
-          <TextField label="Preferred name" value={preferredName} onChange={setPreferredName} placeholder="What Operator calls you" />
+          <TextField label="Preferred name" value={preferredName} onChange={setPreferredName} placeholder="What SAM calls you" />
           <TextField label="Title" value={title} onChange={setTitle} placeholder="Founder & CEO" />
           <TextField label="Timezone" value={tz} onChange={setTz} />
           <PrimaryButton onClick={saveProfile} disabled={!fullName || submitting}>
@@ -237,7 +237,7 @@ function OnboardingFlow() {
         <Panel
           eyebrow="Step 4 of 4"
           title="You're ready."
-          description="Northstar is set up. Operator will start surfacing signals as your ventures produce activity."
+          description="Northstar is set up. SAM will begin learning from your organization once intelligence is enabled in Phase 3."
         >
           <PrimaryButton onClick={finish} disabled={submitting}>
             Enter Northstar

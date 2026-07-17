@@ -34,7 +34,7 @@ const SECTIONS = [
   { value: "profile", label: "Founder Profile" },
   { value: "organization", label: "Organization" },
   { value: "members", label: "Members" },
-  { value: "operator", label: "Operator" },
+  { value: "operator", label: "SAM" },
   { value: "accountability", label: "Accountability" },
   { value: "notifications", label: "Notifications" },
   { value: "security", label: "Security" },
