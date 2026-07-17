@@ -2397,6 +2397,13 @@ export type Database = {
         | "outcome_completed"
         | "outcome_failed"
         | "outcome_superseded"
+        | "workflow_run_completed"
+        | "workflow_run_failed"
+        | "workflow_marked_useful"
+        | "workflow_marked_partially_useful"
+        | "workflow_marked_not_useful"
+        | "workflow_marked_incorrect"
+        | "workflow_marked_missing_context"
       sam_memory_feedback_type:
         | "accurate"
         | "inaccurate"
@@ -2738,6 +2745,13 @@ export const Constants = {
         "outcome_completed",
         "outcome_failed",
         "outcome_superseded",
+        "workflow_run_completed",
+        "workflow_run_failed",
+        "workflow_marked_useful",
+        "workflow_marked_partially_useful",
+        "workflow_marked_not_useful",
+        "workflow_marked_incorrect",
+        "workflow_marked_missing_context",
       ],
       sam_memory_feedback_type: [
         "accurate",

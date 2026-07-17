@@ -106,12 +106,12 @@ export interface WorkflowContext {
   countsBeforeTruncation: Record<string, number>;
   truncations: string[];
   omittedCategories: string[];
-  ventures: ReadonlyArray<{ id: string; name: string; status: string | null }>;
-  projects: ReadonlyArray<{ id: string; name: string; status: string | null; venture_id: string | null; updated_at: string }>;
-  tasks: ReadonlyArray<{ id: string; title: string; status: string | null; due_date: string | null }>;
-  goals: ReadonlyArray<{ id: string; title: string; status: string | null; target_date: string | null }>;
-  decisions: ReadonlyArray<{ id: string; title: string; status: string | null; review_date: string | null }>;
-  commitments: ReadonlyArray<{ id: string; title: string; status: string | null; due_date: string | null }>;
+  ventures: ReadonlyArray<{ id: string; name: string; status: string | null; updated_at: string }>;
+  projects: ReadonlyArray<{ id: string; name: string; status: string | null; venture_id: string | null; goal_id: string | null; owner_user_id: string | null; priority: string | null; progress_percentage: number | null; deadline: string | null; updated_at: string; next_action: string | null; blocker_summary: string | null }>;
+  tasks: ReadonlyArray<{ id: string; title: string; status: string | null; due_date: string | null; assigned_to: string | null; priority: string | null; project_id: string | null; updated_at: string; completed_at: string | null }>;
+  goals: ReadonlyArray<{ id: string; title: string; status: string | null; target_date: string | null; start_date: string | null; current_value: number | null; target_value: number | null; owner_user_id: string | null; updated_at: string; venture_id: string | null }>;
+  decisions: ReadonlyArray<{ id: string; title: string; status: string | null; review_date: string | null; decision_date: string | null; owner_user_id: string | null; project_id: string | null; venture_id: string | null; updated_at: string }>;
+  commitments: ReadonlyArray<{ id: string; title: string; status: string | null; due_date: string | null; owner_user_id: string | null; priority: string | null; postponement_count: number | null; completed_at: string | null; original_due_date: string | null; updated_at: string }>;
   knowledge: ReadonlyArray<{ id: string; title: string; verification_status: string | null; updated_at: string }>;
   documents: ReadonlyArray<{ id: string; title: string; file_type: string | null; updated_at: string }>;
   activity: ReadonlyArray<{ id: string; action: string; entity_type: string; created_at: string }>;
@@ -131,6 +131,24 @@ export interface WorkflowContext {
   };
   historicalRuns: ReadonlyArray<{ id: string; workflow_type: string; completed_at: string | null; status: string; confidence_score: number | null }>;
   learningEvents: ReadonlyArray<{ event_type: string; created_at: string }>;
+  // Populated for workflows targeting a specific entity (e.g. Decision Review).
+  selectedDecision?: {
+    id: string; title: string; question: string | null; context: string | null;
+    status: string | null; decision_date: string | null; review_date: string | null;
+    options_considered: unknown; operator_recommendation: string | null;
+    evidence: unknown; risks: unknown; opportunity_cost: string | null;
+    final_decision: string | null; rationale: string | null; outcome: string | null;
+    owner_user_id: string | null; project_id: string | null; venture_id: string | null;
+    goal_id?: string | null; updated_at: string;
+  } | null;
+  // Related to selected decision (loaded on demand). Empty when not applicable.
+  related?: {
+    goals: ReadonlyArray<{ id: string; title: string; status: string | null }>;
+    projects: ReadonlyArray<{ id: string; name: string; status: string | null }>;
+    tasks: ReadonlyArray<{ id: string; title: string; status: string | null }>;
+    commitments: ReadonlyArray<{ id: string; title: string; status: string | null }>;
+    decisions: ReadonlyArray<{ id: string; title: string; status: string | null; decision_date: string | null; outcome: string | null }>;
+  };
   settings: {
     include_uncertain_memory: boolean;
     include_archived_historical_evidence: boolean;
@@ -229,7 +247,11 @@ export interface WorkflowDefinition {
   supportsDateRange: boolean;
   minRole: WorkflowMinRole;
   maxContextRecords: number;
-  deterministicAnalyzer: "not_implemented"; // Milestone 2 placeholder
+  deterministicAnalyzer:
+    | "not_implemented"
+    | "daily_briefing"
+    | "weekly_review"
+    | "decision_review";
   optionalProviderSynthesis: boolean;
   outputSchema: z.ZodTypeAny;
   requireCitations: boolean;

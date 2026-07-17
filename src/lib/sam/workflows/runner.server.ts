@@ -27,8 +27,13 @@ import type {
 import { getWorkflowDefinition } from "./registry.server";
 import { resolveWorkflowScope } from "./auth.server";
 import { assertNoDuplicateActive } from "./concurrency.server";
+import { isDuplicateActiveError } from "./concurrency.server";
 import { assembleWorkflowContext } from "./context.server";
 import { notImplementedAnalyzer } from "./analyzers/not-implemented.server";
+import { dailyBriefingAnalyzer } from "./analyzers/daily-briefing.server";
+import { weeklyReviewAnalyzer } from "./analyzers/weekly-review.server";
+import { decisionReviewAnalyzer } from "./analyzers/decision-review.server";
+import type { WorkflowAnalyzer } from "./analyzers/types";
 import { runSynthesis } from "./synthesis.server";
 import { validateWorkflowCitations } from "./citations.server";
 import { computeWorkflowConfidence } from "./confidence.server";
@@ -44,9 +49,28 @@ import { writeWorkflowAudit } from "./audit.server";
 
 type Client = SupabaseClient<Database>;
 
-function analyzerFor(key: "not_implemented") {
-  if (key === "not_implemented") return notImplementedAnalyzer;
-  throw new SamError("workflow_not_implemented");
+function analyzerFor(key: string): WorkflowAnalyzer {
+  switch (key) {
+    case "daily_briefing": return dailyBriefingAnalyzer;
+    case "weekly_review": return weeklyReviewAnalyzer;
+    case "decision_review": return decisionReviewAnalyzer;
+    case "not_implemented": return notImplementedAnalyzer;
+    default: throw new SamError("workflow_not_implemented");
+  }
+}
+
+// Which context sources each analyzer actually needs.
+function sourcesFor(key: string) {
+  switch (key) {
+    case "daily_briefing":
+      return { ventures: true, projects: true, tasks: true, goals: true, decisions: true, commitments: true, knowledge: false, documents: false, activity: true, memory: true, graph: false, historical: true } as const;
+    case "weekly_review":
+      return { ventures: true, projects: true, tasks: true, goals: true, decisions: true, commitments: true, knowledge: false, documents: false, activity: true, memory: true, graph: false, historical: true } as const;
+    case "decision_review":
+      return { ventures: false, projects: true, tasks: false, goals: true, decisions: true, commitments: false, knowledge: true, documents: false, activity: false, memory: true, graph: true, historical: true } as const;
+    default:
+      return undefined;
+  }
 }
 
 export async function runWorkflow(
@@ -66,9 +90,12 @@ export async function runWorkflow(
     ventureId: scope.ventureId,
     periodStart: scope.periodStart,
     periodEnd: scope.periodEnd,
+    entityId: rawInput.entityId ?? null,
   });
 
-  const runId = await createPendingRun(supabase, {
+  let runId: string;
+  try {
+    runId = await createPendingRun(supabase, {
     orgId: scope.orgId,
     userId: scope.userId,
     workflowType: registry.key,
@@ -82,6 +109,7 @@ export async function runWorkflow(
       periodStart: scope.periodStart,
       periodEnd: scope.periodEnd,
       entityId: rawInput.entityId ?? null,
+      retryOfRunId: (rawInput.extras?.retryOfRunId as string | undefined) ?? null,
     },
     workflow_version: registry.version,
     prompt_version: PROMPT_VERSION,
@@ -90,7 +118,11 @@ export async function runWorkflow(
     confidence_version: WORKFLOW_CONFIDENCE_VERSION,
     memory_version: MEMORY_FRAMEWORK_VERSION,
     graph_version: EXECUTIVE_GRAPH_VERSION,
-  });
+    });
+  } catch (err) {
+    if (isDuplicateActiveError(err)) throw new SamError("workflow_already_running");
+    throw err;
+  }
 
   let ctx: WorkflowContext | null = null;
   let deterministic: WorkflowDeterministicResult | null = null;
@@ -106,9 +138,10 @@ export async function runWorkflow(
       ventureId: scope.ventureId,
       periodStart: scope.periodStart,
       periodEnd: scope.periodEnd,
+      entityId: rawInput.entityId ?? null,
+      sources: sourcesFor(registry.deterministicAnalyzer),
     });
 
-    // Milestone 2: every workflow points at not-implemented and fails honestly.
     const analyzer = analyzerFor(registry.deterministicAnalyzer);
     try {
       deterministic = await analyzer.analyze(ctx);
@@ -162,6 +195,9 @@ export async function runWorkflow(
         deterministic: {
           scores: deterministic.scores,
           missingInformation: deterministic.missingInformation,
+          counts: deterministic.counts,
+          rulesTriggered: deterministic.rulesTriggered,
+          analyzerVersion: analyzer.version,
         },
         confidence: finalConfidence,
       },
@@ -214,6 +250,21 @@ export async function runWorkflow(
       failureCode: null,
     });
 
+    // Completion learning event — persisted so future runs can learn.
+    try {
+      await supabase.from("sam_learning_events").insert({
+        organization_id: scope.orgId,
+        user_id: scope.userId,
+        event_type: "workflow_run_completed",
+        original_payload: {
+          workflow_run_id: runId,
+          workflow_type: registry.key,
+          finding_count: findings.length,
+          confidence: finalConfidence.score,
+        } as never,
+      });
+    } catch { /* non-fatal */ }
+
     return {
       runId,
       workflowType: registry.key,
@@ -238,6 +289,19 @@ export async function runWorkflow(
     } catch {
       /* swallow — we're already in the failure path */
     }
+    // Failure learning event.
+    try {
+      await supabase.from("sam_learning_events").insert({
+        organization_id: scope.orgId,
+        user_id: scope.userId,
+        event_type: "workflow_run_failed",
+        original_payload: {
+          workflow_run_id: runId,
+          workflow_type: registry.key,
+          failure_code: err.code,
+        } as never,
+      });
+    } catch { /* swallow */ }
     try {
       await writeWorkflowAudit({
         workflowType: registry.key,

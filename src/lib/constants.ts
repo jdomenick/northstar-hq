@@ -99,3 +99,27 @@ export const WORKFLOW_DEFAULT_SETTINGS = {
   allow_provider_synthesis_fallback: true,
   workflow_retention_preference: "standard" as "minimal" | "standard" | "extended",
 } as const;
+
+// ─────────────────────────────────────────────────────────────
+// SAM Workflow analyzer versions (Phase 3C, Milestone 3)
+// ─────────────────────────────────────────────────────────────
+export const DAILY_BRIEFING_VERSION = "sam.workflow.daily_briefing.v1.0.0";
+export const WEEKLY_REVIEW_VERSION = "sam.workflow.weekly_review.v1.0.0";
+export const DECISION_REVIEW_VERSION = "sam.workflow.decision_review.v1.0.0";
+export const DAILY_BRIEFING_RULESET_VERSION = "sam.workflow.daily_briefing.rules.v1";
+export const WEEKLY_REVIEW_RULESET_VERSION = "sam.workflow.weekly_review.rules.v1";
+export const DECISION_REVIEW_RULESET_VERSION = "sam.workflow.decision_review.rules.v1";
+export const WORKFLOW_FINDING_SCHEMA_VERSION = "sam.workflow.finding.v1";
+export const WORKFLOW_SYNTHESIS_SCHEMA_VERSION = "sam.workflow.synthesis.v1";
+
+export const SAM_WORKFLOW_THRESHOLDS = {
+  dueSoonDays: 3,
+  staleProjectDays: 7,
+  staleGoalDays: 14,
+  staleMemoryDays: 90,
+  postponementConcernCount: 2,
+  behindProgressRatio: 0.15,
+  minReliabilitySamples: 5,
+  weeklyReviewMinDays: 3,
+  weeklyReviewMaxDays: 21,
+} as const;

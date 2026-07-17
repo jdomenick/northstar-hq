@@ -13,11 +13,54 @@ import { listWorkflowDefinitions } from "./registry.server";
 // ── runWorkflow ───────────────────────────────────────────────
 export const runWorkflow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => WorkflowRunInput.parse(input))
+  .inputValidator((input: unknown) => {
+    const parsed = WorkflowRunInput.parse(input);
+    // Enforce combination rules early — server-side auth also re-checks.
+    if (parsed.workflowType === "daily_briefing" && (parsed.periodStart || parsed.periodEnd)) {
+      throw new SamError("invalid_date_range");
+    }
+    if (parsed.workflowType === "weekly_review" && (!parsed.periodStart || !parsed.periodEnd)) {
+      throw new SamError("invalid_date_range");
+    }
+    if (parsed.workflowType === "decision_review" && !parsed.entityId) {
+      throw new SamError("record_unavailable");
+    }
+    return parsed;
+  })
   .handler(async ({ data, context }) => {
     const { runWorkflow: run } = await import("./runner.server");
     try {
       return await run(context.supabase, context.userId, data);
+    } catch (err) {
+      throw toSamError(err);
+    }
+  });
+
+// Retry a failed run — creates a new run linked to the prior via
+// input_snapshot.retryOfRunId. Never overwrites the historical row.
+const RetryInput = z.object({ runId: z.string().uuid() });
+export const retryWorkflowRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => RetryInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { loadRun } = await import("./persistence.server");
+    const prior = await loadRun(context.supabase, data.runId);
+    if (prior.status !== "failed") throw new SamError("workflow_unavailable");
+    const snap = (prior.input_snapshot ?? {}) as Record<string, unknown>;
+    const rebuilt = {
+      workflowType: prior.workflow_type as WorkflowRunInput["workflowType"],
+      scope: (snap.scope as WorkflowRunInput["scope"]) ?? "organization",
+      ventureId: prior.venture_id ?? null,
+      periodStart: prior.period_start ?? undefined,
+      periodEnd: prior.period_end ?? undefined,
+      entityId: (snap.entityId as string | undefined) ?? undefined,
+      trigger: "manual" as const,
+      extras: { retryOfRunId: prior.id },
+    };
+    const parsed = WorkflowRunInput.parse(rebuilt);
+    const { runWorkflow: run } = await import("./runner.server");
+    try {
+      return await run(context.supabase, context.userId, parsed);
     } catch (err) {
       throw toSamError(err);
     }
