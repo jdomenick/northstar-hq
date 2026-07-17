@@ -21,43 +21,43 @@ function DecisionsPage() {
         description="Reversible or one-way door. Operator surfaces context. You decide."
       />
       <PageBody>
-        <div className="space-y-3">
+        <div className="-mx-2">
           {decisions.map((d) => (
             <article
               key={d.id}
-              className="group rounded-xl border border-border bg-card/40 p-6 transition-colors hover:bg-card"
+              className="group rounded-xl px-6 py-7 hover:bg-secondary/30 border-b border-border/60 last:border-0"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-6">
                 <div className="min-w-0">
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                  <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
                     {d.venture} · raised {d.raised}
                   </div>
-                  <h3 className="mt-2 font-display text-xl leading-snug text-foreground">
+                  <h3 className="mt-3 font-display text-[22px] leading-snug text-foreground">
                     {d.title}
                   </h3>
-                  <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="mt-4 max-w-2xl text-[14px] leading-[1.7] text-muted-foreground">
                     {d.context}
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full border border-border px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                  className={`shrink-0 text-[10px] uppercase tracking-[0.2em] ${
                     d.stakes === "One-way door"
-                      ? "text-[oklch(0.62_0.19_25)]"
-                      : "text-muted-foreground"
+                      ? "text-[oklch(0.72_0.14_25)]"
+                      : "text-muted-foreground/70"
                   }`}
                 >
                   {d.stakes}
                 </span>
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
-                <div className="text-[12px] text-muted-foreground">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-[12.5px] text-muted-foreground">
                   Waiting on <span className="text-foreground">{d.waitingOn}</span>
                 </div>
-                <div className="flex items-center gap-2 text-[12px]">
-                  <button className="rounded-md border border-border px-3 py-1.5 text-muted-foreground hover:text-foreground">
+                <div className="flex items-center gap-1.5 text-[12.5px]">
+                  <button className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground">
                     Defer
                   </button>
-                  <button className="rounded-md bg-foreground px-3 py-1.5 text-background hover:opacity-90">
+                  <button className="rounded-md bg-foreground px-3.5 py-1.5 text-background hover:opacity-90">
                     Decide
                   </button>
                 </div>

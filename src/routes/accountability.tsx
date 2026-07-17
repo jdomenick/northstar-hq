@@ -29,36 +29,39 @@ function AccountabilityPage() {
       />
       <PageBody>
         <Section title="Open commitments">
-          <div className="overflow-hidden rounded-lg border border-border">
+          <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-secondary/40 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-medium">Owner</th>
-                  <th className="px-5 py-3 font-medium">Commitment</th>
-                  <th className="hidden px-5 py-3 font-medium md:table-cell">Venture</th>
-                  <th className="px-5 py-3 font-medium">Due</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
+              <thead className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                <tr className="border-b border-border">
+                  <th className="px-2 py-3 font-medium">Owner</th>
+                  <th className="px-2 py-3 font-medium">Commitment</th>
+                  <th className="hidden px-2 py-3 font-medium md:table-cell">Venture</th>
+                  <th className="px-2 py-3 font-medium">Due</th>
+                  <th className="px-2 py-3 text-right font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {commitments.map((c, i) => (
-                  <tr key={i} className="text-[13px] hover:bg-secondary/30">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-[10px]">
+                  <tr
+                    key={i}
+                    className="text-[13.5px] hover:bg-secondary/30 border-b border-border/60 last:border-0"
+                  >
+                    <td className="px-2 py-5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary/70 text-[10px] font-medium text-foreground">
                           {c.who.slice(0, 2)}
                         </div>
                         <span className="text-foreground">{c.who}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-foreground">{c.what}</td>
-                    <td className="hidden px-5 py-4 text-muted-foreground md:table-cell">{c.venture}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{c.by}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-2 py-5 text-foreground">{c.what}</td>
+                    <td className="hidden px-2 py-5 text-muted-foreground md:table-cell">{c.venture}</td>
+                    <td className="px-2 py-5 tabular-nums text-muted-foreground">{c.by}</td>
+                    <td className="px-2 py-5 text-right text-[12.5px]">
                       <span
                         className={
                           c.status === "Overdue"
-                            ? "text-[oklch(0.62_0.19_25)]"
+                            ? "text-[oklch(0.72_0.14_25)]"
                             : c.status === "Due"
                               ? "text-[oklch(0.78_0.14_75)]"
                               : "text-muted-foreground"
@@ -75,16 +78,18 @@ function AccountabilityPage() {
         </Section>
 
         <Section title="Where you are the bottleneck">
-          <ul className="space-y-2">
+          <ul>
             {commitments
               .filter((c) => c.who === "Jeff")
               .map((c, i) => (
                 <li
                   key={i}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card/40 px-5 py-4 text-[13px]"
+                  className="flex items-center justify-between border-b border-border/60 py-5 text-[14px] last:border-0"
                 >
                   <span className="text-foreground">{c.what}</span>
-                  <span className="text-[12px] text-muted-foreground">{c.venture} · {c.by}</span>
+                  <span className="text-[12.5px] text-muted-foreground">
+                    {c.venture} · {c.by}
+                  </span>
                 </li>
               ))}
           </ul>
