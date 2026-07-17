@@ -2,6 +2,7 @@
 // See docs/sam/08-workflows.md.
 
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
 
 // ── Enums (mirror DB enums; keep in sync) ─────────────────────
 export const WorkflowType = z.enum([
@@ -171,7 +172,7 @@ export interface WorkflowFinding {
   confidence_score: number | null;
   confidence_band: string | null;
   status: "open" | "acknowledged" | "resolved" | "dismissed";
-  structured_data: Record<string, unknown>;
+  structured_data: Json;
   sort_order: number;
 }
 
@@ -183,7 +184,7 @@ export interface WorkflowCitationCandidate {
   title: string;
   href: string | null;
   relevance: string | null;
-  lineage: Record<string, unknown>;
+  lineage: Json;
 }
 
 export interface WorkflowCitation extends WorkflowCitationCandidate {
