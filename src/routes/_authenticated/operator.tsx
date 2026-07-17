@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Sparkles, ArrowUp } from "lucide-react";
 
-export const Route = createFileRoute("/operator")({
+export const Route = createFileRoute("/_authenticated/operator")({
   component: OperatorPage,
   head: () => ({
     meta: [

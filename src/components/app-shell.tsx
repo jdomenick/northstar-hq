@@ -17,6 +17,16 @@ import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth-context";
+import { useOrg } from "@/lib/org-context";
+import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -51,6 +61,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { activeMembership } = useOrg();
+
+  const initials = (user?.email ?? "?")
+    .split(/[.@_-]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("");
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -218,9 +242,30 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground">
               <Bell className="h-4 w-4" strokeWidth={1.75} />
             </Button>
-            <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[12px] font-medium">
-              JC
-            </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[12px] font-medium text-foreground hover:opacity-90">
+                {initials || "N"}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-56">
+              <DropdownMenuLabel className="flex flex-col gap-0.5">
+                <span className="truncate text-[13px] text-foreground">
+                  {user?.email}
+                </span>
+                {activeMembership?.organizations?.name && (
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    {activeMembership.organizations.name} · {activeMembership.role}
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           </div>
         </header>
 

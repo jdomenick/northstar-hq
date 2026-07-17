@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 
-export const Route = createFileRoute("/accountability")({
+export const Route = createFileRoute("/_authenticated/accountability")({
   component: AccountabilityPage,
   head: () => ({
     meta: [

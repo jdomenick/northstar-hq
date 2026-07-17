@@ -4,7 +4,7 @@ import { PageBody, PageHeader } from "@/components/page-header";
 import { projects, ventures } from "@/lib/northstar-data";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projects")({
+export const Route = createFileRoute("/_authenticated/projects")({
   component: ProjectsPage,
   head: () => ({
     meta: [
