@@ -17,6 +17,7 @@ import { z } from "zod";
 
 import { SAM_OPERATION_NAMES, SAM_OPERATIONS_VERSION, type OperationResult, type SamOperationName } from "./types";
 import * as ops from "./ops.server";
+import { logSamOperation } from "./activity.server";
 
 const RunInput = z.object({
   operation: z.enum(SAM_OPERATION_NAMES),
@@ -90,12 +91,28 @@ async function dispatch(operation: SamOperationName, payload: unknown, c: { supa
     case "publishApprovedVariant":
     case "retryPublication":
       return ops.publishApprovedVariant(c, ops.PublishOpInput.parse(payload));
+    case "retrieveApprovalQueue":
+      return ops.retrieveApprovalQueue(c, ops.RetrieveApprovalQueueInput.parse(payload));
+    case "retrieveScheduledContent":
+      return ops.retrieveScheduledContent(c, ops.RetrieveScheduledContentInput.parse(payload));
+    case "retrievePublicationStatus":
+      return ops.retrievePublicationStatus(c, ops.RetrievePublicationStatusInput.parse(payload));
+    case "retrievePerformance":
+      return ops.retrievePerformance(c, ops.RetrievePerformanceInput.parse(payload));
+    case "retrieveLearnings":
+      return ops.retrieveLearnings(c, ops.RetrieveLearningsInput.parse(payload));
+    case "recommendNextPlan":
+      return ops.recommendNextPlan(c, ops.RecommendNextPlanInput.parse(payload));
+    case "validateSocialConnection":
+      return ops.validateSocialConnection(c, ops.ValidateSocialConnectionInput.parse(payload));
+    case "updateVariant":
+      return ops.updateVariant(c, ops.EditVariantInput.parse(payload));
+    case "suggestCreativeBrief":
+      return ops.suggestCreativeBrief(c, ops.SuggestCreativeBriefInput.parse(payload));
     // Not-yet-implemented ops return a truthful failed result rather than a
     // fake success. They become real handlers as later stages ship.
     case "reviseSocialPlan":
     case "createCampaign":
-    case "updateVariant":
-    case "suggestCreativeBrief":
       return {
         operation,
         version: SAM_OPERATIONS_VERSION,
@@ -117,6 +134,9 @@ export const runSamOperation = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => RunInput.parse(input))
   .handler(async ({ data, context }) => {
     const result = await dispatch(data.operation, data.payload, ctx(context.supabase, context.userId));
+    // Fire-and-forget activity + audit event so The Brief and org activity
+    // stream reflect every SAM-triggered mutation.
+    void logSamOperation(context.supabase, context.userId, result as OperationResult).catch(() => {});
     // Result is already JSON-safe (see result-builders + types). Cast avoids
     // TSS's Serializable inference recursing into `Record<string, unknown>`.
     return result as unknown as { status: string; operation: string; summary: string };

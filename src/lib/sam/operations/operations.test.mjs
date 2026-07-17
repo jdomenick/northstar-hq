@@ -164,7 +164,93 @@ test("op name enum is a superset of the dispatcher's known ops", async () => {
     "publishApprovedVariant",
     "listPublishingDestinations",
     "explainBlockedPublication",
+    "retrieveApprovalQueue",
+    "retrieveScheduledContent",
+    "retrievePerformance",
+    "retrieveLearnings",
+    "recommendNextPlan",
+    "validateSocialConnection",
+    "suggestCreativeBrief",
+    "updateVariant",
   ]) {
     assert.ok(SAM_OPERATION_NAMES.includes(required), `${required} in enum`);
   }
+});
+
+// ---- Free-text dispatch (pure classifier) ---------------------------------
+
+test("parseOperationProposal rejects unknown operations", async () => {
+  const { parseOperationProposal } = await import("./dispatch.server.ts");
+  const r = parseOperationProposal(
+    { operation: "nukeEverything", payload: {}, confidence: 1 },
+    "00000000-0000-0000-0000-000000000001",
+  );
+  assert.equal(r.status, "unsupported");
+  assert.equal(r.operation, null);
+});
+
+test("parseOperationProposal flags missing required fields", async () => {
+  const { parseOperationProposal } = await import("./dispatch.server.ts");
+  const r = parseOperationProposal(
+    { operation: "approveVariant", payload: {}, confidence: 0.9 },
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002",
+  );
+  assert.equal(r.status, "needs_fields");
+  assert.ok(r.missingFields.includes("contentItemId"), `missingFields includes contentItemId, got ${r.missingFields.join(",")}`);
+  assert.equal(r.requiresConfirmation, true);
+});
+
+test("parseOperationProposal injects organizationId and ventureId", async () => {
+  const { parseOperationProposal } = await import("./dispatch.server.ts");
+  const r = parseOperationProposal(
+    {
+      operation: "retrieveApprovalQueue",
+      payload: { limit: 25 },
+      confidence: 0.7,
+    },
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002",
+  );
+  assert.equal(r.status, "ready");
+  assert.equal(r.payload?.organizationId, "00000000-0000-0000-0000-000000000001");
+  assert.equal(r.payload?.ventureId, "00000000-0000-0000-0000-000000000002");
+  assert.equal(r.requiresConfirmation, false, "read-only ops do not require confirmation");
+});
+
+test("DESTRUCTIVE_OPERATIONS covers publish and approval mutations", async () => {
+  const { DESTRUCTIVE_OPERATIONS } = await import("./dispatch.server.ts");
+  for (const op of ["publishApprovedVariant", "approveVariant", "approveBatch", "pauseSocialPublishing", "rejectVariant"]) {
+    assert.ok(DESTRUCTIVE_OPERATIONS.has(op), `${op} is destructive`);
+  }
+});
+
+// ---- Brief dedupe (pure) --------------------------------------------------
+
+test("dedupeBriefItems keeps highest priority per (kind,id) and caps per kind", async () => {
+  const { dedupeBriefItems } = await import("../../content-ops/brief.functions.ts");
+  const items = [
+    { kind: "awaiting_approval", id: "a", ventureId: null, title: "a", detail: "", href: "/a", priority: 50, timestamp: null },
+    { kind: "awaiting_approval", id: "a", ventureId: null, title: "a2", detail: "", href: "/a", priority: 80, timestamp: null },
+    { kind: "awaiting_approval", id: "b", ventureId: null, title: "b", detail: "", href: "/b", priority: 70, timestamp: null },
+    { kind: "scheduled_today", id: "s1", ventureId: null, title: "s1", detail: "", href: "/s1", priority: 60, timestamp: null },
+  ];
+  const out = dedupeBriefItems(items, 5);
+  const a = out.filter((x) => x.id === "a");
+  assert.equal(a.length, 1);
+  assert.equal(a[0].priority, 80);
+  assert.equal(out.length, 3);
+  // Descending priority.
+  for (let i = 1; i < out.length; i++) assert.ok(out[i - 1].priority >= out[i].priority);
+});
+
+test("dedupeBriefItems enforces maxPerKind", async () => {
+  const { dedupeBriefItems } = await import("../../content-ops/brief.functions.ts");
+  const items = Array.from({ length: 10 }, (_, i) => ({
+    kind: "awaiting_approval", id: `x${i}`, ventureId: null,
+    title: `t${i}`, detail: "", href: `/x${i}`, priority: 50 + i, timestamp: null,
+  }));
+  const out = dedupeBriefItems(items, 3);
+  assert.equal(out.length, 3);
+  assert.deepEqual(out.map((x) => x.id), ["x9", "x8", "x7"]);
 });
