@@ -1,10 +1,27 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ArrowUpRight, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PageBody, PageHeader } from "@/components/page-header";
+import {
+  EmptyEditorialState,
+  EditorialSkeleton,
+  ErrorLine as EditorialErrorLine,
+  Ledger,
+  LedgerRow,
+  StatusLine,
+  type StatusTone,
+} from "@/components/editorial";
 import { useOrg } from "@/lib/org-context";
 import { useCreateVenture, useVentures } from "@/lib/data-hooks";
+
+function toneForStatus(status: string): StatusTone {
+  if (status === "active" || status === "growing") return "positive";
+  if (status === "at_risk" || status === "blocked") return "attention";
+  if (status === "archived" || status === "closed") return "muted";
+  if (status === "paused") return "muted";
+  return "neutral";
+}
 
 export const Route = createFileRoute("/_authenticated/ventures")({
   component: VenturesLayout,
@@ -34,13 +51,13 @@ function VenturesIndex() {
     <div>
       <PageHeader
         eyebrow="Ventures"
-        title="Every venture, in one view."
-        description="One operating system across every organization you run."
+        title="The venture index"
+        description="Every business you run, in a single scannable register. Open a venture to see its own operating book."
         actions={
           canCreate && (
             <button
               onClick={() => setShowNew(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
+              className="inline-flex items-center gap-1.5 bg-foreground px-3.5 py-2 text-[11.5px] font-medium uppercase tracking-[0.16em] text-background hover:bg-foreground/85"
             >
               <Plus className="h-3.5 w-3.5" /> New venture
             </button>
@@ -49,91 +66,55 @@ function VenturesIndex() {
       />
       <PageBody>
         {error ? (
-          <ErrorLine message={(error as Error).message} />
+          <EditorialErrorLine message={(error as Error).message} />
         ) : isLoading ? (
-          <Skeleton />
+          <EditorialSkeleton rows={4} />
         ) : ventures.length === 0 ? (
-          <EmptyState onCreate={canCreate ? () => setShowNew(true) : undefined} />
+          <EmptyEditorialState
+            eyebrow="No ventures yet"
+            title="Start with the first business you run."
+            description="A venture is any business, initiative, or portfolio you operate. You can add more later."
+            action={
+              canCreate && (
+                <button
+                  onClick={() => setShowNew(true)}
+                  className="inline-flex items-center gap-1.5 bg-foreground px-4 py-2 text-[11.5px] font-medium uppercase tracking-[0.16em] text-background hover:bg-foreground/85"
+                >
+                  <Plus className="h-3.5 w-3.5" /> New venture
+                </button>
+              )
+            }
+          />
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Ledger>
             {ventures.map((v) => (
-              <Link
+              <LedgerRow
                 key={v.id}
-                to="/ventures/$id"
-                params={{ id: v.id }}
-                className="group relative overflow-hidden rounded-2xl bg-card/40 p-7 transition-all hover:-translate-y-0.5 hover:bg-card/70"
-              >
-                <div className="absolute left-0 top-6 h-8 w-[2px] rounded-r-full bg-foreground/60 transition-all duration-300 group-hover:h-14" />
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
-                      {v.status.replaceAll("_", " ")}
-                    </div>
-                    <h3 className="mt-3 font-display text-[26px] leading-tight text-foreground">
-                      {v.name}
-                    </h3>
-                    {v.description && (
-                      <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-                        {v.description}
-                      </p>
-                    )}
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
-                </div>
-                {v.current_focus && (
-                  <div className="mt-6 border-t border-border/60 pt-4 text-[12.5px] text-muted-foreground/90">
-                    {v.current_focus}
-                  </div>
-                )}
-              </Link>
+                eyebrow={<span className="text-foreground/55">Venture</span>}
+                title={
+                  <Link
+                    to="/ventures/$id"
+                    params={{ id: v.id }}
+                    className="font-display text-[22px] leading-[1.15] text-foreground hover:italic md:text-[26px]"
+                  >
+                    {v.name}
+                  </Link>
+                }
+                meta={v.description || v.current_focus || undefined}
+                status={
+                  <StatusLine tone={toneForStatus(v.status)}>
+                    {v.status.replaceAll("_", " ")}
+                  </StatusLine>
+                }
+              />
             ))}
-          </div>
+          </Ledger>
         )}
       </PageBody>
 
       {showNew && (
         <NewVentureModal onClose={() => setShowNew(false)} orgId={activeOrgId} />
       )}
-    </div>
-  );
-}
-
-function EmptyState({ onCreate }: { onCreate?: () => void }) {
-  return (
-    <div className="mt-16 rounded-2xl px-6 py-20 text-center">
-      <div className="mx-auto max-w-sm">
-        <div className="mx-auto h-10 w-10 rounded-full bg-secondary/50" />
-        <h3 className="mt-6 font-display text-2xl text-foreground">No ventures yet</h3>
-        <p className="mt-2 text-[13.5px] text-muted-foreground">
-          Add your first venture  -  a business, project portfolio, or initiative.
-        </p>
-        {onCreate && (
-          <button
-            onClick={onCreate}
-            className="mt-6 inline-flex items-center gap-1.5 rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
-          >
-            <Plus className="h-3.5 w-3.5" /> New venture
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Skeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-40 animate-pulse rounded-2xl bg-card/30" />
-      ))}
-    </div>
-  );
-}
-
-function ErrorLine({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl bg-secondary/40 p-6 text-[13.5px] text-muted-foreground">
-      {message}
     </div>
   );
 }
@@ -170,20 +151,24 @@ function NewVentureModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4">
       <form
         onSubmit={onSubmit}
-        className="relative w-full max-w-lg rounded-2xl bg-card p-8 shadow-2xl"
+        className="relative w-full max-w-lg border border-foreground/15 bg-card p-8 shadow-[0_20px_60px_-20px_oklch(0.14_0_0/0.35)]"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+          className="absolute right-4 top-4 text-foreground/50 hover:text-foreground"
+          aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="font-display text-[24px] text-foreground">New venture</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">
+        <div className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/60">
+          New venture
+        </div>
+        <h2 className="mt-2 font-display text-[30px] leading-[1.1] text-foreground">Open a new book.</h2>
+        <p className="mt-2 text-[13.5px] text-foreground/65">
           Just the essentials. You can complete the rest later.
         </p>
         <div className="mt-6 space-y-5">
@@ -223,14 +208,14 @@ function NewVentureModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-3.5 py-2 text-[12.5px] text-muted-foreground hover:text-foreground"
+            className="px-3.5 py-2 text-[11.5px] uppercase tracking-[0.18em] text-foreground/60 hover:text-foreground"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!name || create.isPending}
-            className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60"
+            className="bg-foreground px-4 py-2 text-[11.5px] font-medium uppercase tracking-[0.16em] text-background hover:bg-foreground/85 disabled:opacity-50"
           >
             {create.isPending ? "…" : "Create venture"}
           </button>
@@ -242,8 +227,8 @@ function NewVentureModal({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block border-b border-border/60 pb-3 focus-within:border-foreground/60">
-      <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
+    <label className="block border-b border-foreground/20 pb-3 focus-within:border-foreground">
+      <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">
         {label}
       </div>
       {children}
