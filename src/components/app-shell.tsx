@@ -9,6 +9,7 @@ import {
   Sparkles,
   Plug,
   Settings as SettingsIcon,
+  Target,
   Search,
   PanelLeft,
   Bell,
@@ -37,7 +38,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 
 type NavItem = {
-  to: "/" | "/ventures" | "/projects" | "/decisions" | "/knowledge" | "/accountability" | "/operator" | "/integrations" | "/settings";
+  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/accountability" | "/operator" | "/integrations" | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -48,6 +49,7 @@ const NAV: NavItem[] = [
   { to: "/ventures", label: "Ventures", icon: Building2 },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/decisions", label: "Decisions", icon: GitBranch },
+  { to: "/goals", label: "Goals", icon: Target },
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/accountability", label: "Accountability", icon: ShieldCheck },
   { to: "/operator", label: "Operator", icon: Sparkles },
