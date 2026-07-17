@@ -14,6 +14,7 @@ import {
   QuietPanel,
 } from "@/components/editorial";
 import { useOrg } from "@/lib/org-context";
+import { useVentures } from "@/lib/data-hooks";
 import { getAutonomy } from "@/lib/content-ops/autonomy.functions";
 import { listContentItems } from "@/lib/content-ops/content.functions";
 import { listStrategies } from "@/lib/content-ops/strategy.functions";
@@ -34,8 +35,10 @@ export const Route = createFileRoute("/_authenticated/content-ops")({
 });
 
 function ContentOpsWorkspace() {
-  const { organizationId, activeVentureId } = useOrg();
-  const ventureId = activeVentureId ?? null;
+  const { activeOrgId } = useOrg();
+  const organizationId = activeOrgId;
+  const venturesQ = useVentures();
+  const ventureId = venturesQ.data?.[0]?.id ?? null;
 
   const getAutonomyFn = useServerFn(getAutonomy);
   const listStrategiesFn = useServerFn(listStrategies);
@@ -142,7 +145,7 @@ function ContentOpsWorkspace() {
               {(pendingQ.data ?? []).map((it) => (
                 <LedgerRow
                   key={it.id}
-                  leading={<StatusLine tone="attention">{it.platform}</StatusLine>}
+                  status={<StatusLine tone="attention">{it.platform}</StatusLine>}
                   title={it.title ?? it.body.slice(0, 80)}
                   meta={`${it.content_type} - v${it.content_version}`}
                 />
@@ -162,7 +165,7 @@ function ContentOpsWorkspace() {
               {(scheduledQ.data ?? []).map((it) => (
                 <LedgerRow
                   key={it.id}
-                  leading={<StatusLine tone="neutral">{it.platform}</StatusLine>}
+                  status={<StatusLine tone="neutral">{it.platform}</StatusLine>}
                   title={it.title ?? it.body.slice(0, 80)}
                   meta={it.scheduled_for ?? ""}
                 />
@@ -182,7 +185,7 @@ function ContentOpsWorkspace() {
               {(strategiesQ.data ?? []).map((s) => (
                 <LedgerRow
                   key={s.id}
-                  leading={<StatusLine tone={s.superseded_by ? "muted" : "neutral"}>{s.status}</StatusLine>}
+                  status={<StatusLine tone={s.superseded_by ? "muted" : "neutral"}>{s.status}</StatusLine>}
                   title={s.name}
                   meta={`${s.strategy_period_start ?? ""} - ${s.strategy_period_end ?? ""}`}
                 />
@@ -202,9 +205,9 @@ function ContentOpsWorkspace() {
               {(learningsQ.data ?? []).map((l) => (
                 <LedgerRow
                   key={l.id}
-                  leading={<StatusLine tone="neutral">{l.learning_type ?? "learning"}</StatusLine>}
-                  title={l.summary ?? "Learning"}
-                  meta={l.computed_at ?? ""}
+                  status={<StatusLine tone="neutral">{l.platform ?? "learning"}</StatusLine>}
+                  title={l.recommendation ?? l.topic ?? "Learning"}
+                  meta={l.created_at ?? ""}
                 />
               ))}
             </Ledger>
