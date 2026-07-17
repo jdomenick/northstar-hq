@@ -13,6 +13,7 @@ import { Route as VenturesRouteImport } from './routes/ventures'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as OperatorRouteImport } from './routes/operator'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as DecisionsRouteImport } from './routes/decisions'
 import { Route as AccountabilityRouteImport } from './routes/accountability'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,11 @@ const OperatorRoute = OperatorRouteImport.update({
 const KnowledgeRoute = KnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationsRoute = IntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DecisionsRoute = DecisionsRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
   '/knowledge': typeof KnowledgeRoute
   '/operator': typeof OperatorRoute
   '/projects': typeof ProjectsRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
   '/knowledge': typeof KnowledgeRoute
   '/operator': typeof OperatorRoute
   '/projects': typeof ProjectsRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accountability': typeof AccountabilityRoute
   '/decisions': typeof DecisionsRoute
+  '/integrations': typeof IntegrationsRoute
   '/knowledge': typeof KnowledgeRoute
   '/operator': typeof OperatorRoute
   '/projects': typeof ProjectsRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accountability'
     | '/decisions'
+    | '/integrations'
     | '/knowledge'
     | '/operator'
     | '/projects'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accountability'
     | '/decisions'
+    | '/integrations'
     | '/knowledge'
     | '/operator'
     | '/projects'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accountability'
     | '/decisions'
+    | '/integrations'
     | '/knowledge'
     | '/operator'
     | '/projects'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountabilityRoute: typeof AccountabilityRoute
   DecisionsRoute: typeof DecisionsRoute
+  IntegrationsRoute: typeof IntegrationsRoute
   KnowledgeRoute: typeof KnowledgeRoute
   OperatorRoute: typeof OperatorRoute
   ProjectsRoute: typeof ProjectsRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/knowledge'
       fullPath: '/knowledge'
       preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integrations': {
+      id: '/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof IntegrationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/decisions': {
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountabilityRoute: AccountabilityRoute,
   DecisionsRoute: DecisionsRoute,
+  IntegrationsRoute: IntegrationsRoute,
   KnowledgeRoute: KnowledgeRoute,
   OperatorRoute: OperatorRoute,
   ProjectsRoute: ProjectsRoute,
