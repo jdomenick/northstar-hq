@@ -17,6 +17,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth-context";
+import { useOrg } from "@/lib/org-context";
+import { useNavigate as _navHook } from "@tanstack/react-router";
+import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -51,6 +62,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { activeMembership } = useOrg();
+
+  const initials = (user?.email ?? "?")
+    .split(/[.@_-]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("");
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
