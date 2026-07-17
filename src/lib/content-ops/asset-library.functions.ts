@@ -19,6 +19,8 @@ import {
   type FolderNodeInput,
 } from "./asset-library";
 import { recordMediaAudit } from "./media-audit.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import {
   MAX_ASSET_COPY_BATCH,
   copyStoragePath,
@@ -546,7 +548,7 @@ export const listLibraryAssets = createServerFn({ method: "GET" })
 const CopyBatchIds = z.array(uuid).min(1).max(MAX_ASSET_COPY_BATCH);
 
 async function performAssetCopyBatch(args: {
-  supabase: import("@supabase/supabase-js").SupabaseClient;
+  supabase: SupabaseClient<Database>;
   actorUserId: string;
   organizationId: string;
   sourceAssetIds: string[];
