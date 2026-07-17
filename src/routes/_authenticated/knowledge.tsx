@@ -272,9 +272,10 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
   const [expiration, setExpiration] = useState("");
   const [dirty, setDirty] = useState(false);
 
-  function markDirty<T>(fn: (v: T) => void) {
-    return (v: T) => { setDirty(true); fn(v); };
-  }
+  const onText = (fn: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDirty(true);
+    fn(e.target.value);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -337,13 +338,13 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
           </Fld>
           <div className="grid grid-cols-2 gap-3">
             <Fld label="Source">
-              <input value={source} onChange={markDirty(setSource)} className="w-full bg-transparent outline-none" />
+              <input value={source} onChange={onText(setSource)} className="w-full bg-transparent outline-none" />
             </Fld>
             <Fld label="Source URL">
-              <input value={sourceUrl} onChange={markDirty(setSourceUrl)} placeholder="https://" className="w-full bg-transparent outline-none" />
+              <input value={sourceUrl} onChange={onText(setSourceUrl)} placeholder="https://" className="w-full bg-transparent outline-none" />
             </Fld>
             <Fld label="Tags (comma-separated)">
-              <input value={tagsStr} onChange={markDirty(setTagsStr)} className="w-full bg-transparent outline-none" />
+              <input value={tagsStr} onChange={onText(setTagsStr)} className="w-full bg-transparent outline-none" />
             </Fld>
             <Fld label="Importance">
               <select value={importance} onChange={(e) => { setDirty(true); setImportance(e.target.value as Priority); }} className="w-full bg-transparent outline-none">
@@ -351,10 +352,10 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
               </select>
             </Fld>
             <Fld label="Effective date">
-              <input type="date" value={effective} onChange={markDirty(setEffective)} className="w-full bg-transparent outline-none" />
+              <input type="date" value={effective} onChange={onText(setEffective)} className="w-full bg-transparent outline-none" />
             </Fld>
             <Fld label="Expiration date">
-              <input type="date" value={expiration} onChange={markDirty(setExpiration)} className="w-full bg-transparent outline-none" />
+              <input type="date" value={expiration} onChange={onText(setExpiration)} className="w-full bg-transparent outline-none" />
             </Fld>
           </div>
         </div>
