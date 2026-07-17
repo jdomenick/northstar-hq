@@ -822,12 +822,18 @@ export type Database = {
       }
       integration_connections: {
         Row: {
+          automation_mode: string
           connection_type: Database["public"]["Enums"]["integration_connection_type"]
           created_at: string
           created_by: string | null
           credentials_reference: string | null
           deleted_at: string | null
+          discovery_completed_at: string | null
+          discovery_error_code: string | null
+          discovery_last_run_id: string | null
+          discovery_status: string
           display_name: string
+          homepage_url: string | null
           id: string
           last_error_at: string | null
           last_error_code: string | null
@@ -842,12 +848,18 @@ export type Database = {
           venture_id: string | null
         }
         Insert: {
+          automation_mode?: string
           connection_type: Database["public"]["Enums"]["integration_connection_type"]
           created_at?: string
           created_by?: string | null
           credentials_reference?: string | null
           deleted_at?: string | null
+          discovery_completed_at?: string | null
+          discovery_error_code?: string | null
+          discovery_last_run_id?: string | null
+          discovery_status?: string
           display_name: string
+          homepage_url?: string | null
           id?: string
           last_error_at?: string | null
           last_error_code?: string | null
@@ -862,12 +874,18 @@ export type Database = {
           venture_id?: string | null
         }
         Update: {
+          automation_mode?: string
           connection_type?: Database["public"]["Enums"]["integration_connection_type"]
           created_at?: string
           created_by?: string | null
           credentials_reference?: string | null
           deleted_at?: string | null
+          discovery_completed_at?: string | null
+          discovery_error_code?: string | null
+          discovery_last_run_id?: string | null
+          discovery_status?: string
           display_name?: string
+          homepage_url?: string | null
           id?: string
           last_error_at?: string | null
           last_error_code?: string | null
@@ -882,6 +900,13 @@ export type Database = {
           venture_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "integration_connections_discovery_last_run_id_fkey"
+            columns: ["discovery_last_run_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sync_runs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "integration_connections_organization_id_fkey"
             columns: ["organization_id"]
@@ -904,11 +929,16 @@ export type Database = {
           connection_id: string | null
           created_at: string
           deleted_at: string | null
+          discovered_at: string
+          discovery_run_id: string | null
           external_id: string | null
+          http_status: number | null
           id: string
           last_synced_at: string | null
           metadata: Json
           organization_id: string
+          page_type: string | null
+          relevance_score: number
           source_type: Database["public"]["Enums"]["integration_source_type"]
           source_url: string | null
           sync_enabled: boolean
@@ -923,11 +953,16 @@ export type Database = {
           connection_id?: string | null
           created_at?: string
           deleted_at?: string | null
+          discovered_at?: string
+          discovery_run_id?: string | null
           external_id?: string | null
+          http_status?: number | null
           id?: string
           last_synced_at?: string | null
           metadata?: Json
           organization_id: string
+          page_type?: string | null
+          relevance_score?: number
           source_type: Database["public"]["Enums"]["integration_source_type"]
           source_url?: string | null
           sync_enabled?: boolean
@@ -942,11 +977,16 @@ export type Database = {
           connection_id?: string | null
           created_at?: string
           deleted_at?: string | null
+          discovered_at?: string
+          discovery_run_id?: string | null
           external_id?: string | null
+          http_status?: number | null
           id?: string
           last_synced_at?: string | null
           metadata?: Json
           organization_id?: string
+          page_type?: string | null
+          relevance_score?: number
           source_type?: Database["public"]["Enums"]["integration_source_type"]
           source_url?: string | null
           sync_enabled?: boolean
@@ -962,6 +1002,13 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sources_discovery_run_id_fkey"
+            columns: ["discovery_run_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sync_runs"
             referencedColumns: ["id"]
           },
           {
