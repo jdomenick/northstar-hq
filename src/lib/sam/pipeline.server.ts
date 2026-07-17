@@ -24,6 +24,9 @@ export interface RunPipelineInput {
   settings: {
     response_style: "concise" | "balanced" | "detailed";
     challenge_level: "supportive" | "balanced" | "direct";
+    include_founder_memory?: boolean;
+    include_org_memory?: boolean;
+    include_venture_memory?: boolean;
   };
 }
 
@@ -51,6 +54,11 @@ export async function runPipeline(
       intent,
       ventureId: input.ventureId ?? null,
       userId: input.userId,
+      memoryToggles: {
+        founder: input.settings.include_founder_memory ?? true,
+        org: input.settings.include_org_memory ?? true,
+        venture: input.settings.include_venture_memory ?? true,
+      },
     });
   } catch (e) {
     throw new SamError("context_assembly_failed", (e as Error).message);

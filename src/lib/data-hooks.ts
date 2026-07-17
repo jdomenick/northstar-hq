@@ -28,6 +28,67 @@ export type DocumentProcessingStatus = Database["public"]["Enums"]["document_pro
 export type OrgRole = Database["public"]["Enums"]["org_role"];
 export type MemberStatus = Database["public"]["Enums"]["member_status"];
 
+// ─────────────────────────────────────────────────────────────
+// SAM Memory & related hooks (Phase 3B). Server-side functions
+// are called through TanStack `useServerFn` in the route file;
+// these are cache helpers only.
+// ─────────────────────────────────────────────────────────────
+export type SamMemoryItem = Database["public"]["Tables"]["sam_memory_items"]["Row"];
+export type SamMemoryConflict = Database["public"]["Tables"]["sam_memory_conflicts"]["Row"];
+export type SamMemoryLayer = Database["public"]["Enums"]["sam_memory_layer"];
+export type SamMemoryStatus = Database["public"]["Enums"]["sam_memory_status"];
+export type SamSettingsRow = Database["public"]["Tables"]["sam_settings"]["Row"];
+export type SamResponseFeedbackRow = Database["public"]["Tables"]["sam_response_feedback"]["Row"];
+
+export function useSamSettings(orgId: string | null) {
+  return useQuery({
+    enabled: !!orgId,
+    queryKey: ["sam.settings", orgId],
+    queryFn: async (): Promise<SamSettingsRow | null> => {
+      const { data, error } = await supabase
+        .from("sam_settings")
+        .select("*")
+        .eq("organization_id", orgId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpsertSamSettings(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (patch: Partial<SamSettingsRow>) => {
+      if (!orgId) throw new Error("No active organization");
+      const { data: userRes } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("sam_settings")
+        .upsert(
+          { organization_id: orgId, ...patch, updated_by: userRes.user?.id ?? null },
+          { onConflict: "organization_id" },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sam.settings", orgId] }),
+  });
+}
+
+export function useMessageResponseFeedback(orgId: string | null, conversationId: string | null) {
+  return useQuery({
+    enabled: !!orgId && !!conversationId,
+    queryKey: ["sam.feedback", orgId, conversationId],
+    queryFn: async (): Promise<SamResponseFeedbackRow[]> => {
+      const { data } = await supabase
+        .from("sam_response_feedback")
+        .select("*")
+        .eq("organization_id", orgId!)
+        .eq("conversation_id", conversationId!);
+      return data ?? [];
+    },
+  });
+}
+
 export function useVentures(orgId: string | null) {
   return useQuery({
     enabled: !!orgId,

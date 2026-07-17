@@ -434,6 +434,78 @@ export type Database = {
           },
         ]
       }
+      executive_graph_edges: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          metadata: Json
+          organization_id: string
+          relationship_type: Database["public"]["Enums"]["graph_relationship_type"]
+          source: string
+          source_entity_id: string
+          source_entity_type: Database["public"]["Enums"]["graph_entity_type"]
+          target_entity_id: string
+          target_entity_type: Database["public"]["Enums"]["graph_entity_type"]
+          updated_at: string
+          venture_id: string | null
+          weight: number
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          metadata?: Json
+          organization_id: string
+          relationship_type: Database["public"]["Enums"]["graph_relationship_type"]
+          source?: string
+          source_entity_id: string
+          source_entity_type: Database["public"]["Enums"]["graph_entity_type"]
+          target_entity_id: string
+          target_entity_type: Database["public"]["Enums"]["graph_entity_type"]
+          updated_at?: string
+          venture_id?: string | null
+          weight?: number
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          metadata?: Json
+          organization_id?: string
+          relationship_type?: Database["public"]["Enums"]["graph_relationship_type"]
+          source?: string
+          source_entity_id?: string
+          source_entity_type?: Database["public"]["Enums"]["graph_entity_type"]
+          target_entity_id?: string
+          target_entity_type?: Database["public"]["Enums"]["graph_entity_type"]
+          updated_at?: string
+          venture_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_graph_edges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "executive_graph_edges_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       executive_insights: {
         Row: {
           created_at: string
@@ -1034,21 +1106,33 @@ export type Database = {
         Row: {
           actor_user_id: string | null
           citation_count: number
+          citation_lineage: Json
+          confidence_framework_version: string | null
           confidence_method: string
+          conflict_count: number
           constitution_version: string
           context_counts: Json
           conversation_id: string | null
           created_at: string
           error_code: string | null
           finished_at: string | null
+          graph_depth: number
+          graph_edges_count: number
+          graph_nodes_count: number
           id: string
           input_tokens: number | null
           intent: string
           latency_ms: number | null
+          learning_event_ids: string[]
+          memory_considered_ids: string[]
+          memory_excluded_ids: string[]
+          memory_framework_version: string | null
+          memory_selected_ids: string[]
           message_id: string | null
           organization_id: string
           output_tokens: number | null
           pipeline_version: string
+          precedence_version: string | null
           prompt_version: string
           rollup_confidence: number | null
           rollup_confidence_band: string | null
@@ -1064,21 +1148,33 @@ export type Database = {
         Insert: {
           actor_user_id?: string | null
           citation_count?: number
+          citation_lineage?: Json
+          confidence_framework_version?: string | null
           confidence_method: string
+          conflict_count?: number
           constitution_version: string
           context_counts?: Json
           conversation_id?: string | null
           created_at?: string
           error_code?: string | null
           finished_at?: string | null
+          graph_depth?: number
+          graph_edges_count?: number
+          graph_nodes_count?: number
           id?: string
           input_tokens?: number | null
           intent: string
           latency_ms?: number | null
+          learning_event_ids?: string[]
+          memory_considered_ids?: string[]
+          memory_excluded_ids?: string[]
+          memory_framework_version?: string | null
+          memory_selected_ids?: string[]
           message_id?: string | null
           organization_id: string
           output_tokens?: number | null
           pipeline_version: string
+          precedence_version?: string | null
           prompt_version: string
           rollup_confidence?: number | null
           rollup_confidence_band?: string | null
@@ -1094,21 +1190,33 @@ export type Database = {
         Update: {
           actor_user_id?: string | null
           citation_count?: number
+          citation_lineage?: Json
+          confidence_framework_version?: string | null
           confidence_method?: string
+          conflict_count?: number
           constitution_version?: string
           context_counts?: Json
           conversation_id?: string | null
           created_at?: string
           error_code?: string | null
           finished_at?: string | null
+          graph_depth?: number
+          graph_edges_count?: number
+          graph_nodes_count?: number
           id?: string
           input_tokens?: number | null
           intent?: string
           latency_ms?: number | null
+          learning_event_ids?: string[]
+          memory_considered_ids?: string[]
+          memory_excluded_ids?: string[]
+          memory_framework_version?: string | null
+          memory_selected_ids?: string[]
           message_id?: string | null
           organization_id?: string
           output_tokens?: number | null
           pipeline_version?: string
+          precedence_version?: string | null
           prompt_version?: string
           rollup_confidence?: number | null
           rollup_confidence_band?: string | null
@@ -1138,6 +1246,389 @@ export type Database = {
           },
           {
             foreignKeyName: "sam_invocations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_learning_events: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["sam_learning_event_type"]
+          feedback_text: string | null
+          id: string
+          invocation_id: string | null
+          memory_item_id: string | null
+          message_id: string | null
+          organization_id: string
+          original_payload: Json
+          outcome_status: string | null
+          revised_payload: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["sam_learning_event_type"]
+          feedback_text?: string | null
+          id?: string
+          invocation_id?: string | null
+          memory_item_id?: string | null
+          message_id?: string | null
+          organization_id: string
+          original_payload?: Json
+          outcome_status?: string | null
+          revised_payload?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["sam_learning_event_type"]
+          feedback_text?: string | null
+          id?: string
+          invocation_id?: string | null
+          memory_item_id?: string | null
+          message_id?: string | null
+          organization_id?: string
+          original_payload?: Json
+          outcome_status?: string | null
+          revised_payload?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_learning_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_learning_events_invocation_id_fkey"
+            columns: ["invocation_id"]
+            isOneToOne: false
+            referencedRelation: "sam_invocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_learning_events_memory_item_id_fkey"
+            columns: ["memory_item_id"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_learning_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_learning_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_memory_conflicts: {
+        Row: {
+          created_at: string
+          id: string
+          memory_item_a_id: string
+          memory_item_b_id: string
+          metadata: Json
+          organization_id: string
+          reason: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_item_a_id: string
+          memory_item_b_id: string
+          metadata?: Json
+          organization_id: string
+          reason: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_item_a_id?: string
+          memory_item_b_id?: string
+          metadata?: Json
+          organization_id?: string
+          reason?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_memory_conflicts_memory_item_a_id_fkey"
+            columns: ["memory_item_a_id"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_conflicts_memory_item_b_id_fkey"
+            columns: ["memory_item_b_id"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_conflicts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_memory_feedback: {
+        Row: {
+          correction_text: string | null
+          created_at: string
+          feedback_type: Database["public"]["Enums"]["sam_memory_feedback_type"]
+          id: string
+          memory_item_id: string
+          metadata: Json
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          correction_text?: string | null
+          created_at?: string
+          feedback_type: Database["public"]["Enums"]["sam_memory_feedback_type"]
+          id?: string
+          memory_item_id: string
+          metadata?: Json
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          correction_text?: string | null
+          created_at?: string
+          feedback_type?: Database["public"]["Enums"]["sam_memory_feedback_type"]
+          id?: string
+          memory_item_id?: string
+          metadata?: Json
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_memory_feedback_memory_item_id_fkey"
+            columns: ["memory_item_id"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_memory_items: {
+        Row: {
+          category: string
+          confidence_band: string | null
+          confidence_score: number | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          effective_at: string | null
+          evidence_refs: Json
+          expires_at: string | null
+          id: string
+          last_confirmed_at: string | null
+          layer: Database["public"]["Enums"]["sam_memory_layer"]
+          organization_id: string
+          owner_user_id: string | null
+          source_conversation_id: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          source_knowledge_record_id: string | null
+          source_message_id: string | null
+          source_type: Database["public"]["Enums"]["sam_memory_source_type"]
+          statement: string
+          status: Database["public"]["Enums"]["sam_memory_status"]
+          structured_value: Json | null
+          superseded_by: string | null
+          title: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          category: string
+          confidence_band?: string | null
+          confidence_score?: number | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          effective_at?: string | null
+          evidence_refs?: Json
+          expires_at?: string | null
+          id?: string
+          last_confirmed_at?: string | null
+          layer: Database["public"]["Enums"]["sam_memory_layer"]
+          organization_id: string
+          owner_user_id?: string | null
+          source_conversation_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          source_knowledge_record_id?: string | null
+          source_message_id?: string | null
+          source_type: Database["public"]["Enums"]["sam_memory_source_type"]
+          statement: string
+          status?: Database["public"]["Enums"]["sam_memory_status"]
+          structured_value?: Json | null
+          superseded_by?: string | null
+          title: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          category?: string
+          confidence_band?: string | null
+          confidence_score?: number | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          effective_at?: string | null
+          evidence_refs?: Json
+          expires_at?: string | null
+          id?: string
+          last_confirmed_at?: string | null
+          layer?: Database["public"]["Enums"]["sam_memory_layer"]
+          organization_id?: string
+          owner_user_id?: string | null
+          source_conversation_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          source_knowledge_record_id?: string | null
+          source_message_id?: string | null
+          source_type?: Database["public"]["Enums"]["sam_memory_source_type"]
+          statement?: string
+          status?: Database["public"]["Enums"]["sam_memory_status"]
+          structured_value?: Json | null
+          superseded_by?: string | null
+          title?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_memory_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_items_source_conversation_id_fkey"
+            columns: ["source_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_items_source_knowledge_record_id_fkey"
+            columns: ["source_knowledge_record_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_items_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_items_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_items_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_memory_versions: {
+        Row: {
+          change_reason: string | null
+          change_type: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          memory_item_id: string
+          organization_id: string
+          snapshot: Json
+          version_number: number
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          memory_item_id: string
+          organization_id: string
+          snapshot: Json
+          version_number: number
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          memory_item_id?: string
+          organization_id?: string
+          snapshot?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_memory_versions_memory_item_id_fkey"
+            columns: ["memory_item_id"]
+            isOneToOne: false
+            referencedRelation: "sam_memory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_memory_versions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1177,33 +1668,106 @@ export type Database = {
           },
         ]
       }
+      sam_response_feedback: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          feedback_type: Database["public"]["Enums"]["sam_response_feedback_type"]
+          id: string
+          message_id: string
+          note: string | null
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          feedback_type: Database["public"]["Enums"]["sam_response_feedback_type"]
+          id?: string
+          message_id: string
+          note?: string | null
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          feedback_type?: Database["public"]["Enums"]["sam_response_feedback_type"]
+          id?: string
+          message_id?: string
+          note?: string | null
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_response_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_response_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_response_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sam_settings: {
         Row: {
+          allow_memory_proposals: boolean
           challenge_level: string
           enabled: boolean
           include_citations: boolean
+          include_founder_memory: boolean
+          include_org_memory: boolean
+          include_venture_memory: boolean
+          memory_review_reminders: boolean
           organization_id: string
           response_style: string
+          retain_conversation_history: boolean
           show_confidence: boolean
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          allow_memory_proposals?: boolean
           challenge_level?: string
           enabled?: boolean
           include_citations?: boolean
+          include_founder_memory?: boolean
+          include_org_memory?: boolean
+          include_venture_memory?: boolean
+          memory_review_reminders?: boolean
           organization_id: string
           response_style?: string
+          retain_conversation_history?: boolean
           show_confidence?: boolean
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          allow_memory_proposals?: boolean
           challenge_level?: string
           enabled?: boolean
           include_citations?: boolean
+          include_founder_memory?: boolean
+          include_org_memory?: boolean
+          include_venture_memory?: boolean
+          memory_review_reminders?: boolean
           organization_id?: string
           response_style?: string
+          retain_conversation_history?: boolean
           show_confidence?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -1426,6 +1990,36 @@ export type Database = {
         | "missed"
         | "paused"
         | "archived"
+      graph_entity_type:
+        | "organization"
+        | "profile"
+        | "member"
+        | "venture"
+        | "project"
+        | "task"
+        | "goal"
+        | "decision"
+        | "commitment"
+        | "knowledge"
+        | "document"
+        | "memory"
+        | "activity"
+      graph_relationship_type:
+        | "belongs_to"
+        | "supports"
+        | "blocks"
+        | "depends_on"
+        | "advances"
+        | "contradicts"
+        | "informs"
+        | "derived_from"
+        | "related_to"
+        | "assigned_to"
+        | "owned_by"
+        | "supersedes"
+        | "caused"
+        | "resulted_in"
+        | "references"
       insight_severity:
         | "information"
         | "attention"
@@ -1462,6 +2056,58 @@ export type Database = {
         | "blocked"
         | "completed"
         | "archived"
+      sam_learning_event_type:
+        | "recommendation_accepted"
+        | "recommendation_rejected"
+        | "recommendation_edited"
+        | "recommendation_ignored"
+        | "memory_confirmed"
+        | "memory_corrected"
+        | "memory_rejected"
+        | "memory_disputed"
+        | "memory_expired"
+        | "outcome_completed"
+        | "outcome_failed"
+        | "outcome_superseded"
+      sam_memory_feedback_type:
+        | "accurate"
+        | "inaccurate"
+        | "incomplete"
+        | "outdated"
+        | "disputed"
+      sam_memory_layer:
+        | "founder"
+        | "organization"
+        | "venture"
+        | "operational"
+        | "historical"
+        | "preference"
+      sam_memory_source_type:
+        | "manual"
+        | "profile"
+        | "organization_settings"
+        | "venture_settings"
+        | "knowledge_record"
+        | "decision"
+        | "commitment"
+        | "goal"
+        | "conversation"
+        | "correction"
+        | "proposal"
+        | "integration"
+      sam_memory_status:
+        | "proposed"
+        | "confirmed"
+        | "disputed"
+        | "outdated"
+        | "superseded"
+        | "archived"
+      sam_response_feedback_type:
+        | "helpful"
+        | "not_helpful"
+        | "partially_helpful"
+        | "incorrect"
+        | "missing_context"
       task_status:
         | "backlog"
         | "ready"
@@ -1638,6 +2284,38 @@ export const Constants = {
         "paused",
         "archived",
       ],
+      graph_entity_type: [
+        "organization",
+        "profile",
+        "member",
+        "venture",
+        "project",
+        "task",
+        "goal",
+        "decision",
+        "commitment",
+        "knowledge",
+        "document",
+        "memory",
+        "activity",
+      ],
+      graph_relationship_type: [
+        "belongs_to",
+        "supports",
+        "blocks",
+        "depends_on",
+        "advances",
+        "contradicts",
+        "informs",
+        "derived_from",
+        "related_to",
+        "assigned_to",
+        "owned_by",
+        "supersedes",
+        "caused",
+        "resulted_in",
+        "references",
+      ],
       insight_severity: [
         "information",
         "attention",
@@ -1677,6 +2355,64 @@ export const Constants = {
         "blocked",
         "completed",
         "archived",
+      ],
+      sam_learning_event_type: [
+        "recommendation_accepted",
+        "recommendation_rejected",
+        "recommendation_edited",
+        "recommendation_ignored",
+        "memory_confirmed",
+        "memory_corrected",
+        "memory_rejected",
+        "memory_disputed",
+        "memory_expired",
+        "outcome_completed",
+        "outcome_failed",
+        "outcome_superseded",
+      ],
+      sam_memory_feedback_type: [
+        "accurate",
+        "inaccurate",
+        "incomplete",
+        "outdated",
+        "disputed",
+      ],
+      sam_memory_layer: [
+        "founder",
+        "organization",
+        "venture",
+        "operational",
+        "historical",
+        "preference",
+      ],
+      sam_memory_source_type: [
+        "manual",
+        "profile",
+        "organization_settings",
+        "venture_settings",
+        "knowledge_record",
+        "decision",
+        "commitment",
+        "goal",
+        "conversation",
+        "correction",
+        "proposal",
+        "integration",
+      ],
+      sam_memory_status: [
+        "proposed",
+        "confirmed",
+        "disputed",
+        "outdated",
+        "superseded",
+        "archived",
+      ],
+      sam_response_feedback_type: [
+        "helpful",
+        "not_helpful",
+        "partially_helpful",
+        "incorrect",
+        "missing_context",
       ],
       task_status: [
         "backlog",

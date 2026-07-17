@@ -17,6 +17,21 @@ export type SamErrorCode =
   | "context_assembly_failed"
   | "audit_persistence_failed"
   | "sam_disabled"
+  | "memory_not_found"
+  | "memory_cross_org"
+  | "memory_private"
+  | "memory_invalid_layer"
+  | "memory_venture_required"
+  | "memory_expired"
+  | "memory_version_conflict"
+  | "memory_duplicate_active"
+  | "memory_conflict_detected"
+  | "memory_source_unavailable"
+  | "memory_dispute_review_required"
+  | "learning_persistence_failed"
+  | "graph_cross_org"
+  | "graph_entity_missing"
+  | "graph_traversal_limit"
   | "unknown_error";
 
 export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
@@ -35,6 +50,21 @@ export const SAM_ERROR_MESSAGES: Record<SamErrorCode, string> = {
   context_assembly_failed: "SAM couldn't assemble your context. Please retry.",
   audit_persistence_failed: "SAM couldn't record this exchange. Please retry.",
   sam_disabled: "SAM is disabled for this organization.",
+  memory_not_found: "That memory item is no longer available.",
+  memory_cross_org: "That memory belongs to another organization.",
+  memory_private: "This memory is private to another member.",
+  memory_invalid_layer: "That memory layer is not valid.",
+  memory_venture_required: "Venture-scoped memory needs a valid venture in this organization.",
+  memory_expired: "That memory has expired and needs to be reconfirmed.",
+  memory_version_conflict: "This memory was edited elsewhere. Reload and try again.",
+  memory_duplicate_active: "An active memory with the same scope already exists.",
+  memory_conflict_detected: "This memory conflicts with another active item — review before confirming.",
+  memory_source_unavailable: "SAM couldn't reach the source of that memory.",
+  memory_dispute_review_required: "Disputed memory needs a review action before it can be confirmed.",
+  learning_persistence_failed: "SAM couldn't record that feedback. Please retry.",
+  graph_cross_org: "That relationship crosses an organization boundary.",
+  graph_entity_missing: "One of the entities in that relationship no longer exists.",
+  graph_traversal_limit: "The relationship graph is too large to display here.",
   unknown_error: "Something went wrong. Please retry.",
 };
 

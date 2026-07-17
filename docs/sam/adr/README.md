@@ -60,3 +60,7 @@ Why the chosen decision beats the alternatives given today's constraints.
 - [ADR-0006: No cross-organization learning](./0006-no-cross-org-learning.md)
 - [ADR-0007: Every claim requires a citation](./0007-citations-required.md)
 - [ADR-0008: Audit rows are mandatory for delivery](./0008-audit-mandatory.md)
+## Phase 3B
+- [0010 — Memory privacy scopes](./0010-memory-privacy-scopes.md)
+- [0011 — Memory precedence v1](./0011-memory-precedence-v1.md)
+- [0012 — Executive graph as relational projection](./0012-executive-graph-relational-projection.md)

@@ -20,6 +20,12 @@ import {
   useRestoreProject,
   useRestoreKnowledge,
   useRestoreDocument,
+  useRestoreVenture,
+  useRestoreGoal,
+  useRestoreDecision,
+  useRestoreCommitment,
+  useSamSettings,
+  useUpsertSamSettings,
   type ArchivedType,
   type MemberStatus,
   type OrgMemberFull,
@@ -66,14 +72,7 @@ function SettingsPage() {
           <TabsContent value="organization"><OrganizationTab /></TabsContent>
           <TabsContent value="members"><MembersTab /></TabsContent>
           <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
-          <TabsContent value="sam">
-            <p className="text-[13.5px] text-muted-foreground">
-              SAM is active. Detailed preferences (response style, challenge level,
-              citations, confidence display) live in{" "}
-              <code className="text-foreground">sam_settings</code> and will surface here
-              in the next iteration. Defaults apply organization-wide today.
-            </p>
-          </TabsContent>
+          <TabsContent value="sam"><SamSettingsTab /></TabsContent>
           {["accountability","notifications","security","integrations","appearance"].map((v) => (
             <TabsContent key={v} value={v}>
               <p className="text-[13.5px] text-muted-foreground">
@@ -84,6 +83,89 @@ function SettingsPage() {
         </Tabs>
       </PageBody>
     </div>
+  );
+}
+
+function SamSettingsTab() {
+  const { activeOrgId, activeMembership } = useOrg();
+  const samQ = useSamSettings(activeOrgId);
+  const upsert = useUpsertSamSettings(activeOrgId);
+  const canManage = can.manageOrg(activeMembership?.role);
+  const s = samQ.data;
+  if (samQ.isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-card/30" />;
+  const Row = (props: { label: string; hint?: string; children: React.ReactNode }) => (
+    <div className="grid grid-cols-[minmax(0,220px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
+      <div>
+        <div className="text-muted-foreground">{props.label}</div>
+        {props.hint && <div className="mt-0.5 text-[11.5px] text-muted-foreground/70">{props.hint}</div>}
+      </div>
+      <div>{props.children}</div>
+    </div>
+  );
+  const set = (patch: Record<string, unknown>) => upsert.mutate(patch as never, {
+    onSuccess: () => toast.success("SAM settings updated"),
+    onError: (e: unknown) => toast.error((e as Error).message || "Update failed"),
+  });
+  const disabled = !canManage;
+  return (
+    <div className="max-w-2xl">
+      <Section title="SAM behavior" hint="How SAM answers, cites, and treats memory. Owner/admin only.">
+        <Row label="Response style">
+          <select disabled={disabled} value={s?.response_style ?? "balanced"} onChange={(e) => set({ response_style: e.target.value })} className="rounded-md bg-secondary/40 px-2 py-1.5 outline-none">
+            <option value="concise">Concise</option>
+            <option value="balanced">Balanced</option>
+            <option value="detailed">Detailed</option>
+          </select>
+        </Row>
+        <Row label="Challenge level">
+          <select disabled={disabled} value={s?.challenge_level ?? "balanced"} onChange={(e) => set({ challenge_level: e.target.value })} className="rounded-md bg-secondary/40 px-2 py-1.5 outline-none">
+            <option value="supportive">Supportive</option>
+            <option value="balanced">Balanced</option>
+            <option value="direct">Direct</option>
+          </select>
+        </Row>
+        <Row label="Show citations" hint="Display source records under each SAM answer.">
+          <SamToggle disabled={disabled} checked={s?.include_citations ?? true} onChange={(v) => set({ include_citations: v })} />
+        </Row>
+        <Row label="Show confidence" hint="Display SAM's confidence band and reasons.">
+          <SamToggle disabled={disabled} checked={s?.show_confidence ?? true} onChange={(v) => set({ show_confidence: v })} />
+        </Row>
+      </Section>
+      <Section title="Memory">
+        <Row label="Allow memory proposals" hint="SAM extracts candidate memory from conversations. Always requires human confirmation.">
+          <SamToggle disabled={disabled} checked={s?.allow_memory_proposals ?? true} onChange={(v) => set({ allow_memory_proposals: v })} />
+        </Row>
+        <Row label="Include founder memory"><SamToggle disabled={disabled} checked={s?.include_founder_memory ?? true} onChange={(v) => set({ include_founder_memory: v })} /></Row>
+        <Row label="Include organization memory"><SamToggle disabled={disabled} checked={s?.include_org_memory ?? true} onChange={(v) => set({ include_org_memory: v })} /></Row>
+        <Row label="Include venture memory"><SamToggle disabled={disabled} checked={s?.include_venture_memory ?? true} onChange={(v) => set({ include_venture_memory: v })} /></Row>
+        <Row label="Memory review reminders" hint="Nudge to review expired or stale memory.">
+          <SamToggle disabled={disabled} checked={s?.memory_review_reminders ?? true} onChange={(v) => set({ memory_review_reminders: v })} />
+        </Row>
+      </Section>
+      <Section title="Conversations">
+        <Row label="Retain conversation history">
+          <SamToggle disabled={disabled} checked={s?.retain_conversation_history ?? true} onChange={(v) => set({ retain_conversation_history: v })} />
+        </Row>
+      </Section>
+    </div>
+  );
+}
+
+function SamToggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={
+        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors " +
+        (checked ? "bg-foreground " : "bg-secondary/60 ") +
+        (disabled ? "opacity-60" : "")
+      }
+      aria-pressed={checked}
+    >
+      <span className={"inline-block h-4 w-4 transform rounded-full bg-background transition-transform " + (checked ? "translate-x-4" : "translate-x-0.5")} />
+    </button>
   );
 }
 
@@ -107,6 +189,10 @@ function ArchiveCenterTab() {
   const restoreProject = useRestoreProject(activeOrgId);
   const restoreKnowledge = useRestoreKnowledge(activeOrgId);
   const restoreDocument = useRestoreDocument(activeOrgId);
+  const restoreVenture = useRestoreVenture(activeOrgId);
+  const restoreGoal = useRestoreGoal(activeOrgId);
+  const restoreDecision = useRestoreDecision(activeOrgId);
+  const restoreCommitment = useRestoreCommitment(activeOrgId);
   const canRestore = can.archiveContent(activeMembership?.role);
 
   async function handleRestore(row: { id: string; type: ArchivedType; title: string; ventureId?: string | null }) {
@@ -115,6 +201,10 @@ function ArchiveCenterTab() {
       if (row.type === "project") await restoreProject.mutateAsync(row.id);
       else if (row.type === "knowledge") await restoreKnowledge.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
       else if (row.type === "document") await restoreDocument.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
+      else if (row.type === "venture") await restoreVenture.mutateAsync(row.id);
+      else if (row.type === "goal") await restoreGoal.mutateAsync(row.id);
+      else if (row.type === "decision") await restoreDecision.mutateAsync(row.id);
+      else if (row.type === "commitment") await restoreCommitment.mutateAsync(row.id);
       else return toast.info(`Restore for ${row.type} is not yet supported in-app.`);
       toast.success("Restored");
     } catch (err) {
@@ -161,7 +251,7 @@ function ArchiveCenterTab() {
                 >
                   Open
                 </button>
-                {canRestore && ["project", "knowledge", "document"].includes(row.type) && (
+                {canRestore && ["project", "knowledge", "document", "venture", "goal", "decision", "commitment"].includes(row.type) && (
                   <button
                     onClick={() => handleRestore(row)}
                     className="rounded-md bg-secondary/60 px-2.5 py-1 text-[12px] text-foreground hover:bg-secondary"
@@ -174,7 +264,7 @@ function ArchiveCenterTab() {
           </ul>
         )}
         <p className="mt-4 text-[11.5px] text-muted-foreground/80">
-          Restore for ventures, goals, decisions, and commitments will be added alongside their dedicated restore hooks. All archived records remain protected by organization access rules.
+          Restored records return with their previous relationships intact. Nothing is permanently deleted.
         </p>
       </Section>
     </div>

@@ -124,7 +124,7 @@ export const askSam = createServerFn({ method: "POST" })
     // 6. Load SAM settings (fall back to defaults).
     const { data: settingsRow } = await supabase
       .from("sam_settings")
-      .select("enabled, response_style, challenge_level, include_citations, show_confidence")
+      .select("enabled, response_style, challenge_level, include_citations, show_confidence, allow_memory_proposals, include_founder_memory, include_org_memory, include_venture_memory")
       .eq("organization_id", data.organizationId)
       .maybeSingle();
     if (settingsRow && settingsRow.enabled === false) {
@@ -139,7 +139,11 @@ export const askSam = createServerFn({ method: "POST" })
         | "supportive"
         | "balanced"
         | "direct",
+      include_founder_memory: settingsRow?.include_founder_memory ?? true,
+      include_org_memory: settingsRow?.include_org_memory ?? true,
+      include_venture_memory: settingsRow?.include_venture_memory ?? true,
     };
+    const allowMemoryProposals = settingsRow?.allow_memory_proposals ?? true;
 
     // 7. Run the pipeline (lazy import — server-only module graph).
     const { runPipeline, writeAudit } = await import("./pipeline.server");
@@ -205,6 +209,24 @@ export const askSam = createServerFn({ method: "POST" })
     }
     samMessageId = samMsg.id;
 
+    // 8b. Persist memory proposals (never confirmed).
+    let proposalIds: string[] = [];
+    if (allowMemoryProposals) {
+      try {
+        const { persistProposals } = await import("./memory/proposals.server");
+        proposalIds = await persistProposals(supabase, {
+          orgId: data.organizationId,
+          userId,
+          conversationId,
+          messageId: userMsg.id,
+          ventureId: data.ventureId ?? null,
+          message: data.message,
+        });
+      } catch {
+        // Best-effort: proposal failure never blocks the reply.
+      }
+    }
+
     // 9. Audit (delivery-blocking). Failure ⇒ throw and hide sanitized error.
     try {
       await writeAudit(supabase, {
@@ -223,6 +245,11 @@ export const askSam = createServerFn({ method: "POST" })
         inputTokens: result.usage.inputTokens,
         outputTokens: result.usage.outputTokens,
         status: "ok",
+        citationLineage: result.response.citations.map((c) => ({
+          entity_type: c.entity_type,
+          entity_id: c.entity_id,
+          kind: c.kind,
+        })),
       });
     } catch (e) {
       // Roll back the SAM message: audit is required per ADR-0008.
@@ -257,6 +284,7 @@ export const askSam = createServerFn({ method: "POST" })
       provider: result.provider,
       usage: result.usage,
       truncations: result.context.truncations,
+      memoryProposalIds: proposalIds,
     };
   });
 

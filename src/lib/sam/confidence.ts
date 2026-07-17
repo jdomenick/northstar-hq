@@ -1,9 +1,13 @@
 // Deterministic confidence engine — see docs/sam/05-confidence.md.
 // Northstar owns the score; the model's self-reported hint is metadata only.
 
-import { CONFIDENCE_METHOD, WEIGHTS_VERSION } from "./constitution";
+import { WEIGHTS_VERSION } from "./constitution";
+import { CONFIDENCE_FRAMEWORK_VERSION } from "@/lib/constants";
 import type { SamResponse } from "./schema";
 import type { AssembledContext } from "./context-builder.server";
+
+// v2 method bump — see docs/sam/05-confidence.md and Phase 3B report.
+export const CONFIDENCE_METHOD = "v2.deterministic";
 
 export type ConfidenceBand = "low" | "moderate" | "high" | "very_high";
 
@@ -18,10 +22,13 @@ export interface ConfidenceObject {
     contradictionPenalty: number;
     missingContextPenalty: number;
     historicalReliability: number;
+    memorySupport: number;
+    memoryConflictPenalty: number;
   };
   reasons: string[];
   method: string;
   weightsVersion: string;
+  frameworkVersion: string;
   computedAt: string;
 }
 
@@ -86,14 +93,31 @@ export function computeConfidence(
   // historicalReliability: neutral until learning framework is wired
   const historicalReliability = 0.5;
 
+  // memorySupport — confirmed memory available and recent
+  const trusted = context.memory?.trusted ?? [];
+  const memorySupport = trusted.length
+    ? Math.min(1, trusted.reduce((acc, m) => acc + m.confidence, 0) / trusted.length)
+    : 0.5;
+  if (trusted.length && memorySupport < 0.5) {
+    reasons.push("Supporting memory is stale or weakly confirmed.");
+  }
+
+  // memoryConflictPenalty
+  const memoryConflictPenalty = context.memory?.conflict_count
+    ? Math.min(0.3, context.memory.conflict_count * 0.1)
+    : 0;
+  if (memoryConflictPenalty) reasons.push("Conflicting memory items detected in this scope.");
+
   const score = clamp01(
-    0.2 * dataCompleteness +
-      0.15 * dataRecency +
-      0.15 * verificationCoverage +
-      0.15 * corroboration +
-      0.15 * historicalReliability -
-      0.1 * contradictionPenalty -
-      0.1 * missingContextPenalty,
+    0.18 * dataCompleteness +
+      0.12 * dataRecency +
+      0.12 * verificationCoverage +
+      0.12 * corroboration +
+      0.12 * historicalReliability +
+      0.14 * memorySupport -
+      0.08 * contradictionPenalty -
+      0.08 * missingContextPenalty -
+      memoryConflictPenalty,
   );
 
   let band: ConfidenceBand = "low";
@@ -114,10 +138,13 @@ export function computeConfidence(
       contradictionPenalty: Number(contradictionPenalty.toFixed(3)),
       missingContextPenalty: Number(missingContextPenalty.toFixed(3)),
       historicalReliability: Number(historicalReliability.toFixed(3)),
+      memorySupport: Number(memorySupport.toFixed(3)),
+      memoryConflictPenalty: Number(memoryConflictPenalty.toFixed(3)),
     },
     reasons,
     method: CONFIDENCE_METHOD,
     weightsVersion: WEIGHTS_VERSION,
+    frameworkVersion: CONFIDENCE_FRAMEWORK_VERSION,
     computedAt: new Date().toISOString(),
   };
 }

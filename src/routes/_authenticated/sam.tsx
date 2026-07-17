@@ -21,6 +21,7 @@ import {
   renameConversation,
   archiveConversation,
 } from "@/lib/sam/sam.functions";
+import { submitResponseFeedback } from "@/lib/sam/learning/learning.functions";
 import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
 import { LIMITS } from "@/lib/constants";
@@ -399,6 +400,8 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
 
 function MessageView({ msg }: { msg: Msg }) {
   const isUser = msg.role === "user";
+  const { activeOrgId } = useOrg();
+  const feedbackFn = useServerFn(submitResponseFeedback);
   if (isUser) {
     return (
       <div className="flex justify-end">
@@ -472,7 +475,7 @@ function MessageView({ msg }: { msg: Msg }) {
         <ConfidenceDrawer confidence={meta.confidence} />
       )}
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
           onClick={() => {
@@ -482,6 +485,27 @@ function MessageView({ msg }: { msg: Msg }) {
         >
           <Copy className="h-3 w-3" /> Copy
         </button>
+        {([
+          ["helpful", "Helpful"],
+          ["not_helpful", "Not helpful"],
+          ["partially_helpful", "Partial"],
+          ["incorrect", "Incorrect"],
+          ["missing_context", "Missing context"],
+        ] as const).map(([kind, label]) => (
+          <button
+            key={kind}
+            className="rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+            onClick={async () => {
+              if (!activeOrgId) return;
+              try {
+                await feedbackFn({ data: { organizationId: activeOrgId, messageId: msg.id, feedback_type: kind } });
+                toast.success("Feedback recorded");
+              } catch (e) {
+                toast.error((e as Error).message || "Feedback failed");
+              }
+            }}
+          >{label}</button>
+        ))}
       </div>
     </div>
   );
