@@ -123,3 +123,81 @@ export const SAM_WORKFLOW_THRESHOLDS = {
   weeklyReviewMinDays: 3,
   weeklyReviewMaxDays: 21,
 } as const;
+
+// ─────────────────────────────────────────────────────────────
+// Phase 3D - Integration + Content Ingestion framework
+// ─────────────────────────────────────────────────────────────
+export const INTEGRATION_FRAMEWORK_VERSION = "northstar.integrations.v1.0.0";
+export const CONTENT_INGESTION_VERSION = "northstar.ingestion.v1.0.0";
+export const CONTENT_NORMALIZATION_VERSION = "northstar.ingestion.normalization.v1";
+export const CONTENT_FRESHNESS_VERSION = "northstar.ingestion.freshness.v1";
+
+export const INTEGRATION_LIMITS = {
+  // Website crawling
+  maxPagesPerSync: 50,
+  maxCrawlDepth: 3,
+  maxResponseBytes: 5 * 1024 * 1024, // 5 MB per page
+  requestTimeoutMs: 15_000,
+  maxConcurrentFetches: 3,
+
+  // File uploads (aligned with document ingestion, but scoped here for clarity)
+  maxFileBytes: 25 * 1024 * 1024, // 25 MB
+  maxCsvRows: 10_000,
+  maxJsonItems: 10_000,
+  maxContentTextChars: 500_000,
+
+  // Sync execution
+  maxSyncDurationMs: 120_000,
+  maxSourcesPerVenture: 100,
+  manualSyncMinIntervalMs: 30_000,
+
+  // Listing
+  maxConnectionsList: 100,
+  maxSourcesList: 200,
+  maxSyncRunsList: 50,
+  maxContentItemsList: 100,
+  maxVersionHistory: 25,
+} as const;
+
+// Content freshness thresholds (days since last successful ingest).
+export const CONTENT_FRESHNESS_THRESHOLDS = {
+  agingAfterDays: 30,
+  staleAfterDays: 90,
+} as const;
+
+// Review states for the Content Inbox.
+export const CONTENT_REVIEW_STATES = [
+  "pending",
+  "reviewed",
+  "accepted",
+  "rejected",
+  "archived",
+] as const;
+export type ContentReviewState = (typeof CONTENT_REVIEW_STATES)[number];
+
+// Trust levels for sources.
+export const SOURCE_TRUST_LEVELS = [
+  "unverified",
+  "reviewed",
+  "verified",
+  "official",
+] as const;
+export type SourceTrustLevel = (typeof SOURCE_TRUST_LEVELS)[number];
+
+// Content categories used for website source classification and content mapping.
+export const CONTENT_CATEGORIES = [
+  "company_overview",
+  "product",
+  "service",
+  "pricing",
+  "team",
+  "policy",
+  "help",
+  "blog",
+  "news",
+  "marketing",
+  "legal",
+  "documentation",
+  "other",
+] as const;
+export type ContentCategory = (typeof CONTENT_CATEGORIES)[number];

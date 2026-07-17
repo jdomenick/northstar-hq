@@ -650,6 +650,424 @@ export type Database = {
           },
         ]
       }
+      ingested_content_items: {
+        Row: {
+          author: string | null
+          canonical_url: string | null
+          category: string | null
+          connection_id: string | null
+          content_hash: string
+          content_summary: string | null
+          content_text: string | null
+          created_at: string
+          deleted_at: string | null
+          external_id: string | null
+          freshness_status: Database["public"]["Enums"]["content_freshness_status"]
+          id: string
+          last_ingested_at: string
+          metadata: Json
+          modified_at: string | null
+          organization_id: string
+          published_at: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          source_type: Database["public"]["Enums"]["integration_source_type"]
+          tags: string[]
+          title: string
+          updated_at: string
+          venture_id: string | null
+          verification_status: Database["public"]["Enums"]["content_verification_status"]
+        }
+        Insert: {
+          author?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          connection_id?: string | null
+          content_hash: string
+          content_summary?: string | null
+          content_text?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          external_id?: string | null
+          freshness_status?: Database["public"]["Enums"]["content_freshness_status"]
+          id?: string
+          last_ingested_at?: string
+          metadata?: Json
+          modified_at?: string | null
+          organization_id: string
+          published_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          source_type: Database["public"]["Enums"]["integration_source_type"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+          venture_id?: string | null
+          verification_status?: Database["public"]["Enums"]["content_verification_status"]
+        }
+        Update: {
+          author?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          connection_id?: string | null
+          content_hash?: string
+          content_summary?: string | null
+          content_text?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          external_id?: string | null
+          freshness_status?: Database["public"]["Enums"]["content_freshness_status"]
+          id?: string
+          last_ingested_at?: string
+          metadata?: Json
+          modified_at?: string | null
+          organization_id?: string
+          published_at?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          source_type?: Database["public"]["Enums"]["integration_source_type"]
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          venture_id?: string | null
+          verification_status?: Database["public"]["Enums"]["content_verification_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingested_content_items_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingested_content_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingested_content_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingested_content_items_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingested_content_versions: {
+        Row: {
+          captured_at: string
+          content_hash: string
+          content_item_id: string
+          content_text: string | null
+          id: string
+          metadata: Json
+          organization_id: string
+          title: string | null
+          version_number: number
+        }
+        Insert: {
+          captured_at?: string
+          content_hash: string
+          content_item_id: string
+          content_text?: string | null
+          id?: string
+          metadata?: Json
+          organization_id: string
+          title?: string | null
+          version_number: number
+        }
+        Update: {
+          captured_at?: string
+          content_hash?: string
+          content_item_id?: string
+          content_text?: string | null
+          id?: string
+          metadata?: Json
+          organization_id?: string
+          title?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingested_content_versions_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "ingested_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingested_content_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_connections: {
+        Row: {
+          connection_type: Database["public"]["Enums"]["integration_connection_type"]
+          created_at: string
+          created_by: string | null
+          credentials_reference: string | null
+          deleted_at: string | null
+          display_name: string
+          id: string
+          last_error_at: string | null
+          last_error_code: string | null
+          last_successful_sync_at: string | null
+          last_sync_at: string | null
+          next_cursor: Json | null
+          organization_id: string
+          provider: Database["public"]["Enums"]["integration_provider"]
+          settings: Json
+          status: Database["public"]["Enums"]["integration_connection_status"]
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          connection_type: Database["public"]["Enums"]["integration_connection_type"]
+          created_at?: string
+          created_by?: string | null
+          credentials_reference?: string | null
+          deleted_at?: string | null
+          display_name: string
+          id?: string
+          last_error_at?: string | null
+          last_error_code?: string | null
+          last_successful_sync_at?: string | null
+          last_sync_at?: string | null
+          next_cursor?: Json | null
+          organization_id: string
+          provider: Database["public"]["Enums"]["integration_provider"]
+          settings?: Json
+          status?: Database["public"]["Enums"]["integration_connection_status"]
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          connection_type?: Database["public"]["Enums"]["integration_connection_type"]
+          created_at?: string
+          created_by?: string | null
+          credentials_reference?: string | null
+          deleted_at?: string | null
+          display_name?: string
+          id?: string
+          last_error_at?: string | null
+          last_error_code?: string | null
+          last_successful_sync_at?: string | null
+          last_sync_at?: string | null
+          next_cursor?: Json | null
+          organization_id?: string
+          provider?: Database["public"]["Enums"]["integration_provider"]
+          settings?: Json
+          status?: Database["public"]["Enums"]["integration_connection_status"]
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_connections_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_sources: {
+        Row: {
+          category: string | null
+          connection_id: string | null
+          created_at: string
+          deleted_at: string | null
+          external_id: string | null
+          id: string
+          last_synced_at: string | null
+          metadata: Json
+          organization_id: string
+          source_type: Database["public"]["Enums"]["integration_source_type"]
+          source_url: string | null
+          sync_enabled: boolean
+          sync_frequency: string
+          title: string
+          trust_level: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          connection_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          external_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          metadata?: Json
+          organization_id: string
+          source_type: Database["public"]["Enums"]["integration_source_type"]
+          source_url?: string | null
+          sync_enabled?: boolean
+          sync_frequency?: string
+          title: string
+          trust_level?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          connection_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          external_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          metadata?: Json
+          organization_id?: string
+          source_type?: Database["public"]["Enums"]["integration_source_type"]
+          source_url?: string | null
+          sync_enabled?: boolean
+          sync_frequency?: string
+          title?: string
+          trust_level?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sources_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sources_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_sync_runs: {
+        Row: {
+          completed_at: string | null
+          connection_id: string | null
+          created_at: string
+          duration_ms: number | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          metadata: Json
+          organization_id: string
+          records_created: number
+          records_discovered: number
+          records_failed: number
+          records_skipped: number
+          records_updated: number
+          source_id: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["integration_sync_status"]
+          trigger_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          metadata?: Json
+          organization_id: string
+          records_created?: number
+          records_discovered?: number
+          records_failed?: number
+          records_skipped?: number
+          records_updated?: number
+          source_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["integration_sync_status"]
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          metadata?: Json
+          organization_id?: string
+          records_created?: number
+          records_discovered?: number
+          records_failed?: number
+          records_skipped?: number
+          records_updated?: number
+          source_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["integration_sync_status"]
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_runs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sync_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_sync_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "integration_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           connected_by: string | null
@@ -2296,6 +2714,18 @@ export type Database = {
         | "overdue"
         | "completed"
         | "canceled"
+      content_freshness_status:
+        | "fresh"
+        | "aging"
+        | "stale"
+        | "inaccessible"
+        | "unknown"
+      content_verification_status:
+        | "unverified"
+        | "reviewed"
+        | "verified"
+        | "disputed"
+        | "rejected"
       conversation_message_role: "user" | "operator" | "system" | "tool"
       decision_status:
         | "draft"
@@ -2355,12 +2785,53 @@ export type Database = {
         | "critical"
         | "opportunity"
       insight_status: "active" | "dismissed" | "resolved" | "expired"
+      integration_connection_status:
+        | "pending"
+        | "active"
+        | "error"
+        | "disabled"
+        | "archived"
+      integration_connection_type:
+        | "website"
+        | "database"
+        | "rest"
+        | "webhook"
+        | "file_import"
+        | "api_token"
+      integration_provider:
+        | "website"
+        | "supabase"
+        | "rest_api"
+        | "webhook"
+        | "csv_import"
+        | "json_import"
+        | "api_token"
+        | "other"
+      integration_source_type:
+        | "webpage"
+        | "sitemap"
+        | "blog"
+        | "docs"
+        | "db_table"
+        | "rest_endpoint"
+        | "webhook_topic"
+        | "csv_file"
+        | "json_file"
+        | "manual"
+        | "other"
       integration_status:
         | "disconnected"
         | "pending"
         | "connected"
         | "error"
         | "paused"
+      integration_sync_status:
+        | "queued"
+        | "running"
+        | "succeeded"
+        | "partial"
+        | "failed"
+        | "cancelled"
       knowledge_type:
         | "founder_profile"
         | "venture_knowledge"
@@ -2635,6 +3106,20 @@ export const Constants = {
         "completed",
         "canceled",
       ],
+      content_freshness_status: [
+        "fresh",
+        "aging",
+        "stale",
+        "inaccessible",
+        "unknown",
+      ],
+      content_verification_status: [
+        "unverified",
+        "reviewed",
+        "verified",
+        "disputed",
+        "rejected",
+      ],
       conversation_message_role: ["user", "operator", "system", "tool"],
       decision_status: [
         "draft",
@@ -2700,12 +3185,58 @@ export const Constants = {
         "opportunity",
       ],
       insight_status: ["active", "dismissed", "resolved", "expired"],
+      integration_connection_status: [
+        "pending",
+        "active",
+        "error",
+        "disabled",
+        "archived",
+      ],
+      integration_connection_type: [
+        "website",
+        "database",
+        "rest",
+        "webhook",
+        "file_import",
+        "api_token",
+      ],
+      integration_provider: [
+        "website",
+        "supabase",
+        "rest_api",
+        "webhook",
+        "csv_import",
+        "json_import",
+        "api_token",
+        "other",
+      ],
+      integration_source_type: [
+        "webpage",
+        "sitemap",
+        "blog",
+        "docs",
+        "db_table",
+        "rest_endpoint",
+        "webhook_topic",
+        "csv_file",
+        "json_file",
+        "manual",
+        "other",
+      ],
       integration_status: [
         "disconnected",
         "pending",
         "connected",
         "error",
         "paused",
+      ],
+      integration_sync_status: [
+        "queued",
+        "running",
+        "succeeded",
+        "partial",
+        "failed",
+        "cancelled",
       ],
       knowledge_type: [
         "founder_profile",
