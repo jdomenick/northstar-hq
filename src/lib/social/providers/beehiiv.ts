@@ -1,4 +1,9 @@
-import type { SocialProviderAdapter, PublishInput, PublishResult } from "./index";
+import type {
+  SocialProviderAdapter,
+  PublishInput,
+  PublishResult,
+  SocialProviderImplementationStatus,
+} from "./index";
 
 /**
  * Beehiiv adapter. Truthfully blocked when BEEHIIV_API_KEY /
@@ -16,8 +21,9 @@ function hasCredentials(): boolean {
 export const beehiivAdapter: SocialProviderAdapter = {
   key: "beehiiv",
   connectorVersion: "0.1.0",
-  get implementationStatus() {
-    // No credentials in this environment; keep truthfully blocked until they exist.
+  get implementationStatus(): SocialProviderImplementationStatus {
+    // No implemented publish path yet; even with credentials the adapter
+    // stays blocked until the Beehiiv POST/verify flow is wired.
     return hasCredentials() ? "blocked_no_credentials" : "blocked_no_credentials";
   },
   async publish(_input: PublishInput): Promise<PublishResult> {
