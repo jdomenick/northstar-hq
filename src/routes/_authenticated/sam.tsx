@@ -169,8 +169,8 @@ function SamPage() {
   }
 
   const activeOrgName =
-    activeMembership?.organization?.name ??
-    memberships.find((m) => m.organization_id === activeOrgId)?.organization?.name ??
+    activeMembership?.organizations?.name ??
+    memberships.find((m) => m.organization_id === activeOrgId)?.organizations?.name ??
     null;
   const contextLine = activeOrgName ?? "";
 
