@@ -8,7 +8,7 @@ import {
   checkContentBounds,
   checkIdempotency,
   checkSchedule,
-} from "./publish-gates.server.ts";
+} from "./publish-gates-pure.ts";
 
 test("approval: rejects non-approved", () => {
   const r = checkApproval({ approval_status: "pending", approved_content_version: 1, content_version: 1 });
