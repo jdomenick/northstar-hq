@@ -540,18 +540,15 @@ function AssetRow({ a, selected, favorite, onSelect, onOpen, onFav }: {
 }
 
 function useThumb(a: LibraryAsset, setThumb: (u: string | null) => void) {
+  const { activeOrgId } = useOrg();
   const previewFn = useServerFn(createMediaPreviewUrl);
-  useMemoOnce(() => {
-    if (a.media_type !== "image" || !a.storage_path) return;
-    previewFn({ data: { organizationId: a["storage_bucket"] ? a["storage_bucket"] as unknown as string : "", mediaAssetId: a.id } as unknown as { organizationId: string; mediaAssetId: string } })
-      .then((r: { url?: string } | null) => setThumb(r?.url ?? null))
+  useMemo(() => {
+    if (a.media_type !== "image" || !a.storage_path || !activeOrgId) return;
+    previewFn({ data: { organizationId: activeOrgId, assetId: a.id } })
+      .then((r) => setThumb(r?.url ?? null))
       .catch(() => setThumb(null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [a.id]);
-}
-
-function useMemoOnce(fn: () => void, deps: unknown[]) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useMemo(() => { fn(); }, deps);
 }
 
 // ---- Preview panel ----------------------------------------------------------
