@@ -35,6 +35,7 @@ import { Route as AuthenticatedKnowledgeIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticated/goals.$id'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
+import { Route as AuthenticatedContentOpsCalendarRouteImport } from './routes/_authenticated/content-ops.calendar'
 import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
@@ -177,6 +178,12 @@ const AuthenticatedDecisionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedDecisionsRoute,
   } as any)
+const AuthenticatedContentOpsCalendarRoute =
+  AuthenticatedContentOpsCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedContentOpsRoute,
+  } as any)
 const AuthenticatedCommitmentsIdRoute =
   AuthenticatedCommitmentsIdRouteImport.update({
     id: '/commitments/$id',
@@ -232,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/content-ops/calendar': typeof AuthenticatedContentOpsCalendarRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/goals/$id': typeof AuthenticatedGoalsIdRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
   '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/content-ops/calendar': typeof AuthenticatedContentOpsCalendarRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/goals/$id': typeof AuthenticatedGoalsIdRoute
@@ -300,6 +309,7 @@ export interface FileRoutesById {
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
+  '/_authenticated/content-ops/calendar': typeof AuthenticatedContentOpsCalendarRoute
   '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/_authenticated/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/_authenticated/goals/$id': typeof AuthenticatedGoalsIdRoute
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/commitments/$id'
+    | '/content-ops/calendar'
     | '/decisions/$id'
     | '/documents/$id'
     | '/goals/$id'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/'
     | '/commitments/$id'
+    | '/content-ops/calendar'
     | '/decisions/$id'
     | '/documents/$id'
     | '/goals/$id'
@@ -402,6 +414,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/_authenticated/'
     | '/_authenticated/commitments/$id'
+    | '/_authenticated/content-ops/calendar'
     | '/_authenticated/decisions/$id'
     | '/_authenticated/documents/$id'
     | '/_authenticated/goals/$id'
@@ -609,6 +622,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDecisionsIdRouteImport
       parentRoute: typeof AuthenticatedDecisionsRoute
     }
+    '/_authenticated/content-ops/calendar': {
+      id: '/_authenticated/content-ops/calendar'
+      path: '/calendar'
+      fullPath: '/content-ops/calendar'
+      preLoaderRoute: typeof AuthenticatedContentOpsCalendarRouteImport
+      parentRoute: typeof AuthenticatedContentOpsRoute
+    }
     '/_authenticated/commitments/$id': {
       id: '/_authenticated/commitments/$id'
       path: '/commitments/$id'
@@ -655,11 +675,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedContentOpsRouteChildren {
+  AuthenticatedContentOpsCalendarRoute: typeof AuthenticatedContentOpsCalendarRoute
   AuthenticatedContentOpsEditorIdRoute: typeof AuthenticatedContentOpsEditorIdRoute
 }
 
 const AuthenticatedContentOpsRouteChildren: AuthenticatedContentOpsRouteChildren =
   {
+    AuthenticatedContentOpsCalendarRoute: AuthenticatedContentOpsCalendarRoute,
     AuthenticatedContentOpsEditorIdRoute: AuthenticatedContentOpsEditorIdRoute,
   }
 

@@ -86,3 +86,30 @@ No editor changes. No validation changes. No preview changes.
 - `northstar.contentops.editor.validation.v1` - validation ruleset.
 - `northstar.contentops.policy.v1` - inherited policy version stamped on
   every version snapshot and approval row.
+
+## S1c: Editorial Calendar and Scheduler
+
+The scheduler is a server-side operator interface over `automation_jobs`.
+The client never mutates schedules directly.
+
+### Modules
+- `src/lib/content-ops/timezone.ts` - pure venture-timezone helpers built on `Intl.DateTimeFormat` (DST-safe).
+- `src/lib/content-ops/schedule-gates.ts` - deterministic pre-schedule and pre-publish gate ruleset; produces `CalendarState`, `editorialAllowed`, `executableAllowed`, and typed failure records. Versioned by `SCHEDULE_GATES_VERSION`.
+- `src/lib/content-ops/schedule-audit.server.ts` - append-only audit writes to `content_ops_schedule_audit`.
+- `src/lib/content-ops/scheduling.functions.ts` - all mutating server functions: schedule, reschedule, unschedule, cancel, duplicate to date/platform, batch, publishNow, manualRetry, emergencyPause/resume, plus `listScheduledContent` and `previewScheduleGates`.
+
+### Idempotency and duplicate prevention
+Publish jobs use `buildPublishIdempotencyKey({ contentItemId, contentVersion, destinationKey, scheduledForIsoMinute })`. Because the key is stored in the unique `automation_jobs.idempotency_key`, two attempts for the same variant, version, and minute collapse to a single row. Rescheduling explicitly cancels the previous job first, then enqueues a new one.
+
+### Editorial vs executable states
+`connector_ready` and `destination_selected` are treated as `editorial_only` failures: the calendar accepts the slot for planning even when publishing is not yet possible. Every other blocking failure prevents scheduling entirely. When the connector arrives later, the scheduled item can be re-scheduled or `publishNow`ed to enqueue the executable job.
+
+### Emergency pause
+`emergencyPauseVenture` sets `content_ops_autonomy.emergency_pause = true` and moves all queued/scheduled/retrying `social_publish` jobs to `blocked` with `error_code = 'emergency_pause'`. `resumePublishing` restores them. Both operations are audited.
+
+### Calendar UI
+- `src/components/content-ops/calendar-view.tsx` - Month, Week, and Agenda views. Uses `formatInVentureTimezone` for every timestamp; nothing is rendered in the operator's local browser tz.
+- `src/routes/_authenticated/content-ops.calendar.tsx` - Paper & Ink route with emergency pause / resume controls.
+
+### Why the backend owns execution
+`automation_jobs` runs via server workers. Scheduled publications continue when the PWA is closed, the browser is offline, or the user is signed out - matching the "deployed PWA, backend-executed" requirement.
