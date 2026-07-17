@@ -18,6 +18,7 @@ import {
 import type { Database } from "@/integrations/supabase/types";
 import { SAM_MEMORY_LIMITS } from "@/lib/constants";
 import { detectConflicts } from "./conflict";
+import { computeMemoryReliability } from "./reliability.server";
 
 async function assertMembership(
   supabase: import("@supabase/supabase-js").SupabaseClient<import("@/integrations/supabase/types").Database>,
@@ -359,4 +360,18 @@ export const resolveMemoryConflict = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId);
     if (error) throw new SamError("unknown_error", error.message);
     return { ok: true };
+  });
+
+// ---- getMemoryReliability --------------------------------------------------
+export const getMemoryReliability = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ organizationId: z.string().uuid(), id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertMembership(supabase, data.organizationId, userId);
+    const r = await computeMemoryReliability(supabase, data.organizationId, data.id);
+    if (!r) throw new SamError("memory_not_found");
+    return r;
   });
