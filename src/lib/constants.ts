@@ -23,6 +23,14 @@ export const LIMITS = {
   searchPerCategory: 10,
   archivedList: 25,
   memberList: 50,
+  sam: {
+    maxMessageChars: 4000,
+    maxHistoryMessages: 16,
+    maxContextPerType: 12,
+    maxResponseChars: 16000,
+    perOrgPerDay: 200,
+    perUserPerDay: 100,
+  },
 } as const;
 
 // Debounce (ms) for typing-driven queries such as global search.
