@@ -49,6 +49,27 @@ export const LEARNING_EVENT_SCHEMA_VERSION = "sam.learning.v1";
 export const RESPONSE_FEEDBACK_VERSION = "sam.feedback.v1";
 export const CONFIDENCE_FRAMEWORK_VERSION = "sam.confidence.v2";
 
+// ─────────────────────────────────────────────────────────────
+// AI COO Core framework version constants (Phase 3D.3)
+// Stamped into operating context, executive assembler output,
+// and future COO engine outputs so every calculation is reproducible.
+// ─────────────────────────────────────────────────────────────
+export const COO_CORE_VERSION = "coo.core.v1.0.0";
+export const COO_OP_CONTEXT_VERSION = "coo.op-context.v1";
+export const COO_VENTURE_CONTEXT_VERSION = "coo.venture-ctx.v1";
+export const COO_EXECUTIVE_ASSEMBLER_VERSION = "coo.assembler.v1";
+export const COO_MEMORY_EXTRACTION_VERSION = "coo.memory-extraction.v1";
+
+export const COO_LIMITS = {
+  maxHistoryPage: 50,
+  maxPriorities: 12,
+  maxRisks: 12,
+  maxMetrics: 12,
+  maxObjectives: 12,
+  maxAssemblerTokens: 12000,
+  maxContradictions: 25,
+} as const;
+
 export const SAM_MEMORY_LIMITS = {
   maxListPage: 100,
   maxProposalsPage: 50,

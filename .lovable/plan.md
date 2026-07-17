@@ -1,103 +1,63 @@
-# Phase 3D - Incremental Delivery Plan
 
-Phase 3D touches DB schema, crawlers, file parsing, content review, provider abstraction, SAM context, and Search. Shipping it in one generation would be unsafe (RLS surface area, credential handling, SSRF risk). Broken into 6 sub-milestones. Stop after each for a report + typecheck + production build. Do not advance until the previous is stable.
+# Phase 3D.3 - AI COO Core (SAM as Operational Intelligence)
 
-All integrations remain read-only. No autonomous actions. No scheduled sync. No SAM writes to external systems.
+The scope you posted is a full-quarter build (17 domains, 40+ subsystems, ~15 new tables, deterministic engines for accountability / bottlenecks / project health / prioritization, memory extraction pipeline, briefings, and UI). Attempting it in one milestone would either produce shallow stubs across everything or spend the entire session on one slice with the rest incomplete.
 
----
+Below is the split I recommend, following the same pattern as 3D.2c (i / ii / iii / iv). Each sub-phase ends green with typecheck + build, honest surface, and no fake intelligence.
 
-## Sub-milestone 3D.1 - Integration foundation + schema
+## Sub-milestones
 
-Database + framework only. No UI beyond stubs. No network I/O yet.
+### 3D.3a - Operating Context + Memory Foundation
+- `organization_operating_context` and `venture_operating_context` tables (versioned, source-lineage, `last_reviewed_at`, policy_version).
+- Extend `sam_memory_items` with the typed categories (working / episodic / semantic / operational / strategic) and confirmation lifecycle beyond what 3B already ships.
+- Founder correction / archive / supersede APIs (server fns, no UI yet).
+- `assembleExecutiveContext()` v1: bounded retrieval with token budget, ranking by recency + importance + confirmation, contradiction detection.
+- Grants + RLS + audit. Typecheck + build.
 
-- Migrations for: `integration_connections`, `integration_sources`, `integration_sync_runs`, `ingested_content_items`, `ingested_content_versions`. Full org-scoped RLS + GRANTs + `updated_at` triggers.
-- `src/lib/integrations/` skeleton: `types.ts`, `errors.ts`, `registry.server.ts`, `auth.server.ts`, `audit.server.ts`, `freshness.server.ts`, `normalization.server.ts`. No connectors yet.
-- Centralized limits in `src/lib/constants.ts` (`INTEGRATION_LIMITS`): max pages, depth, response size, file size, CSV rows, JSON items, content length, sync duration, sources per venture, manual sync interval.
-- Sanitized error code enum.
-- Regenerate Supabase types.
+### 3D.3b - Deterministic Engines (Accountability, Bottleneck, Project Health, Prioritization)
+- `accountability_observations`, `bottleneck_observations`, `project_health_snapshots`, `priority_scores` tables, each with `rule_version` / `calculation_version` and evidence jsonb.
+- Pure deterministic engines in `src/lib/coo/engines/*.server.ts` - no provider calls in the base score.
+- Registered as automation job types on the 3D.2c Job Engine (scheduled + on-demand), not ad-hoc.
+- Typecheck + build.
 
-Exit: typecheck + prod build pass. No routes changed.
+### 3D.3c - Commitment + Decision Intelligence + Memory Extraction
+- Extend `commitments` with `source_type` / `source_id` / `evidence` / `follow_up_at` / status set from spec.
+- Decision lifecycle states (needed / proposed / made / reversed / expired / blocked / outcome_unknown) + review dates.
+- Post-conversation extractor: candidate memories, candidate commitments, candidate decisions - all land as `proposed` requiring founder confirmation. Extraction version stamped.
+- Typecheck + build.
 
----
+### 3D.3d - Feedback Synthesis + Goal/Roadmap Awareness + Insight/Recommendation Lifecycle
+- Structured `user_feedback` (manual-entry only this phase; no connectors), duplicate clustering key, sentiment/urgency.
+- Goal + roadmap alignment analyzer (deterministic: projects-not-supporting-goal, goals-with-no-work, too-many-priorities, sequencing conflicts).
+- `sam_insights` + `sam_recommendations` lifecycle (proposed / acknowledged / accepted / rejected / superseded / expired) with evidence refs + confidence + rule_id.
+- Typecheck + build.
 
-## Sub-milestone 3D.2 - Website ingestion connector
+### 3D.3e - Daily Briefing + Weekly Review Workflows
+- Register both as SAM workflows on the existing workflow runner (already in `src/lib/sam/workflows/`), scheduled through the 3D.2c Job Engine.
+- Deterministic sections first (what changed, overdue commitments, open decisions, bottlenecks, health drops), provider only for prose synthesis with strict citation to real records.
+- Persisted `sam_briefings` / `sam_reviews` rows so results are durable and re-openable.
+- Typecheck + build.
 
-First real connector. Manual "Sync now" only.
+### 3D.3f - Minimal SAM UI + Rename Operator to SAM
+- Rename user-facing "Operator" to "SAM" across shell + route (`/operator` -> `/sam`, keep redirect).
+- SAM chat surfaces citations from context assembler; new tabs for Briefing, Recommendations (confirm/reject), Memory (view/correct/archive), Accountability inbox.
+- No shell redesign. No new dashboards. Everything reads real records; empty states are honest ("no confirmed commitments yet").
+- Typecheck + build.
 
-- `connectors/website.server.ts`: URL validation, scheme allow-list (`https:`, `http:`), block localhost/private IP ranges (10/8, 172.16/12, 192.168/16, 169.254/16, ::1, fc00::/7) at DNS resolution time, robots.txt respect, same-domain bounded crawl, sitemap discovery, page limit, depth limit, response-size limit, timeout.
-- Readable-text extraction (lightweight; no headless browser - Worker runtime forbids it).
-- Content hashing (SHA-256 of normalized text), version-on-change.
-- `sync.server.ts` orchestrator with the 15-step sequence, sanitized failures, prior-content preservation.
-- Server functions: `createWebsiteConnection`, `syncConnection`, `listConnections`, `getConnection`, `archiveConnection`.
-- Routes: `/settings/integrations`, `/settings/integrations/new`, `/settings/integrations/$connectionId` under `_authenticated/`.
+## Confirmation
 
-Exit: user can add a public site, sync, see extracted pages with version history.
+Reply with which sub-phase to start with (default: `3D.3a`), and I will build only that sub-phase in one green pass, then stop and wait - same rhythm as 3D.2c-i / ii / iii.
 
----
+## Explicitly NOT in any 3D.3 sub-phase
+- Live social publishing or connectors (blocked per your instructions).
+- Autonomous external messaging, financial actions, destructive actions.
+- Any "SAM knows everything" claim in UI copy.
+- Hardcoded/fake insights - every engine outputs `{ evidence, rule_id, confidence }` or nothing.
+- Provider-authored authoritative project health, priority scores, or company strategy edits.
 
-## Sub-milestone 3D.3 - File + manual content ingestion + Content Inbox
-
-- Storage bucket `venture-content` (private). Signed URLs. MIME allow-list. Size limit.
-- Parsers: PDF, DOCX, TXT, MD, CSV, JSON. Text extraction stored separately from original. Parse-failure state surfaced honestly. Image-only PDFs marked `ocr_required`.
-- Manual paste/URL/note/transcript intake.
-- Routes: `/knowledge/inbox`, `/knowledge/sources`, `/knowledge/sources/$sourceId`.
-- Review states: `pending | reviewed | accepted | rejected | archived`.
-
-Exit: upload → parse → review flow works for all listed types.
-
----
-
-## Sub-milestone 3D.4 - App connections (generic) + knowledge promotion
-
-- Connection types: Supabase read-only (allow-listed tables), public REST, webhook import endpoint, CSV/JSON import, generic API-token.
-- Credentials stored via `secrets` tool per connection (never client-visible). Field-mapping UI.
-- Suggested mappings; user confirmation required before creating operational records (ventures/projects/tasks/etc.).
-- Promotion flow: reviewed inbox item → verified knowledge with full lineage (connection → source → URL/file → content_item → reviewer → date → verification → version).
-- SAM citations resolve promoted knowledge back to origin.
-
-Exit: read-only Supabase connection works end-to-end; promotion creates traceable knowledge.
-
----
-
-## Sub-milestone 3D.5 - OpenAI provider through abstraction
-
-- Extend `src/lib/sam/providers/` with `openai.server.ts` implementing `CompletionProvider`.
-- Model allow-list (server-enforced). No client-supplied model names.
-- API key stored server-side via secrets; per-org config in new `sam_provider_configs` table.
-- Fallback chain to existing Lovable provider preserved.
-- Settings route: `/settings/sam/providers`. Shows status, model, last success/failure, test button, disable, remove credentials.
-- Sanitized provider errors.
-
-Exit: user can enable OpenAI, test, run a SAM invocation through it, fall back on failure.
-
----
-
-## Sub-milestone 3D.6 - SAM context + Global Search integration
-
-- Extend `context-builder.server.ts` and workflow `context.server.ts` to pull ingested content, segmented by trust: `trusted | reviewed | unreviewed | stale | disputed`. Unreviewed never enters as trusted evidence.
-- Wrap all ingested text as `<untrusted-context>` (constitution rule 8 already covers behavior).
-- Freshness labels flow into SAM output; SAM must state stale/unverified.
-- Global Search extended with source, verification, freshness, venture, last-updated columns.
-
-Exit: SAM answers cite ingested content correctly and labels trust/freshness; search returns ingested items.
-
----
-
-## Cross-cutting rules (apply to every sub-milestone)
-
-- Every new `public` table: `GRANT` + `ENABLE RLS` + policies in the same migration.
-- No service-role credentials in client bundles. `client.server` imported only inside handler bodies.
-- Website crawler resolves DNS and blocks private/link-local/loopback before every request (not just at submit time - guards against DNS rebinding).
-- No auto-created operational records. Everything requires explicit user approval.
-- No em dashes anywhere (existing project rule).
-- Report format after each sub-milestone matches the 20-item template you provided, scoped to that sub-milestone.
-
----
-
-## Confirm before I start
-
-Reply with:
-1. "Proceed with 3D.1" to start the foundation, or
-2. Any changes to sequencing, scope, or exit criteria.
-
-I will not touch code until you confirm.
+## Technical shape (applies to every sub-phase)
+- All new public tables get `GRANT` + RLS + org-scope validation triggers (matching the 3D.2c pattern).
+- All server logic goes through `createServerFn` with `requireSupabaseAuth`, or as Job Engine handlers - never Supabase Edge Functions.
+- Deterministic engines are pure TS, unit-testable, versioned via `*_VERSION` constants.
+- Provider calls only in synthesis stages, always over deterministic inputs, always with citations verified against RLS-visible records (reusing 3B citation verifier).
+- No `"—"` characters anywhere per project memory.

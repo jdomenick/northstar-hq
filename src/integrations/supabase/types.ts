@@ -1969,6 +1969,158 @@ export type Database = {
           },
         ]
       }
+      organization_operating_context: {
+        Row: {
+          active_ventures: Json
+          business_model: string | null
+          company_summary: string | null
+          created_at: string
+          created_by: string | null
+          current_constraints: Json
+          current_focus: string | null
+          current_stage: string | null
+          decision_preferences: Json
+          founder_preferences: Json
+          id: string
+          important_metrics: Json
+          last_reviewed_at: string | null
+          last_reviewed_by: string | null
+          major_goals: Json
+          major_risks: Json
+          mission: string | null
+          operating_principles: Json
+          organization_id: string
+          policy_version: string
+          primary_customers: string | null
+          revision: number
+          risk_tolerance: string | null
+          source_lineage: Json
+          strategic_priorities: Json
+          time_horizon: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active_ventures?: Json
+          business_model?: string | null
+          company_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_constraints?: Json
+          current_focus?: string | null
+          current_stage?: string | null
+          decision_preferences?: Json
+          founder_preferences?: Json
+          id?: string
+          important_metrics?: Json
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          major_goals?: Json
+          major_risks?: Json
+          mission?: string | null
+          operating_principles?: Json
+          organization_id: string
+          policy_version?: string
+          primary_customers?: string | null
+          revision?: number
+          risk_tolerance?: string | null
+          source_lineage?: Json
+          strategic_priorities?: Json
+          time_horizon?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active_ventures?: Json
+          business_model?: string | null
+          company_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_constraints?: Json
+          current_focus?: string | null
+          current_stage?: string | null
+          decision_preferences?: Json
+          founder_preferences?: Json
+          id?: string
+          important_metrics?: Json
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          major_goals?: Json
+          major_risks?: Json
+          mission?: string | null
+          operating_principles?: Json
+          organization_id?: string
+          policy_version?: string
+          primary_customers?: string | null
+          revision?: number
+          risk_tolerance?: string | null
+          source_lineage?: Json
+          strategic_priorities?: Json
+          time_horizon?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_operating_context_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_operating_context_history: {
+        Row: {
+          change_reason: string | null
+          change_type: string
+          changed_at: string
+          changed_by: string | null
+          context_id: string
+          id: string
+          organization_id: string
+          revision: number
+          snapshot: Json
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: string
+          changed_at?: string
+          changed_by?: string | null
+          context_id: string
+          id?: string
+          organization_id: string
+          revision: number
+          snapshot: Json
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: string
+          changed_at?: string
+          changed_by?: string | null
+          context_id?: string
+          id?: string
+          organization_id?: string
+          revision?: number
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_operating_context_history_context_id_fkey"
+            columns: ["context_id"]
+            isOneToOne: false
+            referencedRelation: "organization_operating_context"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_operating_context_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_social_settings: {
         Row: {
           allow_holiday_publishing: boolean
@@ -2700,6 +2852,7 @@ export type Database = {
           id: string
           last_confirmed_at: string | null
           layer: Database["public"]["Enums"]["sam_memory_layer"]
+          memory_kind: Database["public"]["Enums"]["sam_memory_kind"] | null
           organization_id: string
           owner_user_id: string | null
           source_conversation_id: string | null
@@ -2730,6 +2883,7 @@ export type Database = {
           id?: string
           last_confirmed_at?: string | null
           layer: Database["public"]["Enums"]["sam_memory_layer"]
+          memory_kind?: Database["public"]["Enums"]["sam_memory_kind"] | null
           organization_id: string
           owner_user_id?: string | null
           source_conversation_id?: string | null
@@ -2760,6 +2914,7 @@ export type Database = {
           id?: string
           last_confirmed_at?: string | null
           layer?: Database["public"]["Enums"]["sam_memory_layer"]
+          memory_kind?: Database["public"]["Enums"]["sam_memory_kind"] | null
           organization_id?: string
           owner_user_id?: string | null
           source_conversation_id?: string | null
@@ -4490,6 +4645,187 @@ export type Database = {
           },
         ]
       }
+      venture_operating_context: {
+        Row: {
+          active_projects: Json
+          business_model: string | null
+          created_at: string
+          created_by: string | null
+          current_bottlenecks: Json
+          current_objectives: Json
+          current_priorities: Json
+          current_risks: Json
+          current_stage: string | null
+          id: string
+          last_reviewed_at: string | null
+          last_reviewed_by: string | null
+          major_dependencies: Json
+          market_position: string | null
+          mission: string | null
+          offers: Json
+          operating_notes: string | null
+          organization_id: string
+          paused_priorities: Json
+          policy_version: string
+          products: Json
+          revision: number
+          roadmap_summary: string | null
+          services: Json
+          source_lineage: Json
+          strategic_assumptions: Json
+          success_metrics: Json
+          target_customer: string | null
+          updated_at: string
+          updated_by: string | null
+          venture_id: string
+          venture_summary: string | null
+        }
+        Insert: {
+          active_projects?: Json
+          business_model?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_bottlenecks?: Json
+          current_objectives?: Json
+          current_priorities?: Json
+          current_risks?: Json
+          current_stage?: string | null
+          id?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          major_dependencies?: Json
+          market_position?: string | null
+          mission?: string | null
+          offers?: Json
+          operating_notes?: string | null
+          organization_id: string
+          paused_priorities?: Json
+          policy_version?: string
+          products?: Json
+          revision?: number
+          roadmap_summary?: string | null
+          services?: Json
+          source_lineage?: Json
+          strategic_assumptions?: Json
+          success_metrics?: Json
+          target_customer?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          venture_id: string
+          venture_summary?: string | null
+        }
+        Update: {
+          active_projects?: Json
+          business_model?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_bottlenecks?: Json
+          current_objectives?: Json
+          current_priorities?: Json
+          current_risks?: Json
+          current_stage?: string | null
+          id?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          major_dependencies?: Json
+          market_position?: string | null
+          mission?: string | null
+          offers?: Json
+          operating_notes?: string | null
+          organization_id?: string
+          paused_priorities?: Json
+          policy_version?: string
+          products?: Json
+          revision?: number
+          roadmap_summary?: string | null
+          services?: Json
+          source_lineage?: Json
+          strategic_assumptions?: Json
+          success_metrics?: Json
+          target_customer?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          venture_id?: string
+          venture_summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venture_operating_context_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_operating_context_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: true
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venture_operating_context_history: {
+        Row: {
+          change_reason: string | null
+          change_type: string
+          changed_at: string
+          changed_by: string | null
+          context_id: string
+          id: string
+          organization_id: string
+          revision: number
+          snapshot: Json
+          venture_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: string
+          changed_at?: string
+          changed_by?: string | null
+          context_id: string
+          id?: string
+          organization_id: string
+          revision: number
+          snapshot: Json
+          venture_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: string
+          changed_at?: string
+          changed_by?: string | null
+          context_id?: string
+          id?: string
+          organization_id?: string
+          revision?: number
+          snapshot?: Json
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venture_operating_context_history_context_id_fkey"
+            columns: ["context_id"]
+            isOneToOne: false
+            referencedRelation: "venture_operating_context"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_operating_context_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_operating_context_history_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venture_social_settings: {
         Row: {
           allowed_platforms: Json
@@ -4993,6 +5329,12 @@ export type Database = {
         | "incomplete"
         | "outdated"
         | "disputed"
+      sam_memory_kind:
+        | "working"
+        | "episodic"
+        | "semantic"
+        | "operational"
+        | "strategic"
       sam_memory_layer:
         | "founder"
         | "organization"
@@ -5402,6 +5744,13 @@ export const Constants = {
         "incomplete",
         "outdated",
         "disputed",
+      ],
+      sam_memory_kind: [
+        "working",
+        "episodic",
+        "semantic",
+        "operational",
+        "strategic",
       ],
       sam_memory_layer: [
         "founder",

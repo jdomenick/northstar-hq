@@ -42,6 +42,18 @@ export type MemorySourceType = z.infer<typeof MemorySourceType>;
 
 export const MemoryConfidenceBand = z.enum(["low", "moderate", "high", "very_high"]);
 
+// Phase 3D.3a - typed memory kind classification (working / episodic /
+// semantic / operational / strategic). Nullable  -  legacy rows keep
+// their free-text `category` and no `memory_kind`.
+export const MemoryKind = z.enum([
+  "working",
+  "episodic",
+  "semantic",
+  "operational",
+  "strategic",
+]);
+export type MemoryKind = z.infer<typeof MemoryKind>;
+
 // Personal layers stay private to owner_user_id.
 export const PERSONAL_LAYERS: ReadonlySet<MemoryLayer> = new Set(["founder", "preference"]);
 
@@ -49,6 +61,7 @@ export const PERSONAL_LAYERS: ReadonlySet<MemoryLayer> = new Set(["founder", "pr
 export const CreateMemoryInput = z.object({
   organizationId: z.string().uuid(),
   layer: MemoryLayer,
+  memory_kind: MemoryKind.optional(),
   category: z.string().min(1).max(80),
   title: z.string().min(1).max(140),
   statement: z.string().min(1).max(2000),
@@ -74,6 +87,7 @@ export const UpdateMemoryInput = z.object({
     title: z.string().min(1).max(140).optional(),
     statement: z.string().min(1).max(2000).optional(),
     category: z.string().min(1).max(80).optional(),
+    memory_kind: MemoryKind.nullable().optional(),
     structured_value: z.unknown().optional(),
     effective_at: z.string().datetime().nullable().optional(),
     expires_at: z.string().datetime().nullable().optional(),
@@ -82,6 +96,26 @@ export const UpdateMemoryInput = z.object({
   change_reason: z.string().max(400).optional(),
 });
 export type UpdateMemoryInput = z.infer<typeof UpdateMemoryInput>;
+
+// Phase 3D.3a - explicit "replace with a newer truth" flow. Marks the old
+// row `superseded` + sets `superseded_by`, and inserts a fresh row that
+// carries the corrected values. History is preserved (never deleted).
+export const SupersedeMemoryInput = z.object({
+  organizationId: z.string().uuid(),
+  id: z.string().uuid(),
+  replacement: z.object({
+    title: z.string().min(1).max(140),
+    statement: z.string().min(1).max(2000),
+    category: z.string().min(1).max(80).optional(),
+    memory_kind: MemoryKind.optional(),
+    structured_value: z.unknown().optional(),
+    confidence_score: z.number().min(0).max(1).optional(),
+    effective_at: z.string().datetime().nullable().optional(),
+    expires_at: z.string().datetime().nullable().optional(),
+  }),
+  change_reason: z.string().max(400).optional(),
+});
+export type SupersedeMemoryInput = z.infer<typeof SupersedeMemoryInput>;
 
 export type MemoryItemRow = Database["public"]["Tables"]["sam_memory_items"]["Row"];
 export type MemoryVersionRow = Database["public"]["Tables"]["sam_memory_versions"]["Row"];
