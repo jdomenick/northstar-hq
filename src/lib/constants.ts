@@ -390,3 +390,116 @@ export const AUTOMATION_LIMITS = {
   maxJobListPageSize: 100,
   maxIdempotencyKeyLength: 200,
 } as const;
+
+// ─────────────────────────────────────────────────────────────
+// Phase 3D.2c-iii - Social Automation Domain
+// ─────────────────────────────────────────────────────────────
+export const SOCIAL_DOMAIN_VERSION = "northstar.social.v1.0.0";
+export const SOCIAL_POLICY_VERSION = "northstar.social.policy.v1";
+export const SOCIAL_REGISTRY_VERSION = "northstar.social.registry.v1";
+export const SOCIAL_ELIGIBILITY_VERSION = "northstar.social.eligibility.v1";
+export const SOCIAL_VALIDATION_VERSION = "northstar.social.validation.v1";
+export const SOCIAL_RISK_VERSION = "northstar.social.risk.v1";
+export const SOCIAL_DEDUP_VERSION = "northstar.social.dedup.v1";
+export const SOCIAL_AUDIT_VERSION = "northstar.social.audit.v1";
+
+export const SOCIAL_PLATFORMS = [
+  "facebook","instagram","linkedin","x","threads","tiktok",
+  "youtube","pinterest","reddit","bluesky","other",
+] as const;
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
+
+export const SOCIAL_CONTENT_TYPES = [
+  "text","image","carousel","short_video","long_video","story",
+  "reel","article","link","poll","thread","community_post","other",
+] as const;
+export type SocialContentType = (typeof SOCIAL_CONTENT_TYPES)[number];
+
+export const SOCIAL_AUTOMATION_MODES = [
+  "draft_only","approval_required","auto_publish_approved_templates","full_automation",
+] as const;
+export type SocialAutomationMode = (typeof SOCIAL_AUTOMATION_MODES)[number];
+
+export const SOCIAL_APPROVAL_POLICIES = [
+  "human_required","campaign_preapproved","template_preapproved","policy_based","no_approval_required",
+] as const;
+export type SocialApprovalPolicy = (typeof SOCIAL_APPROVAL_POLICIES)[number];
+
+export const SOCIAL_APPROVAL_STATUSES = [
+  "not_required","pending","approved","rejected","changes_requested","expired","revoked",
+] as const;
+export type SocialApprovalStatus = (typeof SOCIAL_APPROVAL_STATUSES)[number];
+
+export const SOCIAL_CONTENT_STATUSES = [
+  "idea","draft","generated","needs_review","changes_requested","approved",
+  "scheduled","publishing","published","failed","paused","cancelled","archived",
+] as const;
+export type SocialContentStatus = (typeof SOCIAL_CONTENT_STATUSES)[number];
+
+export const SOCIAL_MEDIA_STATUSES = [
+  "not_required","required","pending","ready","failed","unavailable",
+] as const;
+export type SocialMediaStatus = (typeof SOCIAL_MEDIA_STATUSES)[number];
+
+export const SOCIAL_RISK_BANDS = ["low","moderate","high","critical","unknown"] as const;
+export type SocialRiskBand = (typeof SOCIAL_RISK_BANDS)[number];
+
+export const SOCIAL_ACCOUNT_CONNECTION_STATUSES = [
+  "disconnected","pending","connected","degraded","expired","revoked","error","archived",
+] as const;
+export type SocialAccountConnectionStatus = (typeof SOCIAL_ACCOUNT_CONNECTION_STATUSES)[number];
+
+export const SOCIAL_BRAND_PROFILE_STATUSES = [
+  "draft","pending_review","approved","active","superseded","archived",
+] as const;
+export type SocialBrandProfileStatus = (typeof SOCIAL_BRAND_PROFILE_STATUSES)[number];
+
+export const SOCIAL_CAMPAIGN_STATUSES = [
+  "draft","pending_approval","approved","active","paused","completed","cancelled","archived",
+] as const;
+export type SocialCampaignStatus = (typeof SOCIAL_CAMPAIGN_STATUSES)[number];
+
+export const SOCIAL_PLAN_STATUSES = [
+  "draft","pending_review","approved","active","completed","cancelled","archived",
+] as const;
+export type SocialPlanStatus = (typeof SOCIAL_PLAN_STATUSES)[number];
+
+export const SOCIAL_PUBLICATION_STATUSES = [
+  "pending","validating","publishing","succeeded","failed","rate_limited","rejected","cancelled","unknown",
+] as const;
+export type SocialPublicationStatus = (typeof SOCIAL_PUBLICATION_STATUSES)[number];
+
+export const SOCIAL_LIMITS = {
+  maxAccountsPerOrg: 50,
+  maxAccountsPerVenture: 25,
+  maxBrandProfilesPerVenture: 100,
+  maxActiveBrandProfilesPerVenture: 1,
+  maxBrandProfileBytes: 64 * 1024,
+  maxCampaignsPerVenture: 200,
+  maxPlansPerCampaign: 50,
+  maxContentItemsPerPlan: 500,
+  maxContentVersions: 100,
+  maxHashtags: 30,
+  maxLineageReferences: 25,
+  maxApprovedExamples: 25,
+  maxRejectedExamples: 25,
+  maxProhibitedTopics: 100,
+  maxRestrictedTopics: 100,
+  maxRequiredDisclaimers: 25,
+  maxApprovedLinks: 100,
+  maxScheduledHorizonDays: 365,
+  maxPostsPerOrgPerDay: 200,
+  maxPostsPerVenturePerDay: 100,
+  maxPostsPerAccountPerDay: 25,
+  maxPublicationAttempts: 8,
+  maxMetricsSnapshotsLoaded: 200,
+  maxContentBodyBytes: 32 * 1024,
+  maxFirstCommentBytes: 8 * 1024,
+  maxMetadataBytes: 8 * 1024,
+  maxMediaItems: 10,
+  duplicateLookbackDays: 90,
+  maxAuditMetadataBytes: 8 * 1024,
+  maxRiskReasons: 20,
+  maxValidationWarnings: 30,
+  maxCredentialReferenceLength: 200,
+} as const;
