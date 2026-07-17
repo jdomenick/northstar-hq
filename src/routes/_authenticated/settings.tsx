@@ -189,6 +189,10 @@ function ArchiveCenterTab() {
   const restoreProject = useRestoreProject(activeOrgId);
   const restoreKnowledge = useRestoreKnowledge(activeOrgId);
   const restoreDocument = useRestoreDocument(activeOrgId);
+  const restoreVenture = useRestoreVenture(activeOrgId);
+  const restoreGoal = useRestoreGoal(activeOrgId);
+  const restoreDecision = useRestoreDecision(activeOrgId);
+  const restoreCommitment = useRestoreCommitment(activeOrgId);
   const canRestore = can.archiveContent(activeMembership?.role);
 
   async function handleRestore(row: { id: string; type: ArchivedType; title: string; ventureId?: string | null }) {
@@ -197,6 +201,10 @@ function ArchiveCenterTab() {
       if (row.type === "project") await restoreProject.mutateAsync(row.id);
       else if (row.type === "knowledge") await restoreKnowledge.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
       else if (row.type === "document") await restoreDocument.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
+      else if (row.type === "venture") await restoreVenture.mutateAsync(row.id);
+      else if (row.type === "goal") await restoreGoal.mutateAsync(row.id);
+      else if (row.type === "decision") await restoreDecision.mutateAsync(row.id);
+      else if (row.type === "commitment") await restoreCommitment.mutateAsync(row.id);
       else return toast.info(`Restore for ${row.type} is not yet supported in-app.`);
       toast.success("Restored");
     } catch (err) {
@@ -243,7 +251,7 @@ function ArchiveCenterTab() {
                 >
                   Open
                 </button>
-                {canRestore && ["project", "knowledge", "document"].includes(row.type) && (
+                {canRestore && ["project", "knowledge", "document", "venture", "goal", "decision", "commitment"].includes(row.type) && (
                   <button
                     onClick={() => handleRestore(row)}
                     className="rounded-md bg-secondary/60 px-2.5 py-1 text-[12px] text-foreground hover:bg-secondary"
@@ -256,7 +264,7 @@ function ArchiveCenterTab() {
           </ul>
         )}
         <p className="mt-4 text-[11.5px] text-muted-foreground/80">
-          Restore for ventures, goals, decisions, and commitments will be added alongside their dedicated restore hooks. All archived records remain protected by organization access rules.
+          Restored records return with their previous relationships intact. Nothing is permanently deleted.
         </p>
       </Section>
     </div>

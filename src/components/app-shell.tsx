@@ -47,7 +47,7 @@ import { can } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
-  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/integrations" | "/settings";
+  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -63,6 +63,7 @@ const NAV: NavItem[] = [
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/accountability", label: "Accountability", icon: ShieldCheck },
   { to: "/sam", label: "SAM", icon: Sparkles },
+  { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
   { to: "/integrations", label: "Integrations", icon: Plug },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
