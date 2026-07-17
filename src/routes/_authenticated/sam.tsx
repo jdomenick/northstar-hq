@@ -4,15 +4,13 @@ import {
   ArrowUp,
   Loader2,
   Plus,
-  Sparkles,
   Trash2,
   Copy,
-  RefreshCcw,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   askSam,
@@ -26,6 +24,7 @@ import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
 import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
+import { SectionLabel } from "@/components/editorial";
 
 export const Route = createFileRoute("/_authenticated/sam")({
   component: SamPage,
