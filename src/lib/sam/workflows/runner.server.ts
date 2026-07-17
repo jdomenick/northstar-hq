@@ -27,6 +27,7 @@ import type {
 import { getWorkflowDefinition } from "./registry.server";
 import { resolveWorkflowScope } from "./auth.server";
 import { assertNoDuplicateActive } from "./concurrency.server";
+import { isDuplicateActiveError } from "./concurrency.server";
 import { assembleWorkflowContext } from "./context.server";
 import { notImplementedAnalyzer } from "./analyzers/not-implemented.server";
 import { dailyBriefingAnalyzer } from "./analyzers/daily-briefing.server";
@@ -89,9 +90,12 @@ export async function runWorkflow(
     ventureId: scope.ventureId,
     periodStart: scope.periodStart,
     periodEnd: scope.periodEnd,
+    entityId: rawInput.entityId ?? null,
   });
 
-  const runId = await createPendingRun(supabase, {
+  let runId: string;
+  try {
+    runId = await createPendingRun(supabase, {
     orgId: scope.orgId,
     userId: scope.userId,
     workflowType: registry.key,
@@ -105,6 +109,7 @@ export async function runWorkflow(
       periodStart: scope.periodStart,
       periodEnd: scope.periodEnd,
       entityId: rawInput.entityId ?? null,
+      retryOfRunId: (rawInput.extras?.retryOfRunId as string | undefined) ?? null,
     },
     workflow_version: registry.version,
     prompt_version: PROMPT_VERSION,
@@ -113,7 +118,11 @@ export async function runWorkflow(
     confidence_version: WORKFLOW_CONFIDENCE_VERSION,
     memory_version: MEMORY_FRAMEWORK_VERSION,
     graph_version: EXECUTIVE_GRAPH_VERSION,
-  });
+    });
+  } catch (err) {
+    if (isDuplicateActiveError(err)) throw new SamError("workflow_already_running");
+    throw err;
+  }
 
   let ctx: WorkflowContext | null = null;
   let deterministic: WorkflowDeterministicResult | null = null;
