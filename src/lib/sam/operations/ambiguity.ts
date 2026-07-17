@@ -2,8 +2,8 @@
 // to decide whether a request can be routed unambiguously to a single record
 // or whether the operator needs to disambiguate before we mutate anything.
 
-import type { OperationAmbiguous, SamOperationName } from "./types";
-import { SAM_OPERATIONS_VERSION } from "./types";
+import type { OperationAmbiguous, SamOperationName } from "./types.ts";
+import { SAM_OPERATIONS_VERSION } from "./types.ts";
 
 export interface AmbiguityCandidate {
   id: string;
