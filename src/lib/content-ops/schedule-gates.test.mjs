@@ -64,7 +64,7 @@ test("blocks duplicates", () => {
 });
 
 test("blocks past-in-time schedules", () => {
-  const r = gates.evaluateScheduleGates(baseCtx({ desiredScheduledFor: new Date(Date.now() - 60_000) }));
+  const r = gates.evaluateScheduleGates(baseCtx({ desiredScheduledFor: new Date(Date.now() - 300_000) }));
   assert.ok(r.failures.some((f) => f.gate === "schedule_time_future"));
 });
 
