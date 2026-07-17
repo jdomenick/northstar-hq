@@ -303,11 +303,23 @@ const ScheduleVariantInput = z.object({
 });
 type ScheduleVariantInput = z.infer<typeof ScheduleVariantInput>;
 
-/** Schedule an approved variant. Editorial-only when connector is not ready. */
-export const scheduleVariant = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => ScheduleVariantInput.parse(i))
-  .handler(async ({ data, context }) => {
+// Plain (non-ServerFn) impl so rescheduleVariant / batchScheduleVariants can
+// compose it without going through the TanStack ServerFn wrapper (which
+// returns Promise<unknown> when called from other server code).
+async function _scheduleVariantImpl(
+  supabase: SB,
+  userId: string,
+  data: ScheduleVariantInput,
+): Promise<{
+  ok: true;
+  contentItemId: string;
+  scheduledForUtc: string;
+  jobId: string | null;
+  executable: boolean;
+  calendarState: string;
+  failures: JsonFailure[];
+}> {
+    const context = { supabase, userId };
     await requireMembership(context.supabase, context.userId, data.organizationId, data.ventureId, "executive");
     const item = await loadItem(context.supabase, data.organizationId, data.ventureId, data.contentItemId);
     const sctx = await loadSchedulingContext(context.supabase, data.organizationId, data.ventureId, item);
@@ -401,8 +413,16 @@ export const scheduleVariant = createServerFn({ method: "POST" })
       jobId,
       executable,
       calendarState: gates.calendarState,
-      failures: gates.failures satisfies ScheduleGateFailure[],
+      failures: toJsonFailures(gates.failures),
     };
+}
+
+/** Schedule an approved variant. Editorial-only when connector is not ready. */
+export const scheduleVariant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ScheduleVariantInput.parse(i))
+  .handler(async ({ data, context }) => {
+    return _scheduleVariantImpl(context.supabase, context.userId, data);
   });
 
 /** Move an existing schedule to a different UTC instant (or venture wall time). */
@@ -410,10 +430,9 @@ export const rescheduleVariant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => ScheduleVariantInput.parse(i))
   .handler(async ({ data, context }) => {
-    // Reschedule is: cancel any pending job, then run scheduleVariant logic.
     await requireMembership(context.supabase, context.userId, data.organizationId, data.ventureId, "executive");
     await cancelPendingJobs(context.supabase, data.organizationId, data.contentItemId);
-    const res = await scheduleVariant({ data });
+    const res = await _scheduleVariantImpl(context.supabase, context.userId, data);
     await writeScheduleAudit(context.supabase, {
       organizationId: data.organizationId,
       ventureId: data.ventureId,
