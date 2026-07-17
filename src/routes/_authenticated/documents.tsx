@@ -200,7 +200,7 @@ export function UploadDialog({ orgId, ventures, onClose, defaultVentureId, defau
       <form onSubmit={submit} className="relative my-8 w-full max-w-lg rounded-2xl bg-card p-8 shadow-2xl">
         <button type="button" onClick={onClose} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
         <h2 className="font-display text-[24px] text-foreground">Upload document</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">Document intelligence will be activated with Operator.</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">Document intelligence will be activated with SAM in Phase 3.</p>
         <div className="mt-6 space-y-4 text-[13.5px]">
           <div>
             <input ref={inputRef} type="file" onChange={(e) => { const f = e.target.files?.[0] ?? null; setFile(f); if (f && !title) setTitle(f.name.replace(/\.[^.]+$/, "")); }} className="hidden" />

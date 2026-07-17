@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
     meta: [
       { title: "Integrations — Northstar" },
-      { name: "description", content: "Connect the systems Operator reads from." },
+      { name: "description", content: "Connect the systems SAM reads from." },
     ],
   }),
 });
@@ -30,7 +30,7 @@ function IntegrationsPage() {
     <div>
       <PageHeader
         eyebrow="Integrations"
-        title="What Operator can see."
+        title="What SAM can see."
         description="Northstar is only as sharp as its inputs. Connect the systems that hold the truth."
       />
       <PageBody>

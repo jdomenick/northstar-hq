@@ -91,7 +91,7 @@ function Command() {
           <p className="mt-8 max-w-2xl text-[17px] leading-[1.7] text-foreground/85 md:text-[19px]">
             {activeMembership?.organizations?.name ?? "Your workspace"} — one operating system.
             <span className="text-muted-foreground">
-              {" "}Operator intelligence connects next. Until then, this is your live picture
+              {" "}SAM intelligence connects in Phase 3. Until then, this is your live picture
               across every venture.
             </span>
           </p>
@@ -260,7 +260,7 @@ function Command() {
               <div className="relative">
                 <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
                   <Sparkles className="h-3 w-3" strokeWidth={2} />
-                  Operator · High signal
+                  SAM · High signal
                 </div>
                 <h3 className="mt-5 max-w-2xl font-display text-[28px] leading-[1.15] text-foreground md:text-[34px]">
                   {opportunity.title}
