@@ -5,7 +5,7 @@
 export const CONSTITUTION_VERSION = "sam.constitution.v1.0.0";
 export const PROMPT_VERSION = "sam.prompt.v1.0.0";
 export const PIPELINE_VERSION = "sam.pipeline.v1.0.0";
-export const CONFIDENCE_METHOD = "v1.deterministic";
+// CONFIDENCE_METHOD moved to ./confidence with the v2 memory-aware method
 export const WEIGHTS_VERSION = "sam.confidence.weights.v1";
 export const CONTEXT_BUILDER_VERSION = "sam.context.v1.0.0";
 export const CITATION_FRAMEWORK_VERSION = "sam.citations.v1.0.0";
