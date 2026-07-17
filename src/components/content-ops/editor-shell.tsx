@@ -27,6 +27,7 @@ import {
 } from "@/lib/content-ops/editor.functions";
 import { approveContentItem, rejectContentItem } from "@/lib/content-ops/approvals.functions";
 import { PlatformPreview, type PreviewData } from "./platform-preview";
+import { MediaPickerDialog, type PickedMedia } from "./media-picker-dialog";
 
 // ---- Local shapes ---------------------------------------------------------
 
@@ -235,6 +236,7 @@ function IssueLine({ issue }: { issue: ValidationIssue }) {
 
 function VariantEditor({
   variant, cfg, draft, setDraft, disabled, validation,
+  organizationId, ventureId, campaignId,
 }: {
   variant: VariantRow;
   cfg: PlatformConfig;
@@ -242,22 +244,36 @@ function VariantEditor({
   setDraft: (fn: (d: DraftState) => DraftState) => void;
   disabled: boolean;
   validation: ValidationResult;
+  organizationId: string;
+  ventureId: string;
+  campaignId: string | null;
 }) {
   const budget = bodyCharBudget(draft.platform, draft.body);
   const supports = (k: keyof PlatformConfig["fields"]) => cfg.fields[k] !== "unsupported";
   const set = <K extends keyof DraftState>(key: K, value: DraftState[K]) =>
     setDraft((d) => ({ ...d, [key]: value, dirty: true }));
 
-  const addMedia = () => {
-    const ref = window.prompt(
-      "Media storage ref (path in storage bucket or https URL). Media upload UI ships in S1d - this is the manual entry for now.",
-    );
-    if (!ref) return;
-    const mime = window.prompt("MIME type (e.g. image/jpeg, video/mp4)", "image/jpeg") ?? "image/jpeg";
-    set("media", [...draft.media, { storageRef: ref.trim(), mimeType: mime.trim(), altText: null }]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const addMedia = () => setPickerOpen(true);
+  const handlePicked = (picked: PickedMedia) => {
+    set("media", [
+      ...draft.media,
+      { storageRef: picked.storageRef, mimeType: picked.mimeType, altText: picked.altText },
+    ]);
   };
 
   return (
+    <>
+    <MediaPickerDialog
+      open={pickerOpen}
+      onClose={() => setPickerOpen(false)}
+      onPick={handlePicked}
+      organizationId={organizationId}
+      ventureId={ventureId}
+      campaignId={campaignId}
+      platform={draft.platform}
+      disabled={disabled}
+    />
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.75fr)]">
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
@@ -471,6 +487,7 @@ function VariantEditor({
         </QuietPanel>
       </div>
     </div>
+    </>
   );
 }
 
@@ -997,6 +1014,9 @@ export function EditorShell({ organizationId, parentContentItemId }: {
             setDraft={setActiveDraft}
             disabled={active.status === "published" || active.status === "publishing"}
             validation={validation}
+            organizationId={organizationId}
+            ventureId={ventureId}
+            campaignId={parentCampaignId}
           />
 
           {/* Action bar */}
