@@ -26,6 +26,7 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticated/goals.$id'
 import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
 import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
 
@@ -115,6 +116,11 @@ const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedProjectsRoute,
 } as any)
+const AuthenticatedGoalsIdRoute = AuthenticatedGoalsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedGoalsRoute,
+} as any)
 const AuthenticatedDecisionsIdRoute =
   AuthenticatedDecisionsIdRouteImport.update({
     id: '/$id',
@@ -134,7 +140,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
-  '/goals': typeof AuthenticatedGoalsRoute
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -153,7 +160,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
-  '/goals': typeof AuthenticatedGoalsRoute
+  '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/operator': typeof AuthenticatedOperatorRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -175,7 +183,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
-  '/_authenticated/goals': typeof AuthenticatedGoalsRoute
+  '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
   '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
+  '/_authenticated/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
 }
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/commitments/$id'
     | '/decisions/$id'
+    | '/goals/$id'
     | '/projects/$id'
     | '/ventures/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/'
     | '/commitments/$id'
     | '/decisions/$id'
+    | '/goals/$id'
     | '/projects/$id'
     | '/ventures/$id'
   id:
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/commitments/$id'
     | '/_authenticated/decisions/$id'
+    | '/_authenticated/goals/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/ventures/$id'
   fileRoutesById: FileRoutesById
@@ -381,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
       parentRoute: typeof AuthenticatedProjectsRoute
     }
+    '/_authenticated/goals/$id': {
+      id: '/_authenticated/goals/$id'
+      path: '/$id'
+      fullPath: '/goals/$id'
+      preLoaderRoute: typeof AuthenticatedGoalsIdRouteImport
+      parentRoute: typeof AuthenticatedGoalsRoute
+    }
     '/_authenticated/decisions/$id': {
       id: '/_authenticated/decisions/$id'
       path: '/$id'
@@ -412,6 +431,17 @@ const AuthenticatedDecisionsRouteWithChildren =
     AuthenticatedDecisionsRouteChildren,
   )
 
+interface AuthenticatedGoalsRouteChildren {
+  AuthenticatedGoalsIdRoute: typeof AuthenticatedGoalsIdRoute
+}
+
+const AuthenticatedGoalsRouteChildren: AuthenticatedGoalsRouteChildren = {
+  AuthenticatedGoalsIdRoute: AuthenticatedGoalsIdRoute,
+}
+
+const AuthenticatedGoalsRouteWithChildren =
+  AuthenticatedGoalsRoute._addFileChildren(AuthenticatedGoalsRouteChildren)
+
 interface AuthenticatedProjectsRouteChildren {
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
 }
@@ -441,7 +471,7 @@ const AuthenticatedVenturesRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
-  AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
+  AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
@@ -455,7 +485,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
-  AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
+  AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
