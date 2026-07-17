@@ -23,6 +23,7 @@ export interface AssembleOptions {
   ventureId: string | null;
   periodStart: string | null;
   periodEnd: string | null;
+  entityId?: string | null;
   // Which categories the analyzer actually needs. Absent = include all.
   sources?: Partial<Record<
     "ventures" | "projects" | "tasks" | "goals" | "decisions" | "commitments"
@@ -57,7 +58,7 @@ export async function assembleWorkflowContext(
   const venturesPromise = needs(options, "ventures")
     ? supabase
         .from("ventures")
-        .select("id, name, status", { count: "exact" })
+        .select("id, name, status, updated_at", { count: "exact" })
         .match(orgFilter)
         .is("deleted_at", null)
         .order("updated_at", { ascending: false })
@@ -68,7 +69,7 @@ export async function assembleWorkflowContext(
     ? (() => {
         let q = supabase
           .from("projects")
-          .select("id, name, status, venture_id, updated_at", { count: "exact" })
+          .select("id, name, status, venture_id, goal_id, owner_user_id, priority, progress_percentage, deadline, updated_at, next_action, blocker_summary", { count: "exact" })
           .match(orgFilter)
           .is("deleted_at", null);
         if (options.ventureId) q = q.eq("venture_id", options.ventureId);
@@ -79,8 +80,9 @@ export async function assembleWorkflowContext(
   const tasksPromise = needs(options, "tasks")
     ? supabase
         .from("tasks")
-        .select("id, title, status, due_date", { count: "exact" })
+        .select("id, title, status, due_date, assigned_to, priority, project_id, updated_at, completed_at", { count: "exact" })
         .match(orgFilter)
+        .is("deleted_at", null)
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(PER)
     : Promise.resolve({ data: [], count: 0, error: null } as never);
@@ -88,8 +90,9 @@ export async function assembleWorkflowContext(
   const goalsPromise = needs(options, "goals")
     ? supabase
         .from("goals")
-        .select("id, title, status, target_date", { count: "exact" })
+        .select("id, title, status, target_date, start_date, current_value, target_value, owner_user_id, updated_at, venture_id", { count: "exact" })
         .match(orgFilter)
+        .is("deleted_at", null)
         .order("target_date", { ascending: true, nullsFirst: false })
         .limit(PER)
     : Promise.resolve({ data: [], count: 0, error: null } as never);
@@ -97,8 +100,9 @@ export async function assembleWorkflowContext(
   const decisionsPromise = needs(options, "decisions")
     ? supabase
         .from("decisions")
-        .select("id, title, status, review_date", { count: "exact" })
+        .select("id, title, status, review_date, decision_date, owner_user_id, project_id, venture_id, updated_at", { count: "exact" })
         .match(orgFilter)
+        .is("deleted_at", null)
         .order("updated_at", { ascending: false })
         .limit(PER)
     : Promise.resolve({ data: [], count: 0, error: null } as never);
@@ -106,8 +110,9 @@ export async function assembleWorkflowContext(
   const commitmentsPromise = needs(options, "commitments")
     ? supabase
         .from("commitments")
-        .select("id, title, status, due_date", { count: "exact" })
+        .select("id, title, status, due_date, owner_user_id, priority, postponement_count, completed_at, original_due_date, updated_at", { count: "exact" })
         .match(orgFilter)
+        .is("deleted_at", null)
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(PER)
     : Promise.resolve({ data: [], count: 0, error: null } as never);
@@ -170,6 +175,19 @@ export async function assembleWorkflowContext(
     .order("created_at", { ascending: false })
     .limit(SAM_WORKFLOW_LIMITS.maxContextPerType);
 
+  // Selected decision + related entities (Decision Review only).
+  const selectedDecisionPromise = options.entityId && options.workflowType === "decision_review"
+    ? supabase
+        .from("decisions")
+        .select(
+          "id, title, question, context, status, decision_date, review_date, options_considered, operator_recommendation, evidence, risks, opportunity_cost, final_decision, rationale, outcome, owner_user_id, project_id, venture_id, updated_at",
+        )
+        .eq("id", options.entityId)
+        .eq("organization_id", options.orgId)
+        .is("deleted_at", null)
+        .maybeSingle()
+    : Promise.resolve({ data: null, error: null } as never);
+
   const [
     settingsRes,
     venturesRes,
@@ -184,6 +202,7 @@ export async function assembleWorkflowContext(
     memoryRes,
     historicalRes,
     learningRes,
+    selectedDecisionRes,
   ] = await Promise.all([
     settingsPromise,
     venturesPromise,
@@ -198,6 +217,7 @@ export async function assembleWorkflowContext(
     memoryPromise,
     historicalPromise,
     learningPromise,
+    selectedDecisionPromise,
   ]);
 
   const record = <T,>(name: string, res: { data: T[] | null; count?: number | null }) => {
@@ -284,6 +304,45 @@ export async function assembleWorkflowContext(
     event_type: string; created_at: string;
   }>);
 
+  const selectedDecision = (selectedDecisionRes as { data?: unknown }).data
+    ? ((selectedDecisionRes as { data: unknown }).data as WorkflowContext["selectedDecision"])
+    : null;
+
+  // Related entities for a selected decision. Kept small and org-scoped.
+  let related: WorkflowContext["related"] = {
+    goals: [], projects: [], tasks: [], commitments: [], decisions: [],
+  };
+  if (selectedDecision) {
+    const [relTasks, relCommits, relSimilar] = await Promise.all([
+      selectedDecision.project_id
+        ? supabase.from("tasks").select("id, title, status").eq("project_id", selectedDecision.project_id).eq("organization_id", options.orgId).is("deleted_at", null).limit(10)
+        : Promise.resolve({ data: [], error: null } as never),
+      selectedDecision.project_id
+        ? supabase.from("commitments").select("id, title, status").eq("project_id", selectedDecision.project_id).eq("organization_id", options.orgId).is("deleted_at", null).limit(10)
+        : Promise.resolve({ data: [], error: null } as never),
+      supabase.from("decisions")
+        .select("id, title, status, decision_date, outcome")
+        .eq("organization_id", options.orgId)
+        .is("deleted_at", null)
+        .neq("id", selectedDecision.id)
+        .in("status", ["decided", "closed"])
+        .order("decision_date", { ascending: false })
+        .limit(5),
+    ]);
+    related = {
+      goals: [],
+      projects: selectedDecision.project_id
+        ? (projects as Array<{ id: string; name: string; status: string | null }>).filter((p) => p.id === selectedDecision.project_id)
+        : [],
+      tasks: (relTasks.data ?? []) as never,
+      commitments: (relCommits.data ?? []) as never,
+      decisions: (relSimilar.data ?? []) as never,
+    };
+    counts.related_tasks = related.tasks.length;
+    counts.related_commitments = related.commitments.length;
+    counts.related_similar_decisions = related.decisions.length;
+  }
+
   return {
     version: WORKFLOW_CONTEXT_VERSION,
     orgId: options.orgId,
@@ -296,12 +355,12 @@ export async function assembleWorkflowContext(
     countsBeforeTruncation,
     truncations,
     omittedCategories,
-    ventures,
-    projects,
-    tasks,
-    goals,
-    decisions,
-    commitments,
+    ventures: ventures as WorkflowContext["ventures"],
+    projects: projects as WorkflowContext["projects"],
+    tasks: tasks as WorkflowContext["tasks"],
+    goals: goals as WorkflowContext["goals"],
+    decisions: decisions as WorkflowContext["decisions"],
+    commitments: commitments as WorkflowContext["commitments"],
     knowledge,
     documents,
     activity,
@@ -318,6 +377,8 @@ export async function assembleWorkflowContext(
     graph,
     historicalRuns,
     learningEvents,
+    selectedDecision,
+    related,
     settings: {
       include_uncertain_memory: includeUncertain,
       include_archived_historical_evidence:
