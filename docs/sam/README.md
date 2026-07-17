@@ -51,3 +51,18 @@ first model behind it.
 No chat UI, no provider integration, no embeddings, no vector database, no
 document parsing, no OCR, no autonomous actions. Existing Phase 1–2D
 functionality is untouched.
+
+## Implementation status
+
+- **Phase 3A** — SAM Foundation: live `/sam` route, provider abstraction,
+  deterministic pipeline, deterministic confidence, audit trail, rate
+  limits, prompt-injection defenses.
+- **Phase 3B** — SAM Memory + Executive Graph:
+  - `sam_memory_items`, versions, feedback, conflicts
+  - `executive_graph_edges` with same-org DB-level trigger
+  - `sam_learning_events`, `sam_response_feedback`
+  - Precedence v1 (`ADR-0011`), Decay v1, Confidence v2 (memory-aware)
+  - Memory workspace at `/sam/memory`; SAM Settings form; response feedback
+  - Archive Center restore completed for ventures / goals / decisions /
+    commitments (Phase 2D leftover)
+  - Privacy: founder + preference memory user-private (`ADR-0010`)
