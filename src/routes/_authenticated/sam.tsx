@@ -1,18 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowUp,
+  ArrowRight,
   Loader2,
   Plus,
-  Sparkles,
   Trash2,
   Copy,
-  RefreshCcw,
   ChevronDown,
   ChevronUp,
+  X,
+  MoreHorizontal,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   askSam,
@@ -26,15 +25,16 @@ import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
 import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
+import { SectionLabel } from "@/components/editorial";
 
 export const Route = createFileRoute("/_authenticated/sam")({
   component: SamPage,
   head: () => ({
     meta: [
-      { title: "SAM  -  Northstar" },
+      { title: "SAM - Northstar" },
       {
         name: "description",
-        content: "SAM  -  Northstar's executive intelligence system.",
+        content: "SAM. Northstar's executive intelligence system.",
       },
     ],
   }),
@@ -90,13 +90,14 @@ type Msg = {
 };
 
 function SamPage() {
-  const { activeOrgId } = useOrg();
+  const { activeOrgId, activeMembership, memberships } = useOrg();
   const qc = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const askFn = useServerFn(askSam);
   const listFn = useServerFn(listConversations);
@@ -131,6 +132,10 @@ function SamPage() {
     }
   }, [messages.length, pending]);
 
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [activeId]);
+
   async function handleSubmit(text: string) {
     if (!activeOrgId || !text.trim() || pending) return;
     setPending(true);
@@ -159,22 +164,28 @@ function SamPage() {
       toast.error((e as Error).message || "SAM failed to respond.");
     } finally {
       setPending(false);
+      textareaRef.current?.focus();
     }
   }
 
+  const activeOrgName =
+    activeMembership?.organizations?.name ??
+    memberships.find((m) => m.organization_id === activeOrgId)?.organizations?.name ??
+    null;
+  const contextLine = activeOrgName ?? "";
+
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)]">
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "hidden lg:flex w-72 flex-col border-r border-border/60 bg-card/20",
-        )}
-      >
+    <div className="flex min-h-[calc(100dvh-4rem)] paper-grain">
+      {/* Editorial ledger of prior memoranda */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-foreground/10 lg:flex">
         <ConversationList
           conversations={(conversationsQ.data ?? []) as ConvSummary[]}
           activeId={activeId}
           onSelect={(id) => setActiveId(id)}
-          onNew={() => setActiveId(null)}
+          onNew={() => {
+            setActiveId(null);
+            setInput("");
+          }}
           onRename={async (id, title) => {
             await renameFn({
               data: { conversationId: id, organizationId: activeOrgId!, title },
@@ -191,41 +202,57 @@ function SamPage() {
         />
       </aside>
 
-      {/* Main */}
+      {/* Main memorandum */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3 lg:px-8">
-          <div>
-            <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
-              <Sparkles className="h-3 w-3" strokeWidth={2} />
-              SAM · read-only
+        {/* Editorial masthead */}
+        <header className="border-b border-foreground/15 px-6 pt-8 md:px-12 md:pt-10">
+          <div className="mx-auto max-w-3xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
+                SAM - Executive Intelligence - Read only
+              </div>
+              <button
+                className="lg:hidden text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+                onClick={() => setSidebarOpen(true)}
+              >
+                History
+              </button>
             </div>
-            <h1 className="mt-1 font-display text-[22px] leading-tight text-foreground">
-              {activeQ.data?.conversation?.title ?? "New conversation"}
-            </h1>
+            <div className="mt-4 border-t border-foreground/80 pt-4">
+              <h1 className="font-display text-[30px] leading-[1.05] tracking-tight text-foreground md:text-[42px]">
+                {activeQ.data?.conversation?.title ?? "New memorandum"}
+              </h1>
+              {contextLine && (
+                <div className="mt-3 text-[11.5px] uppercase tracking-[0.22em] text-foreground/60">
+                  {contextLine}
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            className="lg:hidden rounded-md border border-border/60 px-2 py-1 text-[12px] text-muted-foreground"
-            onClick={() => setSidebarOpen(true)}
-          >
-            History
-          </button>
-        </div>
+        </header>
 
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto px-4 py-6 lg:px-8"
+          className="flex-1 overflow-y-auto px-6 pb-10 pt-10 md:px-12"
         >
-          {messages.length === 0 && !pending && (
-            <EmptyState onPick={(s) => setInput(s)} />
-          )}
-          <div className="mx-auto max-w-3xl space-y-6">
-            {messages.map((m) => (
-              <MessageView key={m.id} msg={m} />
-            ))}
+          <div className="mx-auto max-w-3xl">
+            {messages.length === 0 && !pending && (
+              <EmptyState onPick={(s) => setInput(s)} />
+            )}
+            {messages.length > 0 && (
+              <div>
+                {messages.map((m, i) => (
+                  <MessageView key={m.id} msg={m} index={i} />
+                ))}
+              </div>
+            )}
             {pending && (
-              <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                SAM is thinking…
+              <div className="mt-10 border-t border-foreground/15 pt-6">
+                <SectionLabel>SAM is reading the record</SectionLabel>
+                <div className="mt-3 flex items-center gap-2 text-[13px] italic text-foreground/60">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} />
+                  Assembling evidence and drafting the response.
+                </div>
               </div>
             )}
           </div>
@@ -236,16 +263,27 @@ function SamPage() {
           setValue={setInput}
           onSubmit={handleSubmit}
           disabled={pending || !activeOrgId}
+          textareaRef={textareaRef}
         />
       </div>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-foreground/40"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="absolute right-0 top-0 h-full w-[300px] border-l border-border bg-background p-3">
+          <aside className="absolute right-0 top-0 h-full w-[300px] border-l border-foreground/15 bg-background">
+            <div className="flex items-center justify-between border-b border-foreground/15 px-4 py-3">
+              <SectionLabel>Memoranda</SectionLabel>
+              <button
+                aria-label="Close history"
+                onClick={() => setSidebarOpen(false)}
+                className="text-foreground/60 hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
             <ConversationList
               conversations={(conversationsQ.data ?? []) as ConvSummary[]}
               activeId={activeId}
@@ -303,70 +341,72 @@ function ConversationList({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-3 py-3">
-        <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">
-          Conversations
-        </div>
+      <div className="flex items-center justify-between border-b border-foreground/10 px-4 py-4">
+        <SectionLabel>Memoranda</SectionLabel>
         <button
           onClick={onNew}
-          className="flex items-center gap-1 rounded-md bg-foreground px-2 py-1 text-[12px] font-medium text-background hover:opacity-90"
-          aria-label="New conversation"
+          className="inline-flex items-center gap-1 text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+          aria-label="New memorandum"
         >
-          <Plus className="h-3.5 w-3.5" /> New
+          <Plus className="h-3 w-3" strokeWidth={1.5} /> New
         </button>
       </div>
-      <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+      <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 && (
-          <div className="px-3 py-6 text-[12px] text-muted-foreground">
-            No conversations yet.
+          <div className="px-4 py-6 text-[12.5px] italic text-foreground/55">
+            No memoranda yet. Start one below.
           </div>
         )}
-        {conversations.map((c) => (
-          <div
-            key={c.id}
-            className={cn(
-              "group flex items-center gap-2 rounded-md px-2 py-2 text-[13px]",
-              c.id === activeId
-                ? "bg-secondary/60 text-foreground"
-                : "text-muted-foreground hover:bg-secondary/30",
-            )}
-          >
-            <button
-              className="flex-1 truncate text-left"
-              onClick={() => onSelect(c.id)}
+        <ul className="divide-y divide-foreground/10">
+          {conversations.map((c) => (
+            <li
+              key={c.id}
+              className={cn(
+                "group grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 px-4 py-3 text-[13px]",
+                c.id === activeId
+                  ? "bg-foreground/[0.04] text-foreground"
+                  : "text-foreground/75 hover:bg-foreground/[0.02] hover:text-foreground",
+              )}
             >
-              {c.title || "Untitled"}
-            </button>
-            <button
-              className="opacity-0 transition-opacity group-hover:opacity-100"
-              aria-label="Rename"
-              onClick={async () => {
-                const t = window.prompt("Rename conversation", c.title);
-                if (t && t.trim()) await onRename(c.id, t.trim());
-              }}
-            >
-              <ChevronDown className="h-3.5 w-3.5 rotate-[-90deg]" />
-            </button>
-            <button
-              className="opacity-0 transition-opacity group-hover:opacity-100"
-              aria-label="Archive"
-              onClick={async () => {
-                if (window.confirm("Archive this conversation?")) {
-                  await onArchive(c.id);
-                }
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5 text-destructive/80" />
-            </button>
-          </div>
-        ))}
+              <button
+                className="min-w-0 truncate text-left"
+                onClick={() => onSelect(c.id)}
+              >
+                {c.title || "Untitled"}
+              </button>
+              <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                <button
+                  aria-label="Rename"
+                  className="p-1 text-foreground/50 hover:text-foreground"
+                  onClick={async () => {
+                    const t = window.prompt("Rename memorandum", c.title);
+                    if (t && t.trim()) await onRename(c.id, t.trim());
+                  }}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </button>
+                <button
+                  aria-label="Archive"
+                  className="p-1 text-foreground/50 hover:text-foreground"
+                  onClick={async () => {
+                    if (window.confirm("Archive this memorandum?")) {
+                      await onArchive(c.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
 
 function EmptyState({ onPick }: { onPick: (s: string) => void }) {
-  const suggestions = [
+  const openings = [
     "What deserves my attention today?",
     "Which projects are currently at risk?",
     "Which commitments are overdue?",
@@ -374,79 +414,95 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
     "Summarize activity across my ventures.",
   ];
   return (
-    <div className="mx-auto max-w-2xl pt-16">
-      <h2 className="font-display text-[32px] leading-tight text-foreground">
+    <div className="pt-6">
+      <SectionLabel>Opening the ledger</SectionLabel>
+      <h2 className="mt-4 font-display text-[36px] leading-[1.05] text-foreground md:text-[48px]">
         What do you want to understand?
       </h2>
-      <p className="mt-3 text-[14px] text-muted-foreground">
-        SAM reads your organization's live data. Answers cite the records they
-        rely on. SAM is read-only  -  it does not take actions on your behalf.
+      <p className="mt-5 max-w-xl text-[14.5px] leading-[1.75] text-foreground/70">
+        SAM reads your organization&apos;s live record. Every answer cites the projects,
+        decisions, and commitments it relies on. SAM analyzes and advises;
+        it does not take actions on your behalf.
       </p>
-      <div className="mt-8 space-y-1">
-        {suggestions.map((s) => (
-          <button
-            key={s}
-            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-[13px] text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-            onClick={() => onPick(s)}
-          >
-            <span>{s}</span>
-            <ArrowUp className="h-3 w-3 rotate-45 opacity-50" />
-          </button>
-        ))}
+      <div className="mt-10 border-t border-foreground/80">
+        <div className="border-b border-foreground/10 py-3">
+          <SectionLabel>Suggested openings</SectionLabel>
+        </div>
+        <ul className="divide-y divide-foreground/10">
+          {openings.map((s) => (
+            <li key={s}>
+              <button
+                className="group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-4 text-left"
+                onClick={() => onPick(s)}
+              >
+                <span className="text-[15px] italic leading-snug text-foreground/85 group-hover:text-foreground">
+                  {s}
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 text-foreground/40 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" strokeWidth={1.5} />
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
 
-function MessageView({ msg }: { msg: Msg }) {
+function MessageView({ msg, index }: { msg: Msg; index: number }) {
   const isUser = msg.role === "user";
   const { activeOrgId } = useOrg();
   const feedbackFn = useServerFn(submitResponseFeedback);
+
   if (isUser) {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[90%] rounded-2xl bg-secondary/50 px-4 py-2.5 text-[14px] text-foreground">
+      <section className={cn("py-6", index > 0 && "border-t border-foreground/10")}>
+        <SectionLabel>Directive</SectionLabel>
+        <p className="mt-2 text-[14.5px] leading-[1.75] text-foreground/85">
           {msg.content}
-          {msg.status === "failed" && (
-            <div className="mt-1 text-[11px] text-destructive">
-              Response failed  -  try again.
-            </div>
-          )}
-        </div>
-      </div>
+        </p>
+        {msg.status === "failed" && (
+          <div className="mt-2 text-[11.5px] uppercase tracking-[0.2em] text-[oklch(0.5_0.18_27)]">
+            Response failed - try again.
+          </div>
+        )}
+      </section>
     );
   }
 
   const meta = msg.metadata ?? {};
   const resp = meta.response;
+
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/40 p-4">
-      <div className="mb-2 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/70">
-        <Sparkles className="h-3 w-3" /> SAM
+    <section className={cn("py-8", index > 0 && "border-t border-foreground/80")}>
+      <div className="flex items-baseline justify-between gap-4 pb-2">
+        <SectionLabel>SAM - Response</SectionLabel>
         {meta.confidence && (
-          <span className="ml-2 rounded bg-secondary/60 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-foreground">
-            Confidence · {meta.confidence.band.replace("_", " ")}
+          <span className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/55">
+            Confidence - {meta.confidence.band.replace("_", " ")}
           </span>
         )}
       </div>
 
       {resp?.executive_summary && (
-        <p className="mb-3 text-[14px] font-medium text-foreground">
+        <p className="mt-4 font-display text-[22px] leading-[1.3] text-foreground md:text-[26px]">
           {resp.executive_summary}
         </p>
       )}
-      <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-foreground">
+
+      <div className="mt-5 whitespace-pre-wrap text-[14.5px] leading-[1.8] text-foreground/85">
         {msg.content}
       </div>
 
       {resp?.unsupported_action && (
-        <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-[13px]">
-          <div className="font-medium text-amber-500">Unsupported action</div>
-          <div className="mt-1 text-muted-foreground">
+        <div className="mt-6 border-l-2 border-[oklch(0.62_0.14_65)] bg-foreground/[0.02] px-4 py-3">
+          <div className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-foreground/75">
+            Unsupported action
+          </div>
+          <div className="mt-1.5 text-[13.5px] text-foreground/75">
             {resp.unsupported_action.reason}
           </div>
           {resp.unsupported_action.suggested_manual_path && (
-            <div className="mt-2 text-foreground">
+            <div className="mt-2 text-[13.5px] text-foreground">
               {resp.unsupported_action.suggested_manual_path}
             </div>
           )}
@@ -461,9 +517,13 @@ function MessageView({ msg }: { msg: Msg }) {
       <ResponseSection title="Assumptions" items={resp?.assumptions} />
 
       {resp?.next_question && (
-        <div className="mt-3 rounded-md bg-secondary/30 p-3 text-[13px] text-foreground">
-          <span className="text-muted-foreground">SAM asks: </span>
-          {resp.next_question}
+        <div className="mt-6 border-l border-foreground pl-4 md:pl-5">
+          <div className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/55">
+            SAM asks
+          </div>
+          <p className="mt-1.5 font-display text-[18px] italic leading-[1.35] text-foreground md:text-[20px]">
+            {resp.next_question}
+          </p>
         </div>
       )}
 
@@ -475,15 +535,15 @@ function MessageView({ msg }: { msg: Msg }) {
         <ConfidenceDrawer confidence={meta.confidence} />
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-foreground/10 pt-4">
         <button
-          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
           onClick={() => {
             navigator.clipboard.writeText(msg.content);
             toast.success("Copied");
           }}
         >
-          <Copy className="h-3 w-3" /> Copy
+          <Copy className="h-3 w-3" strokeWidth={1.5} /> Copy
         </button>
         {([
           ["helpful", "Helpful"],
@@ -494,7 +554,7 @@ function MessageView({ msg }: { msg: Msg }) {
         ] as const).map(([kind, label]) => (
           <button
             key={kind}
-            className="rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+            className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/60 underline-offset-4 hover:text-foreground hover:underline"
             onClick={async () => {
               if (!activeOrgId) return;
               try {
@@ -507,7 +567,7 @@ function MessageView({ msg }: { msg: Msg }) {
           >{label}</button>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -520,14 +580,12 @@ function ResponseSection({
 }) {
   if (!items || items.length === 0) return null;
   return (
-    <div className="mt-3">
-      <div className="text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/70">
-        {title}
-      </div>
-      <ul className="mt-1 space-y-1 text-[13.5px] text-foreground">
+    <div className="mt-6">
+      <SectionLabel>{title}</SectionLabel>
+      <ul className="mt-3 space-y-2 text-[14px] leading-[1.7] text-foreground/85">
         {items.map((s, i) => (
-          <li key={i} className="flex gap-2">
-            <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/60" />
+          <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-foreground/60" />
             <span>{s}</span>
           </li>
         ))}
@@ -545,33 +603,34 @@ function SourcesDrawer({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="mt-3 rounded-md border border-border/50">
+    <div className="mt-6 border-t border-foreground/10">
       <button
-        className="flex w-full items-center justify-between px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground"
+        className="flex w-full items-center justify-between py-3 text-[10.5px] uppercase tracking-[0.22em] text-foreground/70 hover:text-foreground"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
       >
-        <span>Sources · {citations.length}</span>
-        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        <span>Sources - {citations.length}</span>
+        {open ? <ChevronUp className="h-3.5 w-3.5" strokeWidth={1.5} /> : <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.5} />}
       </button>
       {open && (
-        <ul className="space-y-1 border-t border-border/50 px-3 py-2 text-[13px]">
+        <ul className="divide-y divide-foreground/10 border-t border-foreground/10">
           {citations.map((c, i) => {
             const href = hrefs[`${c.entity_type}:${c.entity_id}`];
-            const label = `${c.entity_type.replace("_", " ")} · ${c.kind}`;
+            const label = `${c.entity_type.replace("_", " ")} - ${c.kind}`;
             return (
-              <li key={i} className="flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                  {label}
-                </span>
+              <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 py-3 text-[13px]">
                 {href ? (
                   <Link to={href as never} className="truncate text-foreground hover:underline">
                     {c.title ?? c.entity_id}
                   </Link>
                 ) : (
-                  <span className="truncate text-muted-foreground">
+                  <span className="truncate text-foreground/70">
                     {c.title ?? c.entity_id}
                   </span>
                 )}
+                <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/55">
+                  {label}
+                </span>
               </li>
             );
           })}
@@ -588,34 +647,35 @@ function ConfidenceDrawer({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="mt-2 rounded-md border border-border/50">
+    <div className="mt-2 border-t border-foreground/10">
       <button
-        className="flex w-full items-center justify-between px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground"
+        className="flex w-full items-center justify-between py-3 text-[10.5px] uppercase tracking-[0.22em] text-foreground/70 hover:text-foreground"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
       >
         <span>
-          Confidence · {confidence.band.replace("_", " ")}{" "}
-          <span className="text-muted-foreground/70">
+          Confidence - {confidence.band.replace("_", " ")}{" "}
+          <span className="text-foreground/55">
             ({Math.round(confidence.score * 100)}%)
           </span>
         </span>
-        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {open ? <ChevronUp className="h-3.5 w-3.5" strokeWidth={1.5} /> : <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.5} />}
       </button>
       {open && (
-        <div className="border-t border-border/50 px-3 py-2 text-[12.5px] text-muted-foreground">
-          <ul className="mb-2 space-y-1">
+        <div className="border-t border-foreground/10 py-3 text-[12.5px] text-foreground/70">
+          <ul className="mb-3 list-disc space-y-1 pl-4">
             {confidence.reasons.map((r, i) => (
               <li key={i}>{r}</li>
             ))}
           </ul>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11.5px] text-muted-foreground/80">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-[11.5px] text-foreground/70">
             {Object.entries(confidence.signals).map(([k, v]) => (
-              <div key={k} className="flex justify-between">
-                <span>{k}</span>
-                <span>{Math.round(Number(v) * 100)}%</span>
+              <div key={k} className="flex justify-between border-b border-foreground/10 py-1">
+                <dt className="uppercase tracking-[0.16em] text-foreground/55">{k}</dt>
+                <dd className="tabular-nums">{Math.round(Number(v) * 100)}%</dd>
               </div>
             ))}
-          </div>
+          </dl>
         </div>
       )}
     </div>
@@ -627,50 +687,59 @@ function Composer({
   setValue,
   onSubmit,
   disabled,
+  textareaRef,
 }: {
   value: string;
   setValue: (v: string) => void;
   onSubmit: (v: string) => void;
   disabled: boolean;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const overLimit = value.length > LIMITS.sam.maxMessageChars;
   return (
-    <div className="border-t border-border/60 bg-gradient-to-t from-background via-background/95 to-background/0 px-4 pb-5 pt-4 lg:px-8">
-      <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-border/60 bg-card/60 p-2">
-        <textarea
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onSubmit(value);
-            }
-          }}
-          rows={1}
-          placeholder="Ask SAM anything  -  Shift+Enter for a new line"
-          aria-label="Ask SAM"
-          className="flex-1 resize-none bg-transparent px-3 py-2.5 text-[14.5px] text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
-          disabled={disabled}
-          maxLength={LIMITS.sam.maxMessageChars + 200}
-        />
-        <button
-          onClick={() => onSubmit(value)}
-          disabled={disabled || !value.trim() || overLimit}
-          aria-label="Send message"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background hover:opacity-90 disabled:opacity-30"
-        >
-          {disabled ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowUp className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-      {overLimit && (
-        <div className="mx-auto mt-2 max-w-3xl text-[11.5px] text-destructive">
-          Message exceeds {LIMITS.sam.maxMessageChars} characters.
+    <div className="sticky bottom-0 border-t border-foreground/15 bg-background px-6 pb-5 pt-4 md:px-12">
+      <div className="mx-auto max-w-3xl">
+        <div className="flex items-end gap-3 border-b border-foreground/80 pb-3 focus-within:border-foreground">
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit(value);
+              }
+            }}
+            rows={1}
+            placeholder="Ask SAM, issue a directive, or examine the operation."
+            aria-label="Ask SAM"
+            className="min-h-[36px] flex-1 resize-none bg-transparent py-2 font-display text-[19px] leading-[1.35] text-foreground placeholder:font-display placeholder:text-[19px] placeholder:italic placeholder:text-foreground/40 focus:outline-none md:text-[22px] md:placeholder:text-[22px]"
+            disabled={disabled}
+            maxLength={LIMITS.sam.maxMessageChars + 200}
+          />
+          <button
+            type="button"
+            onClick={() => onSubmit(value)}
+            disabled={disabled || !value.trim() || overLimit}
+            aria-label="Send message"
+            className="mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center border border-foreground text-foreground transition-colors hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:border-foreground/25 disabled:text-foreground/25 disabled:hover:bg-transparent"
+          >
+            {disabled ? (
+              <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.5} />
+            ) : (
+              <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+            )}
+          </button>
         </div>
-      )}
+        <div className="mt-2 flex items-center justify-between text-[10.5px] uppercase tracking-[0.22em] text-foreground/50">
+          <span>Return sends - Shift + Return for a new line</span>
+          {overLimit && (
+            <span className="text-[oklch(0.5_0.18_27)]">
+              Over {LIMITS.sam.maxMessageChars} characters
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

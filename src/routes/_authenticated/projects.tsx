@@ -6,9 +6,18 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, X, ArrowUpRight, LayoutGrid, List } from "lucide-react";
+import { Plus, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { PageBody, PageHeader } from "@/components/page-header";
+import {
+  EditorialSkeleton,
+  EmptyEditorialState,
+  ErrorLine,
+  Ledger,
+  SectionLabel,
+  StatusLine,
+  type StatusTone,
+} from "@/components/editorial";
 import { useOrg } from "@/lib/org-context";
 import {
   useCreateProject,
@@ -26,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/projects")({
   component: ProjectsLayout,
   head: () => ({
     meta: [
-      { title: "Projects  -  Northstar" },
+      { title: "Projects - Northstar" },
       {
         name: "description",
         content: "Every project across every venture, in one executive view.",
@@ -41,8 +50,7 @@ function ProjectsLayout() {
   return <ProjectsIndex />;
 }
 
-const STATUS_LABELS: Record<ProjectStatus | "all", string> = {
-  all: "All",
+const STATUS_LABELS: Record<ProjectStatus, string> = {
   proposed: "Proposed",
   planned: "Planned",
   active: "Active",
@@ -52,16 +60,39 @@ const STATUS_LABELS: Record<ProjectStatus | "all", string> = {
   archived: "Archived",
 };
 
-const STATUS_FILTERS: (ProjectStatus | "all")[] = [
-  "all",
-  "active",
-  "at_risk",
-  "blocked",
-  "planned",
-  "completed",
-];
+type Group = {
+  key: string;
+  label: string;
+  hint: string;
+  statuses: ProjectStatus[];
+};
 
-type SortKey = "updated" | "deadline" | "priority" | "status";
+const GROUPS: Group[] = [
+  {
+    key: "attention",
+    label: "Needs attention",
+    hint: "Blocked or at risk. Address these first.",
+    statuses: ["blocked", "at_risk"],
+  },
+  {
+    key: "motion",
+    label: "In motion",
+    hint: "Active work under way.",
+    statuses: ["active"],
+  },
+  {
+    key: "waiting",
+    label: "Waiting",
+    hint: "Planned or proposed. Not yet moving.",
+    statuses: ["planned", "proposed"],
+  },
+  {
+    key: "completed",
+    label: "Completed",
+    hint: "Recently finished. For reference.",
+    statuses: ["completed"],
+  },
+];
 
 function ProjectsIndex() {
   const { activeOrgId, activeMembership } = useOrg();
@@ -69,13 +100,11 @@ function ProjectsIndex() {
   const venturesQ = useVentures(activeOrgId);
   const canCreate = can.writeContent(activeMembership?.role);
 
-  const [status, setStatus] = useState<ProjectStatus | "all">("all");
   const [ventureFilter, setVentureFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<Priority | "all">("all");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortKey>("updated");
-  const [view, setView] = useState<"list" | "board">("list");
   const [showNew, setShowNew] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const ventureMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -85,8 +114,8 @@ function ProjectsIndex() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = (projectsQ.data ?? []).filter((p) => {
-      if (status !== "all" && p.status !== status) return false;
+    return (projectsQ.data ?? []).filter((p) => {
+      if (!showArchived && p.status === "archived") return false;
       if (ventureFilter !== "all" && p.venture_id !== ventureFilter) return false;
       if (priorityFilter !== "all" && p.priority !== priorityFilter) return false;
       if (q) {
@@ -95,142 +124,165 @@ function ProjectsIndex() {
       }
       return true;
     });
+  }, [projectsQ.data, ventureFilter, priorityFilter, search, showArchived]);
+
+  const grouped = useMemo(() => {
     const priorityRank: Record<Priority, number> = {
       critical: 0,
       high: 1,
       normal: 2,
       low: 3,
     };
-    const statusRank: Record<ProjectStatus, number> = {
-      blocked: 0,
-      at_risk: 1,
-      active: 2,
-      planned: 3,
-      proposed: 4,
-      completed: 5,
-      archived: 6,
-    };
-    list = [...list].sort((a, b) => {
-      switch (sort) {
-        case "deadline":
-          return (a.deadline ?? "9999").localeCompare(b.deadline ?? "9999");
-        case "priority":
-          return priorityRank[a.priority] - priorityRank[b.priority];
-        case "status":
-          return statusRank[a.status] - statusRank[b.status];
-        default:
-          return b.updated_at.localeCompare(a.updated_at);
+    const bucket = new Map<string, Project[]>();
+    for (const g of GROUPS) bucket.set(g.key, []);
+    const archived: Project[] = [];
+    for (const p of filtered) {
+      if (p.status === "archived") {
+        archived.push(p);
+        continue;
       }
-    });
-    return list;
-  }, [projectsQ.data, status, ventureFilter, priorityFilter, search, sort]);
+      const g = GROUPS.find((x) => x.statuses.includes(p.status));
+      if (g) bucket.get(g.key)!.push(p);
+    }
+    for (const [, list] of bucket) {
+      list.sort((a, b) => {
+        const pr = priorityRank[a.priority] - priorityRank[b.priority];
+        if (pr !== 0) return pr;
+        return (a.deadline ?? "9999").localeCompare(b.deadline ?? "9999");
+      });
+    }
+    return { bucket, archived };
+  }, [filtered]);
+
+  const isEmpty =
+    !projectsQ.isLoading &&
+    !projectsQ.error &&
+    (projectsQ.data ?? []).length === 0;
+  const nothingMatched =
+    !projectsQ.isLoading &&
+    !projectsQ.error &&
+    !isEmpty &&
+    filtered.length === 0;
 
   return (
     <div>
       <PageHeader
         eyebrow="Projects"
         title="Projects"
-        description="Every project, its owner, its next step, and its risk  -  nothing more."
+        description="Every project, its owner, its next step, and its risk. Grouped so the important work reads first."
         actions={
           canCreate && (
             <button
               onClick={() => setShowNew(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
+              className="inline-flex items-center gap-2 border border-foreground bg-foreground px-4 py-2 text-[11.5px] uppercase tracking-[0.2em] text-background hover:bg-foreground/90"
             >
-              <Plus className="h-3.5 w-3.5" /> New project
+              <Plus className="h-3.5 w-3.5" strokeWidth={1.5} /> New project
             </button>
           )
         }
       />
       <PageBody>
-        <div className="mb-8 flex flex-wrap items-center gap-3 -mx-2">
-          <div className="flex flex-wrap gap-1">
-            {STATUS_FILTERS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-[12.5px]",
-                  status === s
-                    ? "bg-secondary/70 text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
-                )}
-              >
-                {STATUS_LABELS[s]}
-              </button>
-            ))}
-          </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2 pr-2">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search"
-              className="w-40 rounded-md bg-secondary/40 px-2.5 py-1.5 text-[12.5px] text-foreground outline-none placeholder:text-muted-foreground/60 hover:bg-secondary/60"
-            />
-            <FilterSelect
-              value={ventureFilter}
-              onChange={setVentureFilter}
-              options={[
-                { value: "all", label: "All ventures" },
-                ...(venturesQ.data ?? []).map((v) => ({ value: v.id, label: v.name })),
-              ]}
-            />
-            <FilterSelect
-              value={priorityFilter}
-              onChange={(v) => setPriorityFilter(v as Priority | "all")}
-              options={[
-                { value: "all", label: "Any priority" },
-                { value: "critical", label: "Critical" },
-                { value: "high", label: "High" },
-                { value: "normal", label: "Normal" },
-                { value: "low", label: "Low" },
-              ]}
-            />
-            <FilterSelect
-              value={sort}
-              onChange={(v) => setSort(v as SortKey)}
-              options={[
-                { value: "updated", label: "Recently updated" },
-                { value: "deadline", label: "Deadline" },
-                { value: "priority", label: "Priority" },
-                { value: "status", label: "Status" },
-              ]}
-            />
-            <div className="flex overflow-hidden rounded-md bg-secondary/40">
-              <button
-                onClick={() => setView("list")}
-                className={cn(
-                  "px-2.5 py-1.5",
-                  view === "list" ? "bg-secondary/80 text-foreground" : "text-muted-foreground",
-                )}
-                aria-label="List view"
-              >
-                <List className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => setView("board")}
-                className={cn(
-                  "px-2.5 py-1.5",
-                  view === "board" ? "bg-secondary/80 text-foreground" : "text-muted-foreground",
-                )}
-                aria-label="Board view"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-              </button>
+        {/* Filter strip */}
+        <div className="mb-12 border-b border-foreground/15 pb-6">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 md:flex md:flex-wrap md:justify-between">
+            <label className="flex min-w-0 items-center gap-2 border-b border-foreground/40 py-1 focus-within:border-foreground md:w-64">
+              <Search className="h-3.5 w-3.5 shrink-0 text-foreground/50" strokeWidth={1.5} />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search projects"
+                aria-label="Search projects"
+                className="w-full min-w-0 bg-transparent py-1 text-[13.5px] text-foreground placeholder:italic placeholder:text-foreground/45 focus:outline-none"
+              />
+            </label>
+            <div className="flex shrink-0 items-center gap-3">
+              <QuietSelect
+                label="Venture"
+                value={ventureFilter}
+                onChange={setVentureFilter}
+                options={[
+                  { value: "all", label: "All ventures" },
+                  ...(venturesQ.data ?? []).map((v) => ({ value: v.id, label: v.name })),
+                ]}
+              />
+              <QuietSelect
+                label="Priority"
+                value={priorityFilter}
+                onChange={(v) => setPriorityFilter(v as Priority | "all")}
+                options={[
+                  { value: "all", label: "Any priority" },
+                  { value: "critical", label: "Critical" },
+                  { value: "high", label: "High" },
+                  { value: "normal", label: "Normal" },
+                  { value: "low", label: "Low" },
+                ]}
+              />
+              <label className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-foreground/60">
+                <input
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                  className="h-3 w-3 accent-foreground"
+                />
+                Archived
+              </label>
             </div>
           </div>
         </div>
 
         {projectsQ.isLoading ? (
-          <Skeleton />
+          <EditorialSkeleton rows={6} />
         ) : projectsQ.error ? (
           <ErrorLine message={(projectsQ.error as Error).message} />
-        ) : filtered.length === 0 ? (
-          <EmptyState onCreate={canCreate ? () => setShowNew(true) : undefined} />
-        ) : view === "list" ? (
-          <ProjectsTable projects={filtered} ventureMap={ventureMap} />
+        ) : isEmpty ? (
+          <EmptyEditorialState
+            eyebrow="Empty ledger"
+            title="No projects yet."
+            description="Every project lives under a venture. Start one and its owner, deadline, and risk will appear here."
+            action={
+              canCreate ? (
+                <button
+                  onClick={() => setShowNew(true)}
+                  className="inline-flex items-center gap-2 border border-foreground bg-foreground px-4 py-2 text-[11.5px] uppercase tracking-[0.2em] text-background hover:bg-foreground/90"
+                >
+                  <Plus className="h-3.5 w-3.5" strokeWidth={1.5} /> New project
+                </button>
+              ) : null
+            }
+          />
+        ) : nothingMatched ? (
+          <EmptyEditorialState
+            eyebrow="No matches"
+            title="Nothing matches these filters."
+            description="Try a broader search, a different venture, or clear the priority filter."
+          />
         ) : (
-          <ProjectsBoard projects={filtered} ventureMap={ventureMap} />
+          <div>
+            {GROUPS.map((g) => {
+              const rows = grouped.bucket.get(g.key) ?? [];
+              if (rows.length === 0) return null;
+              return (
+                <ProjectGroup
+                  key={g.key}
+                  label={g.label}
+                  hint={g.hint}
+                  count={rows.length}
+                  rows={rows}
+                  ventureMap={ventureMap}
+                />
+              );
+            })}
+            {showArchived && grouped.archived.length > 0 && (
+              <ProjectGroup
+                label="Archived"
+                hint="Retained for the record."
+                count={grouped.archived.length}
+                rows={grouped.archived}
+                ventureMap={ventureMap}
+                muted
+              />
+            )}
+          </div>
         )}
       </PageBody>
 
@@ -245,216 +297,128 @@ function ProjectsIndex() {
   );
 }
 
-function ProjectsTable({
-  projects,
+function ProjectGroup({
+  label,
+  hint,
+  count,
+  rows,
   ventureMap,
+  muted,
 }: {
-  projects: Project[];
+  label: string;
+  hint: string;
+  count: number;
+  rows: Project[];
   ventureMap: Map<string, string>;
+  muted?: boolean;
 }) {
   return (
-    <div className="overflow-hidden">
-      <table className="w-full text-left">
-        <thead className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-          <tr className="border-b border-border">
-            <th className="px-2 py-3 font-medium">Project</th>
-            <th className="hidden px-2 py-3 font-medium md:table-cell">Venture</th>
-            <th className="px-2 py-3 font-medium">Status</th>
-            <th className="hidden px-2 py-3 font-medium sm:table-cell">Progress</th>
-            <th className="hidden px-2 py-3 text-right font-medium md:table-cell">Due</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projects.map((p, i) => (
-            <tr
-              key={p.id}
-              className={cn(
-                "group text-[13.5px] hover:bg-secondary/30",
-                i !== projects.length - 1 && "border-b border-border/60",
-              )}
-            >
-              <td className="px-2 py-5">
-                <Link
-                  to="/projects/$id"
-                  params={{ id: p.id }}
-                  className="block text-foreground hover:underline"
-                >
-                  {p.name}
-                </Link>
-                {p.next_action && (
-                  <div className="mt-1 text-[12px] text-muted-foreground">{p.next_action}</div>
-                )}
-              </td>
-              <td className="hidden px-2 py-5 text-muted-foreground md:table-cell">
-                {ventureMap.get(p.venture_id) ?? " - "}
-              </td>
-              <td className="px-2 py-5">
-                <StatusPill status={p.status} />
-              </td>
-              <td className="hidden px-2 py-5 sm:table-cell">
-                <div className="flex items-center gap-3">
-                  <div className="h-[3px] w-24 overflow-hidden rounded-full bg-secondary/70">
-                    <div
-                      className="h-full bg-foreground/70 transition-[width] duration-500"
-                      style={{ width: `${p.progress_percentage}%` }}
-                    />
-                  </div>
-                  <span className="text-[11.5px] tabular-nums text-muted-foreground">
-                    {p.progress_percentage}%
-                  </span>
-                </div>
-              </td>
-              <td className="hidden px-2 py-5 text-right tabular-nums text-muted-foreground md:table-cell">
-                {p.deadline ?? " - "}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <section className={cn("mb-14", muted && "opacity-70")}>
+      <div className="flex items-baseline justify-between gap-4 border-b border-foreground/80 pb-2">
+        <SectionLabel>{label}</SectionLabel>
+        <span className="text-[11px] tabular-nums uppercase tracking-[0.22em] text-foreground/55">
+          {count}
+        </span>
+      </div>
+      <p className="mt-3 text-[12.5px] italic text-foreground/60">{hint}</p>
+      <Ledger className="mt-4">
+        {rows.map((p) => (
+          <ProjectRow key={p.id} p={p} venture={ventureMap.get(p.venture_id)} />
+        ))}
+      </Ledger>
+    </section>
   );
 }
 
-function ProjectsBoard({
-  projects,
-  ventureMap,
-}: {
-  projects: Project[];
-  ventureMap: Map<string, string>;
-}) {
-  const columns: ProjectStatus[] = [
-    "planned",
-    "active",
-    "at_risk",
-    "blocked",
-    "completed",
-  ];
-  const grouped = useMemo(() => {
-    const g = new Map<ProjectStatus, Project[]>();
-    columns.forEach((c) => g.set(c, []));
-    projects.forEach((p) => {
-      const list = g.get(p.status);
-      if (list) list.push(p);
-    });
-    return g;
-  }, [projects]);
+const STATUS_TONE: Record<ProjectStatus, StatusTone> = {
+  blocked: "critical",
+  at_risk: "attention",
+  active: "positive",
+  planned: "neutral",
+  proposed: "muted",
+  completed: "muted",
+  archived: "muted",
+};
 
+const today = () => new Date().toISOString().slice(0, 10);
+
+function ProjectRow({
+  p,
+  venture,
+}: {
+  p: Project;
+  venture?: string;
+}) {
+  const overdue = p.deadline && p.status !== "completed" && p.status !== "archived" && p.deadline < today();
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5">
-      {columns.map((c) => (
-        <div key={c} className="rounded-xl bg-card/30 p-3">
-          <div className="mb-3 flex items-center justify-between px-1">
-            <div className="text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
-              {STATUS_LABELS[c]}
-            </div>
-            <div className="text-[11px] tabular-nums text-muted-foreground/60">
-              {grouped.get(c)?.length ?? 0}
-            </div>
+    <li className="group border-b border-foreground/10 last:border-b-0 hover:bg-foreground/[0.02]">
+      <Link
+        to="/projects/$id"
+        params={{ id: p.id }}
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-4 focus:outline-none focus-visible:bg-foreground/[0.04] md:grid-cols-[minmax(0,1fr)_10rem_auto] md:gap-6"
+      >
+        <div className="min-w-0">
+          <div className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/55">
+            {venture ?? "Organization"}
+            {p.priority !== "normal" && ` - ${p.priority}`}
           </div>
-          <div className="space-y-2">
-            {(grouped.get(c) ?? []).map((p) => (
-              <Link
-                key={p.id}
-                to="/projects/$id"
-                params={{ id: p.id }}
-                className="group block rounded-lg bg-background/60 p-3 hover:bg-background/90"
-              >
-                <div className="text-[13px] leading-snug text-foreground">{p.name}</div>
-                <div className="mt-1.5 text-[11.5px] text-muted-foreground">
-                  {ventureMap.get(p.venture_id) ?? " - "}
-                  {p.deadline ? ` · ${p.deadline}` : ""}
-                </div>
-              </Link>
-            ))}
-            {(grouped.get(c)?.length ?? 0) === 0 && (
-              <div className="px-1 pb-1 pt-2 text-[11.5px] text-muted-foreground/60">Empty</div>
-            )}
+          <div className="mt-1.5 font-display text-[19px] leading-[1.2] text-foreground group-hover:underline underline-offset-4 md:text-[22px]">
+            {p.name}
+          </div>
+          {p.next_action && (
+            <div className="mt-2 text-[13px] italic text-foreground/70">
+              Next - {p.next_action}
+            </div>
+          )}
+          {p.blocker_summary && p.status === "blocked" && (
+            <div className="mt-1 text-[12.5px] text-foreground/60">
+              Blocked - {p.blocker_summary}
+            </div>
+          )}
+        </div>
+        <div className="hidden text-[11.5px] tabular-nums text-foreground/70 md:block">
+          <div className={cn("uppercase tracking-[0.18em]", overdue && "text-[oklch(0.5_0.18_27)]")}>
+            {p.deadline ? `Due ${p.deadline}${overdue ? " - overdue" : ""}` : "No deadline"}
+          </div>
+          <div className="mt-1 tabular-nums text-foreground/55">
+            {p.progress_percentage}% complete
           </div>
         </div>
-      ))}
-    </div>
+        <div className="flex shrink-0 items-center pt-1">
+          <StatusLine tone={STATUS_TONE[p.status]}>{STATUS_LABELS[p.status]}</StatusLine>
+        </div>
+      </Link>
+    </li>
   );
 }
 
-function StatusPill({ status }: { status: ProjectStatus }) {
-  const dot: Record<ProjectStatus, string> = {
-    proposed: "text-muted-foreground",
-    planned: "text-muted-foreground",
-    active: "text-[oklch(0.72_0.14_155)]",
-    at_risk: "text-[oklch(0.78_0.14_75)]",
-    blocked: "text-[oklch(0.62_0.19_25)]",
-    completed: "text-muted-foreground",
-    archived: "text-muted-foreground/50",
-  };
-  return (
-    <span className="inline-flex items-center gap-2 text-[12.5px]">
-      <span className={cn("h-1.5 w-1.5 rounded-full bg-current", dot[status])} />
-      <span className="text-foreground">{STATUS_LABELS[status]}</span>
-    </span>
-  );
-}
-
-function FilterSelect({
+function QuietSelect({
+  label,
   value,
   onChange,
   options,
 }: {
+  label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-md bg-secondary/40 px-2.5 py-1.5 text-[12.5px] text-foreground outline-none hover:bg-secondary/60"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function EmptyState({ onCreate }: { onCreate?: () => void }) {
-  return (
-    <div className="mt-16 rounded-2xl px-6 py-20 text-center">
-      <div className="mx-auto max-w-sm">
-        <div className="mx-auto h-10 w-10 rounded-full bg-secondary/50" />
-        <h3 className="mt-6 font-display text-2xl text-foreground">Nothing here yet</h3>
-        <p className="mt-2 text-[13.5px] text-muted-foreground">
-          Create your first project. It will live under a venture.
-        </p>
-        {onCreate && (
-          <button
-            onClick={onCreate}
-            className="mt-6 inline-flex items-center gap-1.5 rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90"
-          >
-            <Plus className="h-3.5 w-3.5" /> New project
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Skeleton() {
-  return (
-    <div className="space-y-2">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-14 animate-pulse rounded-lg bg-card/30" />
-      ))}
-    </div>
-  );
-}
-
-function ErrorLine({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl bg-secondary/40 p-6 text-[13.5px] text-muted-foreground">
-      {message}
-    </div>
+    <label className="inline-flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] text-foreground/55">
+      <span className="sr-only md:not-sr-only">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label}
+        className="border-b border-foreground/30 bg-transparent py-1 text-[12.5px] normal-case tracking-normal text-foreground focus:border-foreground focus:outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -503,38 +467,56 @@ function NewProjectDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 px-4 py-10 md:items-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <form
         onSubmit={onSubmit}
-        className="relative w-full max-w-lg rounded-2xl bg-card p-8 shadow-2xl"
+        className="relative w-full max-w-xl border border-foreground/15 bg-background shadow-[0_20px_60px_-20px_oklch(0.15_0.02_60/0.35)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-project-title"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <h2 className="font-display text-[24px] text-foreground">New project</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">
-          Every project lives under a venture.
+        <div className="flex items-baseline justify-between border-b border-foreground/80 px-8 pb-2 pt-8">
+          <div>
+            <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/60">
+              New entry
+            </div>
+            <h2 id="new-project-title" className="mt-3 font-display text-[30px] leading-none text-foreground">
+              A new project
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="text-foreground/60 hover:text-foreground"
+          >
+            <X className="h-4 w-4" strokeWidth={1.5} />
+          </button>
+        </div>
+        <p className="mt-4 px-8 text-[13px] italic text-foreground/65">
+          Every project lives under a venture. You can refine the plan after it's created.
         </p>
-        <div className="mt-6 space-y-5">
-          <Field label="Name">
+        <div className="grid gap-6 px-8 pb-8 pt-6">
+          <PaperField label="Name" required>
             <input
               required
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+              className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
             />
-          </Field>
-          <Field label="Venture">
+          </PaperField>
+          <PaperField label="Venture" required>
             <select
               required
               value={ventureId}
               onChange={(e) => setVentureId(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+              className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
             >
               {ventures.length === 0 && <option value="">No ventures yet</option>}
               {ventures.map((v) => (
@@ -543,75 +525,79 @@ function NewProjectDialog({
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Objective">
+          </PaperField>
+          <PaperField label="Objective">
             <input
               value={objective}
               onChange={(e) => setObjective(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+              className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
             />
-          </Field>
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Priority">
+          </PaperField>
+          <div className="grid gap-6 md:grid-cols-3">
+            <PaperField label="Priority">
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
-                className="w-full bg-transparent text-[15px] text-foreground outline-none"
+                className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
               >
                 <option value="low">Low</option>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
                 <option value="critical">Critical</option>
               </select>
-            </Field>
-            <Field label="Status">
+            </PaperField>
+            <PaperField label="Status">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-                className="w-full bg-transparent text-[15px] text-foreground outline-none"
+                className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
               >
                 <option value="proposed">Proposed</option>
                 <option value="planned">Planned</option>
                 <option value="active">Active</option>
               </select>
-            </Field>
-            <Field label="Deadline">
+            </PaperField>
+            <PaperField label="Deadline">
               <input
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="w-full bg-transparent text-[15px] text-foreground outline-none"
+                className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
               />
-            </Field>
+            </PaperField>
           </div>
-          <Field label="Linked goal (optional)">
+          <PaperField label="Linked goal (optional)">
             <select
               value={goalId}
               onChange={(e) => setGoalId(e.target.value)}
-              className="w-full bg-transparent text-[15px] text-foreground outline-none"
+              className="w-full bg-transparent py-1 text-[15px] text-foreground focus:outline-none"
             >
-              <option value=""> -  None  - </option>
+              <option value="">None</option>
               {(goalsQ.data ?? [])
                 .filter((g) => g.venture_id === ventureId || g.venture_id == null)
                 .filter((g) => g.status !== "archived")
-                .map((g) => (<option key={g.id} value={g.id}>{g.title}</option>))}
+                .map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.title}
+                  </option>
+                ))}
             </select>
-          </Field>
+          </PaperField>
         </div>
-        <div className="mt-8 flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-4 border-t border-foreground/15 bg-foreground/[0.02] px-8 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-3.5 py-2 text-[12.5px] text-muted-foreground hover:text-foreground"
+            className="text-[11px] uppercase tracking-[0.22em] text-foreground/60 underline-offset-4 hover:text-foreground hover:underline"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!name || !ventureId || create.isPending}
-            className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60"
+            className="inline-flex items-center gap-2 border border-foreground bg-foreground px-5 py-2 text-[11.5px] uppercase tracking-[0.2em] text-background hover:bg-foreground/90 disabled:cursor-not-allowed disabled:border-foreground/30 disabled:bg-foreground/30"
           >
-            {create.isPending ? "…" : "Create project"}
+            {create.isPending ? "Creating." : "Enter into the record"}
           </button>
         </div>
       </form>
@@ -619,16 +605,22 @@ function NewProjectDialog({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function PaperField({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="block border-b border-border/60 pb-3 focus-within:border-foreground/60">
-      <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
-        {label}
+    <label className="block border-b border-foreground/25 pb-1 focus-within:border-foreground">
+      <div className="mb-1 flex items-baseline gap-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">
+        <span>{label}</span>
+        {required && <span className="text-foreground/40">Required</span>}
       </div>
       {children}
     </label>
   );
 }
-
-// Keep for compat with import from Command page if referenced.
-export { ArrowUpRight };
