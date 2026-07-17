@@ -10,8 +10,8 @@ import type {
   OperationResult,
   OperationSuccess,
   SamOperationName,
-} from "./types";
-import { SAM_OPERATIONS_VERSION } from "./types";
+} from "./types.ts";
+import { SAM_OPERATIONS_VERSION } from "./types.ts";
 
 export interface BaseResultArgs {
   operation: SamOperationName;
