@@ -98,8 +98,8 @@ export const batchApprove = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => BatchApproveInput.parse(input))
   .handler(async ({ data, context }) => {
-    if (data.contentItemIds.length > CONTENT_OPS_LIMITS.maxBatchApproveSize) {
-      throw new ContentOpsError("invalid_input", `batch too large; max ${CONTENT_OPS_LIMITS.maxBatchApproveSize}`);
+    if (data.contentItemIds.length > CONTENT_OPS_LIMITS.maxBatchApprovalSize) {
+      throw new ContentOpsError("invalid_input", `batch too large; max ${CONTENT_OPS_LIMITS.maxBatchApprovalSize}`);
     }
     if (!data.confirmationToken || data.confirmationToken.length < 8) {
       throw new ContentOpsError("invalid_input", "batch approval requires a deliberate confirmation token");
