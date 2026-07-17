@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { IntegrationError, isIntegrationError, toIntegrationErrorCode } from "./errors";
+import type { Json } from "@/integrations/supabase/types";
 
 const IngestInput = z.object({
   organizationId: z.string().uuid(),
@@ -50,6 +51,8 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
         text: normalized.contentText,
       });
       const nextHash = contentFingerprint(normalized);
+      const classificationSignalsJson = classification.signals as unknown as Json;
+      const normalizedMetadataJson = normalized.metadata as unknown as Json;
 
       // Look up existing content item by canonical URL within org scope.
       const { data: existing } = await context.supabase
@@ -88,13 +91,13 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
             content_hash: nextHash,
             category: classification.category,
             tags: normalized.tags,
-            metadata: normalized.metadata,
+            metadata: normalizedMetadataJson,
             freshness_status: freshness,
             current_version_number: 1,
             last_change_at: now.toISOString(),
             last_change_significance: change.significance,
             classification_confidence: classification.confidence,
-            classification_signals: classification.signals,
+            classification_signals: classificationSignalsJson,
           })
           .select("id")
           .single();
@@ -115,7 +118,11 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
           changed: true,
           significance: change.significance,
           diff: summarizeDiff(change),
-          classification,
+          classification: {
+            category: classification.category,
+            pageType: classification.pageType,
+            confidence: classification.confidence,
+          },
         };
       }
 
@@ -131,7 +138,11 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
           changed: false,
           significance: "none" as const,
           diff: summarizeDiff(change),
-          classification,
+          classification: {
+            category: classification.category,
+            pageType: classification.pageType,
+            confidence: classification.confidence,
+          },
         };
       }
 
@@ -159,7 +170,7 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
           last_change_at: now.toISOString(),
           last_change_significance: change.significance,
           classification_confidence: classification.confidence,
-          classification_signals: classification.signals,
+          classification_signals: classificationSignalsJson,
           category: classification.category,
         })
         .eq("id", existing.id);
@@ -170,7 +181,11 @@ export const ingestSourceContent = createServerFn({ method: "POST" })
         changed: true,
         significance: change.significance,
         diff: summarizeDiff(change),
-        classification,
+        classification: {
+          category: classification.category,
+          pageType: classification.pageType,
+          confidence: classification.confidence,
+        },
       };
     } catch (err) {
       if (isIntegrationError(err)) throw err;
