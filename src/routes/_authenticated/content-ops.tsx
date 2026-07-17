@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
@@ -213,7 +214,15 @@ function ContentOpsWorkspace() {
                 <LedgerRow
                   key={it.id}
                   status={<StatusLine tone="attention">{it.platform}</StatusLine>}
-                  title={it.title ?? it.body.slice(0, 80)}
+                  title={
+                    <Link
+                      to="/content-ops/editor/$id"
+                      params={{ id: it.parent_content_item_id ?? it.id }}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {it.title ?? it.body.slice(0, 80)}
+                    </Link>
+                  }
                   meta={`${it.content_type} - v${it.content_version}`}
                 />
               ))}
@@ -233,7 +242,15 @@ function ContentOpsWorkspace() {
                 <LedgerRow
                   key={it.id}
                   status={<StatusLine tone="neutral">{it.platform}</StatusLine>}
-                  title={it.title ?? it.body.slice(0, 80)}
+                  title={
+                    <Link
+                      to="/content-ops/editor/$id"
+                      params={{ id: it.parent_content_item_id ?? it.id }}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {it.title ?? it.body.slice(0, 80)}
+                    </Link>
+                  }
                   meta={it.scheduled_for ?? ""}
                 />
               ))}
