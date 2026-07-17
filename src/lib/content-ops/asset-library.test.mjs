@@ -25,7 +25,7 @@ describe("normalizeTag", () => {
   });
   it("truncates over max length", () => {
     const long = "a".repeat(200);
-    expect(normalizeTag(long)!.length).toBe(ASSET_LIBRARY_LIMITS.maxTagLength);
+    expect(normalizeTag(long).length).toBe(ASSET_LIBRARY_LIMITS.maxTagLength);
   });
 });
 
