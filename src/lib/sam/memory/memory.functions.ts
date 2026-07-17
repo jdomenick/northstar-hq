@@ -10,6 +10,7 @@ import { SamError } from "@/lib/errors";
 import {
   CreateMemoryInput,
   UpdateMemoryInput,
+  SupersedeMemoryInput,
   MemoryLayer,
   MemoryStatus,
   PERSONAL_LAYERS,
@@ -119,6 +120,7 @@ export const createMemory = createServerFn({ method: "POST" })
         owner_user_id: ownerId,
         venture_id: data.layer === "venture" ? data.ventureId ?? null : null,
         layer: data.layer,
+        memory_kind: data.memory_kind ?? null,
         category: data.category,
         title: data.title,
         statement: data.statement,
