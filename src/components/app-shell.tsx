@@ -47,7 +47,7 @@ import { can } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
-  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/operator" | "/integrations" | "/settings";
+  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/integrations" | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -62,7 +62,7 @@ const NAV: NavItem[] = [
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/accountability", label: "Accountability", icon: ShieldCheck },
-  { to: "/operator", label: "SAM", icon: Sparkles },
+  { to: "/sam", label: "SAM", icon: Sparkles },
   { to: "/integrations", label: "Integrations", icon: Plug },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -349,9 +349,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}
-                {item.to === "/operator" && (
-                  <span className="ml-auto text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground/70">Phase 3</span>
-                )}
               </CommandItem>
             ))}
           </CommandGroup>
