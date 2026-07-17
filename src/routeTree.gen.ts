@@ -35,6 +35,8 @@ import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
 import { Route as AuthenticatedCommitmentsIdRouteImport } from './routes/_authenticated/commitments.$id'
+import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
+import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
 import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
 
@@ -174,6 +176,17 @@ const AuthenticatedCommitmentsIdRoute =
     path: '/commitments/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
+  id: '/api/public/automation/tick',
+  path: '/api/public/automation/tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAutomationSchedulerRoute =
+  ApiPublicAutomationSchedulerRouteImport.update({
+    id: '/api/public/automation/scheduler',
+    path: '/api/public/automation/scheduler',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedSettingsIntegrationsNewRoute =
   AuthenticatedSettingsIntegrationsNewRouteImport.update({
     id: '/new',
@@ -215,6 +228,8 @@ export interface FileRoutesByFullPath {
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
+  '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
+  '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
@@ -244,6 +259,8 @@ export interface FileRoutesByTo {
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
+  '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
+  '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -275,6 +292,8 @@ export interface FileRoutesById {
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
+  '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
+  '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -306,6 +325,8 @@ export interface FileRouteTypes {
     | '/ventures/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
+    | '/api/public/automation/scheduler'
+    | '/api/public/automation/tick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -335,6 +356,8 @@ export interface FileRouteTypes {
     | '/ventures/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
+    | '/api/public/automation/scheduler'
+    | '/api/public/automation/tick'
   id:
     | '__root__'
     | '/_authenticated'
@@ -365,12 +388,16 @@ export interface FileRouteTypes {
     | '/_authenticated/ventures/$id'
     | '/_authenticated/settings/integrations/$connectionId'
     | '/_authenticated/settings/integrations/new'
+    | '/api/public/automation/scheduler'
+    | '/api/public/automation/tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
+  ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
+  ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -556,6 +583,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/commitments/$id'
       preLoaderRoute: typeof AuthenticatedCommitmentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/automation/tick': {
+      id: '/api/public/automation/tick'
+      path: '/api/public/automation/tick'
+      fullPath: '/api/public/automation/tick'
+      preLoaderRoute: typeof ApiPublicAutomationTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/automation/scheduler': {
+      id: '/api/public/automation/scheduler'
+      path: '/api/public/automation/scheduler'
+      fullPath: '/api/public/automation/scheduler'
+      preLoaderRoute: typeof ApiPublicAutomationSchedulerRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/integrations/new': {
       id: '/_authenticated/settings/integrations/new'
@@ -747,6 +788,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
+  ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
+  ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

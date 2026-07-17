@@ -9,6 +9,10 @@ import {
   runWebsiteDiscoveryNow,
   updateConnectionAutomation,
 } from "@/lib/integrations/website.functions";
+import {
+  enqueueWebsiteSyncJob,
+  listAutomationJobs,
+} from "@/lib/automation/job.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations/$connectionId")({
   component: ConnectionDetail,
@@ -27,11 +31,40 @@ function ConnectionDetail() {
   const get = useServerFn(getWebsiteConnection);
   const runNow = useServerFn(runWebsiteDiscoveryNow);
   const updateMode = useServerFn(updateConnectionAutomation);
+  const enqueueSync = useServerFn(enqueueWebsiteSyncJob);
+  const listJobs = useServerFn(listAutomationJobs);
 
   const { data, isLoading, refetch } = useQuery({
     enabled: !!activeOrgId,
     queryKey: ["website-connection", activeOrgId, connectionId],
     queryFn: () => get({ data: { organizationId: activeOrgId!, connectionId } }),
+  });
+
+  const jobsQuery = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["automation-jobs", activeOrgId, connectionId],
+    queryFn: () =>
+      listJobs({ data: { organizationId: activeOrgId!, connectionId, jobType: "website_sync", limit: 10 } }),
+    refetchInterval: (q) => {
+      const rows = q.state.data as Array<{ status: string }> | undefined;
+      const active = (rows ?? []).some((r) =>
+        ["queued", "scheduled", "blocked", "running", "retrying"].includes(r.status),
+      );
+      return active ? 3000 : false;
+    },
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: (sourceId: string) =>
+      enqueueSync({ data: { organizationId: activeOrgId!, connectionId, sourceId } }),
+    onSuccess: () => {
+      toast.success("Sync queued");
+      qc.invalidateQueries({ queryKey: ["automation-jobs", activeOrgId, connectionId] });
+    },
+    onError: (err: unknown) => {
+      const code = (err as { code?: string; message?: string })?.code ?? (err as { message?: string })?.message ?? "Enqueue failed";
+      toast.error(String(code));
+    },
   });
 
   const runMutation = useMutation({
@@ -143,6 +176,38 @@ function ConnectionDetail() {
                     <span className="rounded bg-secondary/60 px-1.5 py-0.5">{s.page_type ?? "other"}</span>
                     <span className="rounded bg-secondary/60 px-1.5 py-0.5">{s.category ?? " - "}</span>
                     <span className="tabular-nums">{Number(s.relevance_score ?? 0).toFixed(2)}</span>
+                    <button
+                      disabled={syncMutation.isPending}
+                      onClick={() => syncMutation.mutate(s.id)}
+                      className="rounded bg-foreground px-2 py-0.5 text-[10.5px] text-background hover:opacity-90 disabled:opacity-50"
+                    >
+                      Sync now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Recent sync jobs">
+          {(jobsQuery.data ?? []).length === 0 ? (
+            <div className="rounded-xl bg-card/40 p-6 text-[13px] text-muted-foreground">No sync jobs yet.</div>
+          ) : (
+            <div className="divide-y divide-border/40 overflow-hidden rounded-xl bg-card/40">
+              {(jobsQuery.data ?? []).map((j) => (
+                <div key={j.id} className="flex items-center justify-between px-5 py-3 text-[12px]">
+                  <div className="min-w-0">
+                    <div className="text-foreground">{j.status}</div>
+                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      {j.trigger_type} · attempt {j.attempt_number}/{j.max_attempts}
+                      {j.error_code ? ` · ${j.error_code}` : ""}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-muted-foreground">
+                    {j.completed_at
+                      ? new Date(j.completed_at).toLocaleString()
+                      : (j.started_at ? new Date(j.started_at).toLocaleString() : new Date(j.scheduled_for).toLocaleString())}
                   </div>
                 </div>
               ))}

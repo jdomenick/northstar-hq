@@ -542,11 +542,14 @@ export type Database = {
           attempt_number: number
           automation_definition_id: string | null
           available_at: string
+          claimed_at: string | null
+          claimed_by: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
           error_code: string | null
           handler_version: string
+          heartbeat_at: string | null
           id: string
           idempotency_key: string
           input_payload: Json
@@ -554,6 +557,7 @@ export type Database = {
           integration_source_id: string | null
           job_family: string
           job_type: string
+          lease_expires_at: string | null
           max_attempts: number
           organization_id: string
           output_summary: Json
@@ -576,11 +580,14 @@ export type Database = {
           attempt_number?: number
           automation_definition_id?: string | null
           available_at?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
           error_code?: string | null
           handler_version?: string
+          heartbeat_at?: string | null
           id?: string
           idempotency_key: string
           input_payload?: Json
@@ -588,6 +595,7 @@ export type Database = {
           integration_source_id?: string | null
           job_family: string
           job_type: string
+          lease_expires_at?: string | null
           max_attempts?: number
           organization_id: string
           output_summary?: Json
@@ -610,11 +618,14 @@ export type Database = {
           attempt_number?: number
           automation_definition_id?: string | null
           available_at?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
           error_code?: string | null
           handler_version?: string
+          heartbeat_at?: string | null
           id?: string
           idempotency_key?: string
           input_payload?: Json
@@ -622,6 +633,7 @@ export type Database = {
           integration_source_id?: string | null
           job_family?: string
           job_type?: string
+          lease_expires_at?: string | null
           max_attempts?: number
           organization_id?: string
           output_summary?: Json
@@ -3516,6 +3528,155 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      automation_advance_definition: {
+        Args: {
+          _definition_id: string
+          _last_run_at: string
+          _next_run_at: string
+        }
+        Returns: undefined
+      }
+      automation_cancel_job: {
+        Args: { _job_id: string; _organization_id: string; _reason?: string }
+        Returns: {
+          actor_type: string
+          asset_id: string | null
+          attempt_number: number
+          automation_definition_id: string | null
+          available_at: string
+          claimed_at: string | null
+          claimed_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_code: string | null
+          handler_version: string
+          heartbeat_at: string | null
+          id: string
+          idempotency_key: string
+          input_payload: Json
+          integration_connection_id: string | null
+          integration_source_id: string | null
+          job_family: string
+          job_type: string
+          lease_expires_at: string | null
+          max_attempts: number
+          organization_id: string
+          output_summary: Json
+          parent_job_id: string | null
+          policy_version: string
+          priority: string
+          retry_after: string | null
+          root_job_id: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          timeout_seconds: number
+          trigger_type: string
+          updated_at: string
+          venture_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "automation_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      automation_claim_next_job: {
+        Args: { _lease_seconds?: number; _worker_id: string }
+        Returns: {
+          actor_type: string
+          asset_id: string | null
+          attempt_number: number
+          automation_definition_id: string | null
+          available_at: string
+          claimed_at: string | null
+          claimed_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_code: string | null
+          handler_version: string
+          heartbeat_at: string | null
+          id: string
+          idempotency_key: string
+          input_payload: Json
+          integration_connection_id: string | null
+          integration_source_id: string | null
+          job_family: string
+          job_type: string
+          lease_expires_at: string | null
+          max_attempts: number
+          organization_id: string
+          output_summary: Json
+          parent_job_id: string | null
+          policy_version: string
+          priority: string
+          retry_after: string | null
+          root_job_id: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          timeout_seconds: number
+          trigger_type: string
+          updated_at: string
+          venture_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "automation_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      automation_recover_stale_jobs: {
+        Args: { _limit?: number }
+        Returns: {
+          actor_type: string
+          asset_id: string | null
+          attempt_number: number
+          automation_definition_id: string | null
+          available_at: string
+          claimed_at: string | null
+          claimed_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_code: string | null
+          handler_version: string
+          heartbeat_at: string | null
+          id: string
+          idempotency_key: string
+          input_payload: Json
+          integration_connection_id: string | null
+          integration_source_id: string | null
+          job_family: string
+          job_type: string
+          lease_expires_at: string | null
+          max_attempts: number
+          organization_id: string
+          output_summary: Json
+          parent_job_id: string | null
+          policy_version: string
+          priority: string
+          retry_after: string | null
+          root_job_id: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          timeout_seconds: number
+          trigger_type: string
+          updated_at: string
+          venture_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "automation_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_org_role: {
         Args: {
           _min: Database["public"]["Enums"]["org_role"]
