@@ -15,3 +15,15 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = [
   "image/jpeg",
   "image/webp",
 ];
+
+// Centralized query and pagination limits.
+export const LIMITS = {
+  primaryList: 25,
+  activityFeed: 20,
+  searchPerCategory: 10,
+  archivedList: 25,
+  memberList: 50,
+} as const;
+
+// Debounce (ms) for typing-driven queries such as global search.
+export const SEARCH_DEBOUNCE_MS = 200;

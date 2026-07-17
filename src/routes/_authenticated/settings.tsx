@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
+import { useNavigate } from "@tanstack/react-router";
 import {
   useOrganization,
   useOrgMembersFull,
@@ -15,6 +16,11 @@ import {
   useUpdateMemberStatus,
   useUpdateOrganization,
   useUpdateProfile,
+  useArchivedRecords,
+  useRestoreProject,
+  useRestoreKnowledge,
+  useRestoreDocument,
+  type ArchivedType,
   type MemberStatus,
   type OrgMemberFull,
   type OrgRole,
@@ -59,13 +65,112 @@ function SettingsPage() {
           <TabsContent value="profile"><ProfileTab /></TabsContent>
           <TabsContent value="organization"><OrganizationTab /></TabsContent>
           <TabsContent value="members"><MembersTab /></TabsContent>
-          {["operator","accountability","notifications","security","data","integrations","appearance"].map((v) => (
+          <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
+          {["operator","accountability","notifications","security","integrations","appearance"].map((v) => (
             <TabsContent key={v} value={v}>
-              <p className="text-[13.5px] text-muted-foreground">This section connects in a future phase.</p>
+              <p className="text-[13.5px] text-muted-foreground">
+                {v === "operator"
+                  ? "SAM preferences will be available once SAM intelligence activates in Phase 3."
+                  : "This section connects in a future phase."}
+              </p>
             </TabsContent>
           ))}
         </Tabs>
       </PageBody>
+    </div>
+  );
+}
+
+const ARCHIVE_TYPES: Array<{ value: ArchivedType | "all"; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "venture", label: "Ventures" },
+  { value: "project", label: "Projects" },
+  { value: "goal", label: "Goals" },
+  { value: "decision", label: "Decisions" },
+  { value: "commitment", label: "Commitments" },
+  { value: "knowledge", label: "Knowledge" },
+  { value: "document", label: "Documents" },
+];
+
+function ArchiveCenterTab() {
+  const { activeOrgId, activeMembership } = useOrg();
+  const navigate = useNavigate();
+  const [type, setType] = useState<ArchivedType | "all">("all");
+  const [query, setQuery] = useState("");
+  const archivedQ = useArchivedRecords(activeOrgId, { type, query });
+  const restoreProject = useRestoreProject(activeOrgId);
+  const restoreKnowledge = useRestoreKnowledge(activeOrgId);
+  const restoreDocument = useRestoreDocument(activeOrgId);
+  const canRestore = can.archiveContent(activeMembership?.role);
+
+  async function handleRestore(row: { id: string; type: ArchivedType; title: string; ventureId?: string | null }) {
+    if (!confirm(`Restore "${row.title}"?`)) return;
+    try {
+      if (row.type === "project") await restoreProject.mutateAsync(row.id);
+      else if (row.type === "knowledge") await restoreKnowledge.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
+      else if (row.type === "document") await restoreDocument.mutateAsync({ id: row.id, title: row.title, venture_id: row.ventureId ?? null });
+      else return toast.info(`Restore for ${row.type} is not yet supported in-app.`);
+      toast.success("Restored");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Restore failed");
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Section title="Archive Center" hint="Archived records stay in your organization and can be restored. Nothing is permanently deleted.">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search archived records…"
+            className="min-w-[220px] flex-1 rounded-md bg-secondary/40 px-3 py-2 text-[13px] outline-none placeholder:text-muted-foreground/60"
+          />
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as ArchivedType | "all")}
+            className="rounded-md bg-secondary/40 px-2.5 py-2 text-[12.5px] outline-none hover:bg-secondary/60"
+          >
+            {ARCHIVE_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+          </select>
+        </div>
+        {archivedQ.isLoading ? (
+          <div className="h-32 animate-pulse rounded-xl bg-card/30" />
+        ) : (archivedQ.data ?? []).length === 0 ? (
+          <p className="text-[13px] text-muted-foreground">Nothing archived here.</p>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {(archivedQ.data ?? []).map((row) => (
+              <li key={`${row.type}-${row.id}`} className="flex items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13.5px] text-foreground">{row.title}</div>
+                  <div className="truncate text-[11.5px] text-muted-foreground">
+                    <span className="capitalize">{row.type}</span>
+                    {row.archivedAt && ` · archived ${row.archivedAt.slice(0, 10)}`}
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate({ to: row.route.to as any, params: row.route.params as any })}
+                  className="rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground"
+                >
+                  Open
+                </button>
+                {canRestore && ["project", "knowledge", "document"].includes(row.type) && (
+                  <button
+                    onClick={() => handleRestore(row)}
+                    className="rounded-md bg-secondary/60 px-2.5 py-1 text-[12px] text-foreground hover:bg-secondary"
+                  >
+                    Restore
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-4 text-[11.5px] text-muted-foreground/80">
+          Restore for ventures, goals, decisions, and commitments will be added alongside their dedicated restore hooks. All archived records remain protected by organization access rules.
+        </p>
+      </Section>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { logActivity } from "./activity";
+import { LIMITS } from "./constants";
 
 export type Venture = Database["public"]["Tables"]["ventures"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
@@ -1802,6 +1803,289 @@ export function useUploadDocument(orgId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["documents", orgId] });
       qc.invalidateQueries({ queryKey: ["activity", orgId] });
+    },
+  });
+}
+
+// ============================================================
+// Global search across the active organization only.
+// Returns grouped results limited by LIMITS.searchPerCategory.
+// ============================================================
+
+export type SearchHit = {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  type: "venture" | "project" | "task" | "goal" | "decision" | "commitment" | "knowledge" | "document" | "member";
+  route: { to: string; params?: Record<string, string> };
+  ventureId?: string | null;
+  status?: string | null;
+};
+
+export type GlobalSearchResults = {
+  ventures: SearchHit[];
+  projects: SearchHit[];
+  tasks: SearchHit[];
+  goals: SearchHit[];
+  decisions: SearchHit[];
+  commitments: SearchHit[];
+  knowledge: SearchHit[];
+  documents: SearchHit[];
+  members: SearchHit[];
+  total: number;
+};
+
+function esc(v: string): string {
+  // Escape characters meaningful in PostgREST `or=(...)` filters.
+  return v.replace(/[,()"\\]/g, " ").trim();
+}
+
+export function useGlobalSearch(
+  orgId: string | null,
+  rawQuery: string,
+  opts?: { includeArchived?: boolean },
+) {
+  const q = esc(rawQuery ?? "");
+  const enabled = !!orgId && q.length >= 2;
+  const includeArchived = !!opts?.includeArchived;
+  const limit = LIMITS.searchPerCategory;
+  const like = `%${q}%`;
+
+  return useQuery({
+    queryKey: ["globalSearch", orgId, q, includeArchived],
+    enabled,
+    staleTime: 15_000,
+    queryFn: async (): Promise<GlobalSearchResults> => {
+      const notArchived = (b: any) => (includeArchived ? b : b.is("deleted_at", null));
+
+      const [v, p, t, g, d, c, k, doc, mem] = await Promise.all([
+        notArchived(
+          supabase
+            .from("ventures")
+            .select("id,name,current_focus,status")
+            .eq("organization_id", orgId!)
+            .or(`name.ilike.${like},description.ilike.${like},mission.ilike.${like},target_audience.ilike.${like},current_focus.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("projects")
+            .select("id,name,status,venture_id")
+            .eq("organization_id", orgId!)
+            .or(`name.ilike.${like},objective.ilike.${like},desired_outcome.ilike.${like},next_action.ilike.${like},risk_summary.ilike.${like},blocker_summary.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("tasks")
+            .select("id,title,status,project_id")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},description.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("goals")
+            .select("id,title,status,venture_id,goal_type")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},description.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("decisions")
+            .select("id,title,status,venture_id")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},question.ilike.${like},context.ilike.${like},final_decision.ilike.${like},rationale.ilike.${like},outcome.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("commitments")
+            .select("id,title,status,venture_id")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},description.ilike.${like},notes.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("knowledge_records")
+            .select("id,title,knowledge_type,venture_id")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},content.ilike.${like},source.ilike.${like}`)
+            .limit(limit),
+        ),
+        notArchived(
+          supabase
+            .from("documents")
+            .select("id,title,file_name,venture_id")
+            .eq("organization_id", orgId!)
+            .or(`title.ilike.${like},description.ilike.${like},file_name.ilike.${like}`)
+            .limit(limit),
+        ),
+        supabase
+          .from("organization_members")
+          .select("id,role,status,profile:profiles!organization_members_user_id_fkey(id,preferred_name,full_name,email)")
+          .eq("organization_id", orgId!)
+          .eq("status", "active")
+          .limit(limit * 3),
+      ]);
+
+      const ventures: SearchHit[] = (v.data ?? []).map((r: any) => ({
+        id: r.id, title: r.name, subtitle: r.current_focus, type: "venture",
+        route: { to: "/ventures/$id", params: { id: r.id } },
+        ventureId: r.id, status: r.status,
+      }));
+      const projects: SearchHit[] = (p.data ?? []).map((r: any) => ({
+        id: r.id, title: r.name, type: "project",
+        route: { to: "/projects/$id", params: { id: r.id } },
+        ventureId: r.venture_id, status: r.status,
+      }));
+      const tasks: SearchHit[] = (t.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title, type: "task",
+        route: { to: "/projects/$id", params: { id: r.project_id } },
+        status: r.status,
+      }));
+      const goals: SearchHit[] = (g.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title, subtitle: r.goal_type, type: "goal",
+        route: { to: "/goals/$id", params: { id: r.id } },
+        ventureId: r.venture_id, status: r.status,
+      }));
+      const decisions: SearchHit[] = (d.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title, type: "decision",
+        route: { to: "/decisions/$id", params: { id: r.id } },
+        ventureId: r.venture_id, status: r.status,
+      }));
+      const commitments: SearchHit[] = (c.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title, type: "commitment",
+        route: { to: "/commitments/$id", params: { id: r.id } },
+        ventureId: r.venture_id, status: r.status,
+      }));
+      const knowledge: SearchHit[] = (k.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title, subtitle: r.knowledge_type, type: "knowledge",
+        route: { to: "/knowledge/$id", params: { id: r.id } },
+        ventureId: r.venture_id,
+      }));
+      const documents: SearchHit[] = (doc.data ?? []).map((r: any) => ({
+        id: r.id, title: r.title || r.file_name, subtitle: r.file_name, type: "document",
+        route: { to: "/documents/$id", params: { id: r.id } },
+        ventureId: r.venture_id,
+      }));
+
+      const lower = q.toLowerCase();
+      const memberHits: SearchHit[] = ((mem.data ?? []) as any[])
+        .filter((m) => {
+          const p = m.profile ?? {};
+          return [p.preferred_name, p.full_name, p.email]
+            .filter(Boolean)
+            .some((s: string) => s.toLowerCase().includes(lower));
+        })
+        .slice(0, limit)
+        .map((m) => ({
+          id: m.id,
+          title: m.profile?.preferred_name || m.profile?.full_name || m.profile?.email || "Member",
+          subtitle: m.role,
+          type: "member",
+          route: { to: "/settings" },
+        }));
+
+      const total =
+        ventures.length + projects.length + tasks.length + goals.length +
+        decisions.length + commitments.length + knowledge.length +
+        documents.length + memberHits.length;
+
+      return { ventures, projects, tasks, goals, decisions, commitments, knowledge, documents, members: memberHits, total };
+    },
+  });
+}
+
+// ============================================================
+// Archive Center: paginated archived records across types.
+// ============================================================
+
+export type ArchivedType = "venture" | "project" | "goal" | "decision" | "commitment" | "knowledge" | "document";
+
+export type ArchivedRow = {
+  id: string;
+  title: string;
+  type: ArchivedType;
+  archivedAt: string | null;
+  route: { to: string; params?: Record<string, string> };
+  ventureId?: string | null;
+};
+
+export function useArchivedRecords(
+  orgId: string | null,
+  opts?: { type?: ArchivedType | "all"; ventureId?: string | null; query?: string; limit?: number },
+) {
+  const type = opts?.type ?? "all";
+  const ventureId = opts?.ventureId ?? null;
+  const query = (opts?.query ?? "").trim();
+  const limit = opts?.limit ?? LIMITS.archivedList;
+
+  return useQuery({
+    queryKey: ["archived", orgId, type, ventureId, query, limit],
+    enabled: !!orgId,
+    queryFn: async (): Promise<ArchivedRow[]> => {
+      const results: ArchivedRow[] = [];
+      const like = query ? `%${esc(query)}%` : null;
+
+      const runners: Array<{ t: ArchivedType; fn: () => Promise<ArchivedRow[]> }> = [
+        { t: "venture", fn: async () => {
+            let q = supabase.from("ventures").select("id,name,deleted_at").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("name", like);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "venture", archivedAt: r.deleted_at, route: { to: "/ventures/$id", params: { id: r.id } }, ventureId: r.id }));
+        }},
+        { t: "project", fn: async () => {
+            let q = supabase.from("projects").select("id,name,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("name", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "project", archivedAt: r.deleted_at, route: { to: "/projects/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+        { t: "goal", fn: async () => {
+            let q = supabase.from("goals").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("title", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "goal", archivedAt: r.deleted_at, route: { to: "/goals/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+        { t: "decision", fn: async () => {
+            let q = supabase.from("decisions").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("title", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "decision", archivedAt: r.deleted_at, route: { to: "/decisions/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+        { t: "commitment", fn: async () => {
+            let q = supabase.from("commitments").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("title", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "commitment", archivedAt: r.deleted_at, route: { to: "/commitments/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+        { t: "knowledge", fn: async () => {
+            let q = supabase.from("knowledge_records").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("title", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "knowledge", archivedAt: r.deleted_at, route: { to: "/knowledge/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+        { t: "document", fn: async () => {
+            let q = supabase.from("documents").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
+            if (like) q = q.ilike("title", like);
+            if (ventureId) q = q.eq("venture_id", ventureId);
+            const { data } = await q;
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "document", archivedAt: r.deleted_at, route: { to: "/documents/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+        }},
+      ];
+
+      const chosen = type === "all" ? runners : runners.filter((r) => r.t === type);
+      const chunks = await Promise.all(chosen.map((r) => r.fn()));
+      for (const c of chunks) results.push(...c);
+      results.sort((a, b) => (b.archivedAt ?? "").localeCompare(a.archivedAt ?? ""));
+      return results.slice(0, limit);
     },
   });
 }

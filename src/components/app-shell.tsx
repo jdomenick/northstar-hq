@@ -14,6 +14,10 @@ import {
   Search,
   PanelLeft,
   Bell,
+  CheckSquare,
+  ClipboardList,
+  Users,
+  Loader2,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -35,8 +39,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import { useNavigate } from "@tanstack/react-router";
+import { useGlobalSearch, type SearchHit } from "@/lib/data-hooks";
+import { can } from "@/lib/permissions";
+import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
   to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/operator" | "/integrations" | "/settings";
@@ -66,7 +74,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { activeMembership } = useOrg();
+  const { activeOrgId, activeMembership } = useOrg();
+  const [cmdInput, setCmdInput] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(cmdInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [cmdInput]);
+
+  useEffect(() => {
+    if (!cmdOpen) setCmdInput("");
+  }, [cmdOpen]);
+
+  const searchQ = useGlobalSearch(activeOrgId, debouncedQuery);
+  const canWrite = can.writeContent(activeMembership?.role);
+  const results = searchQ.data;
+  const hasQuery = debouncedQuery.length >= 2;
+
+  const goto = (route: SearchHit["route"] | { to: string; params?: Record<string, string> }) => {
+    setCmdOpen(false);
+    navigate({ to: route.to as any, params: route.params as any });
+  };
 
   const initials = (user?.email ?? "?")
     .split(/[.@_-]/)
@@ -277,47 +306,115 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
-        <CommandInput placeholder="Search ventures, projects, decisions, docs…" />
+        <CommandInput
+          placeholder="Search ventures, projects, decisions, docs, people…"
+          value={cmdInput}
+          onValueChange={setCmdInput}
+        />
         <CommandList>
-          <CommandEmpty>Nothing found.</CommandEmpty>
+          {hasQuery && searchQ.isFetching && (
+            <div className="flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Searching…
+            </div>
+          )}
+          {hasQuery && searchQ.isError && (
+            <div className="px-3 py-2 text-[12px] text-destructive">Search failed. Try again.</div>
+          )}
+          {hasQuery && !searchQ.isFetching && results && results.total === 0 && (
+            <CommandEmpty>No matches in this organization.</CommandEmpty>
+          )}
+          {!hasQuery && <CommandEmpty>Type to search — or pick an action below.</CommandEmpty>}
+
+          {hasQuery && results && (
+            <>
+              <SearchGroup heading="Ventures" hits={results.ventures} icon={Building2} onSelect={goto} />
+              <SearchGroup heading="Projects" hits={results.projects} icon={FolderKanban} onSelect={goto} />
+              <SearchGroup heading="Tasks" hits={results.tasks} icon={CheckSquare} onSelect={goto} />
+              <SearchGroup heading="Goals" hits={results.goals} icon={Target} onSelect={goto} />
+              <SearchGroup heading="Decisions" hits={results.decisions} icon={GitBranch} onSelect={goto} />
+              <SearchGroup heading="Commitments" hits={results.commitments} icon={ClipboardList} onSelect={goto} />
+              <SearchGroup heading="Knowledge" hits={results.knowledge} icon={BookOpen} onSelect={goto} />
+              <SearchGroup heading="Documents" hits={results.documents} icon={FileText} onSelect={goto} />
+              <SearchGroup heading="People" hits={results.members} icon={Users} onSelect={goto} />
+              <CommandSeparator />
+            </>
+          )}
+
           <CommandGroup heading="Navigate">
             {NAV.map((item) => (
               <CommandItem
                 key={item.to}
-                value={item.label}
-                onSelect={() => {
-                  setCmdOpen(false);
-                  navigate({ to: item.to });
-                }}
+                value={`nav-${item.label}`}
+                onSelect={() => goto({ to: item.to })}
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}
+                {item.to === "/operator" && (
+                  <span className="ml-auto text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground/70">Phase 3</span>
+                )}
               </CommandItem>
             ))}
           </CommandGroup>
-          <CommandGroup heading="Quick actions">
-            {[
-              "Create your first venture",
-              "Add a business",
-              "Add a nonprofit",
-              "Add a personal brand",
-              "Add a new initiative",
-            ].map((v) => (
-              <CommandItem
-                key={v}
-                value={v}
-                onSelect={() => {
-                  setCmdOpen(false);
-                  navigate({ to: "/ventures" });
-                }}
-              >
-                <Building2 className="mr-2 h-4 w-4" />
-                {v}
+
+          {canWrite && (
+            <CommandGroup heading="Create">
+              <CommandItem value="create-venture" onSelect={() => goto({ to: "/ventures" })}>
+                <Building2 className="mr-2 h-4 w-4" /> New venture
               </CommandItem>
-            ))}
-          </CommandGroup>
+              <CommandItem value="create-project" onSelect={() => goto({ to: "/projects" })}>
+                <FolderKanban className="mr-2 h-4 w-4" /> New project
+              </CommandItem>
+              <CommandItem value="create-goal" onSelect={() => goto({ to: "/goals" })}>
+                <Target className="mr-2 h-4 w-4" /> New goal
+              </CommandItem>
+              <CommandItem value="create-decision" onSelect={() => goto({ to: "/decisions" })}>
+                <GitBranch className="mr-2 h-4 w-4" /> New decision
+              </CommandItem>
+              <CommandItem value="create-commitment" onSelect={() => goto({ to: "/accountability" })}>
+                <ClipboardList className="mr-2 h-4 w-4" /> New commitment
+              </CommandItem>
+              <CommandItem value="create-knowledge" onSelect={() => goto({ to: "/knowledge" })}>
+                <BookOpen className="mr-2 h-4 w-4" /> New knowledge record
+              </CommandItem>
+              <CommandItem value="upload-document" onSelect={() => goto({ to: "/documents" })}>
+                <FileText className="mr-2 h-4 w-4" /> Upload document
+              </CommandItem>
+            </CommandGroup>
+          )}
         </CommandList>
       </CommandDialog>
     </div>
+  );
+}
+
+function SearchGroup({
+  heading,
+  hits,
+  icon: Icon,
+  onSelect,
+}: {
+  heading: string;
+  hits: SearchHit[];
+  icon: typeof CommandIcon;
+  onSelect: (route: SearchHit["route"]) => void;
+}) {
+  if (hits.length === 0) return null;
+  return (
+    <CommandGroup heading={heading}>
+      {hits.map((h) => (
+        <CommandItem key={`${h.type}-${h.id}`} value={`${h.type}-${h.id}-${h.title}`} onSelect={() => onSelect(h.route)}>
+          <Icon className="mr-2 h-4 w-4 shrink-0" />
+          <span className="truncate">{h.title}</span>
+          {h.subtitle && (
+            <span className="ml-2 truncate text-[11px] text-muted-foreground">{h.subtitle}</span>
+          )}
+          {h.status && (
+            <span className="ml-auto text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground/70">
+              {h.status.replace(/_/g, " ")}
+            </span>
+          )}
+        </CommandItem>
+      ))}
+    </CommandGroup>
   );
 }
