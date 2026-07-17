@@ -32,6 +32,7 @@ import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedKnowledgeIdRouteImport } from './routes/_authenticated/knowledge.$id'
 import { Route as AuthenticatedGoalsIdRouteImport } from './routes/_authenticated/goals.$id'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
+import { Route as AuthenticatedDecisionsIdRouteImport } from './routes/_authenticated/decisions.$id'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
@@ -154,6 +155,12 @@ const AuthenticatedDocumentsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedDocumentsRoute,
   } as any)
+const AuthenticatedDecisionsIdRoute =
+  AuthenticatedDecisionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDecisionsRoute,
+  } as any)
 const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
   id: '/api/public/automation/tick',
   path: '/api/public/automation/tick',
@@ -176,7 +183,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
@@ -202,7 +210,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
-  '/decisions': typeof AuthenticatedDecisionsRoute
+  '/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
@@ -215,6 +223,7 @@ export interface FileRoutesByTo {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
+  '/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
@@ -231,7 +240,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
-  '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/decisions': typeof AuthenticatedDecisionsRouteWithChildren
   '/_authenticated/documents': typeof AuthenticatedDocumentsRouteWithChildren
   '/_authenticated/goals': typeof AuthenticatedGoalsRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
@@ -244,6 +253,7 @@ export interface FileRoutesById {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/decisions/$id': typeof AuthenticatedDecisionsIdRoute
   '/_authenticated/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/_authenticated/goals/$id': typeof AuthenticatedGoalsIdRoute
   '/_authenticated/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/ventures'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/decisions/$id'
     | '/documents/$id'
     | '/goals/$id'
     | '/knowledge/$id'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/'
+    | '/decisions/$id'
     | '/documents/$id'
     | '/goals/$id'
     | '/knowledge/$id'
@@ -328,6 +340,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/_authenticated/'
+    | '/_authenticated/decisions/$id'
     | '/_authenticated/documents/$id'
     | '/_authenticated/goals/$id'
     | '/_authenticated/knowledge/$id'
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIdRouteImport
       parentRoute: typeof AuthenticatedDocumentsRoute
     }
+    '/_authenticated/decisions/$id': {
+      id: '/_authenticated/decisions/$id'
+      path: '/$id'
+      fullPath: '/decisions/$id'
+      preLoaderRoute: typeof AuthenticatedDecisionsIdRouteImport
+      parentRoute: typeof AuthenticatedDecisionsRoute
+    }
     '/api/public/automation/tick': {
       id: '/api/public/automation/tick'
       path: '/api/public/automation/tick'
@@ -534,6 +554,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedDecisionsRouteChildren {
+  AuthenticatedDecisionsIdRoute: typeof AuthenticatedDecisionsIdRoute
+}
+
+const AuthenticatedDecisionsRouteChildren: AuthenticatedDecisionsRouteChildren =
+  {
+    AuthenticatedDecisionsIdRoute: AuthenticatedDecisionsIdRoute,
+  }
+
+const AuthenticatedDecisionsRouteWithChildren =
+  AuthenticatedDecisionsRoute._addFileChildren(
+    AuthenticatedDecisionsRouteChildren,
+  )
 
 interface AuthenticatedDocumentsRouteChildren {
   AuthenticatedDocumentsIdRoute: typeof AuthenticatedDocumentsIdRoute
@@ -641,7 +675,7 @@ const AuthenticatedVenturesRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRouteWithChildren
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRouteWithChildren
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
@@ -655,7 +689,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRouteWithChildren,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRouteWithChildren,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
