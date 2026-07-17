@@ -171,7 +171,7 @@ export const askSam = createServerFn({ method: "POST" })
     }
 
     // 8. Persist SAM message.
-    const metadata = {
+    const metadata = JSON.parse(JSON.stringify({
       intent: result.intent,
       confidence: result.confidence,
       citations: result.response.citations,
@@ -185,7 +185,7 @@ export const askSam = createServerFn({ method: "POST" })
       input_tokens: result.usage.inputTokens ?? null,
       output_tokens: result.usage.outputTokens ?? null,
       truncations: result.context.truncations,
-    };
+    }));
 
     const { data: samMsg, error: samMsgErr } = await supabase
       .from("conversation_messages")
