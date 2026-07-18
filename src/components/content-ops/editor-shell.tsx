@@ -564,6 +564,11 @@ export function EditorShell({ organizationId, parentContentItemId }: {
   const approveFn = useServerFn(approveContentItem);
   const rejectFn = useServerFn(rejectContentItem);
   const updateParentFn = useServerFn(updateParentMeta);
+  const duplicateFn = useServerFn(duplicateVariant);
+  const archiveFn = useServerFn(archiveContentItem);
+  const unarchiveFn = useServerFn(unarchiveContentItem);
+  const scheduleFn = useServerFn(scheduleVariant);
+  const listTopicsFn = useServerFn(listEvergreenTopics);
 
   const editorKey = ["content-ops", "editor", organizationId, parentContentItemId];
   const editorQ = useQuery({
@@ -591,6 +596,7 @@ export function EditorShell({ organizationId, parentContentItemId }: {
   const duplicates = (editorQ.data?.duplicates ?? []) as Array<{ fingerprint: string; contentItemId: string }>;
 
   const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
+  const [editorialDrafts, setEditorialDrafts] = useState<Record<string, EditorialDraft>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<"edit" | "compare" | "history">("edit");
   const [error, setError] = useState<string | null>(null);
@@ -602,12 +608,35 @@ export function EditorShell({ organizationId, parentContentItemId }: {
       for (const v of variants) if (!next[v.id]) next[v.id] = draftFromRow(v);
       return next;
     });
+    setEditorialDrafts((prev) => {
+      const next = { ...prev };
+      for (const v of variants) if (!next[v.id]) {
+        const draft = editorialFromRow(v.editorial);
+        // Merge dedicated columns that live outside the JSONB blob.
+        next[v.id] = {
+          ...draft,
+          workingTitle: v.working_title ?? draft.workingTitle ?? "",
+          finalTitle: v.final_title ?? draft.finalTitle ?? "",
+          evergreenTopic: v.evergreen_topic ?? draft.evergreenTopic ?? "",
+          evergreenTags: (v.evergreen_tags ?? draft.evergreenTags ?? []).filter(Boolean),
+          targetAudience: v.target_audience ?? draft.targetAudience ?? "",
+        };
+      }
+      return next;
+    });
     setActiveId((prev) => prev ?? variants[0]?.id ?? null);
   }, [variants]);
 
   const active = variants.find((v) => v.id === activeId) ?? null;
   const activeDraft = active ? drafts[active.id] : null;
   const activeCfg = active && activeDraft ? getPlatformConfig(activeDraft.platform) : null;
+  const activeEditorial = active ? (editorialDrafts[active.id] ?? EMPTY_EDITORIAL_DRAFT) : EMPTY_EDITORIAL_DRAFT;
+
+  const topicsQ = useQuery({
+    queryKey: ["content-ops", "evergreen-topics", organizationId, ventureId],
+    enabled: !!ventureId,
+    queryFn: () => listTopicsFn({ data: { organizationId, ventureId: ventureId! } }),
+  });
 
   const dupOfActive = useMemo(() => {
     if (!active) return null;
@@ -625,13 +654,20 @@ export function EditorShell({ organizationId, parentContentItemId }: {
     setDrafts((prev) => ({ ...prev, [activeId]: fn(prev[activeId]!) }));
   }, [activeId]);
 
+  const setActiveEditorial = useCallback((next: EditorialDraft) => {
+    if (!activeId) return;
+    setEditorialDrafts((prev) => ({ ...prev, [activeId]: next }));
+    setDrafts((prev) => activeId && prev[activeId] ? { ...prev, [activeId]: { ...prev[activeId]!, dirty: true } } : prev);
+  }, [activeId]);
+
   // ---- Mutations ---------------------------------------------------------
 
   const invalidate = () => qc.invalidateQueries({ queryKey: editorKey });
 
   const saveMut = useMutation({
-    mutationFn: async (opts: { overrideApproved: boolean; changeReason?: string }) => {
+    mutationFn: async (opts: { overrideApproved: boolean; changeReason?: string; clientEditToken?: string }) => {
       if (!active || !activeDraft || !ventureId) throw new Error("no active variant");
+      const ed = editorialToPayload(activeEditorial);
       const payload = {
         organizationId, ventureId,
         contentItemId: active.id,
@@ -651,6 +687,13 @@ export function EditorShell({ organizationId, parentContentItemId }: {
         media: activeDraft.media,
         changeReason: opts.changeReason,
         overrideApproved: opts.overrideApproved,
+        workingTitle: ed.workingTitle,
+        finalTitle: ed.finalTitle,
+        editorial: ed,
+        evergreenTopic: ed.evergreenTopic,
+        evergreenTags: ed.evergreenTags,
+        targetAudience: ed.targetAudience,
+        clientEditToken: opts.clientEditToken,
       };
       return saveFn({ data: payload });
     },
@@ -661,6 +704,30 @@ export function EditorShell({ organizationId, parentContentItemId }: {
     },
     onError: (e: Error) => setError(e.message),
   });
+
+  // Autosave: fires while editing. Never shows "Saved" until the server
+  // acknowledges. Cannot silently override an approved variant - it disables
+  // itself in that case so the operator has to explicitly click Save.
+  const autosaveEnabled = !!active
+    && active.approval_status !== "approved"
+    && active.status !== "published"
+    && active.status !== "publishing"
+    && !!activeDraft?.dirty;
+  const autosave = useAutosave({
+    enabled: autosaveEnabled,
+    getSnapshot: () => (active && activeDraft ? { id: active.id, v: active.content_version } : null),
+    save: async (_snap, token) => {
+      await new Promise<void>((resolve, reject) => {
+        saveMut.mutate(
+          { overrideApproved: false, clientEditToken: token, changeReason: "autosave" },
+          { onSuccess: () => resolve(), onError: (e) => reject(e as Error) },
+        );
+      });
+    },
+  });
+  useEffect(() => { if (autosaveEnabled) autosave.notifyEdit(); }, [
+    autosaveEnabled, activeDraft, activeEditorial,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doSave = () => {
     if (!active) return;
