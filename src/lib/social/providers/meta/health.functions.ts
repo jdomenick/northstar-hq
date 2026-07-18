@@ -25,7 +25,7 @@ export const getMetaConnectorHealth = createServerFn({ method: "POST" })
         configured: cfg.configured,
         missing: cfg.missing,
         graphVersion: META_GRAPH_VERSION,
-        destinations: [] as unknown[],
+        destinations: [] as Array<Record<string, unknown>>,
         error: "destination_read_failed",
       };
     }
@@ -33,6 +33,7 @@ export const getMetaConnectorHealth = createServerFn({ method: "POST" })
       configured: cfg.configured,
       missing: cfg.missing,
       graphVersion: META_GRAPH_VERSION,
-      destinations: dests ?? [],
+      destinations: (dests ?? []) as Array<Record<string, unknown>>,
+      error: null,
     };
   });
