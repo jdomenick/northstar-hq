@@ -406,7 +406,7 @@ export function detectGoalDrift(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
   const now = ds.now;
   for (const g of ds.goals) {
-    if (g.status !== "active" && g.status !== "in_progress") continue;
+    if (g.status !== "active" && g.status !== "at_risk") continue;
     const updated = parseDate(g.updated_at);
     if (!updated) continue;
     const daysSince = daysBetween(now, updated);
