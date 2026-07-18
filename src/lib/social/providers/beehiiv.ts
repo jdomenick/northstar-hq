@@ -28,8 +28,10 @@ const BASE = "https://api.beehiiv.com/v2";
 
 function creds(): { apiKey: string; pubId: string } | null {
   const apiKey = process.env.BEEHIIV_API_KEY;
-  const pubId = process.env.BEEHIIV_PUBLICATION_ID;
-  if (!apiKey || !pubId) return null;
+  const raw = process.env.BEEHIIV_PUBLICATION_ID;
+  if (!apiKey || !raw) return null;
+  // Beehiiv v2 requires the pub_<uuid> form. Accept either shape from env.
+  const pubId = raw.startsWith("pub_") ? raw : `pub_${raw}`;
   return { apiKey, pubId };
 }
 
