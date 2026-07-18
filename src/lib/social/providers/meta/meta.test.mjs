@@ -52,7 +52,7 @@ test("capability summary is blocked when not configured", () => {
     configured: false, connected: false, grantedPermissions: [],
     destinationCount: 0, publishableDestinationCount: 0, provider: "facebook",
   });
-  assert.equal(s.canPublish, false);
+  assert.equal(s.publishAvailable, false);
 });
 
 test("capability summary is publish-ready when configured, connected, permissions granted, destinations publishable", () => {
@@ -61,5 +61,5 @@ test("capability summary is publish-ready when configured, connected, permission
     grantedPermissions: ["pages_manage_posts","pages_read_engagement","pages_show_list"],
     destinationCount: 1, publishableDestinationCount: 1, provider: "facebook",
   });
-  assert.equal(s.canPublish, true);
+  assert.equal(s.publishAvailable, true);
 });
