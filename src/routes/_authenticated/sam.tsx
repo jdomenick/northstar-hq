@@ -586,7 +586,7 @@ function ResponseSection({
         {items.map((s, i) => (
           <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
             <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-foreground/60" />
-            <span>{s}</span>
+            <span><CleanProse text={s} /></span>
           </li>
         ))}
       </ul>
@@ -598,15 +598,10 @@ function ResponseSection({
 // or when the model over-structures). Render them as clean prose instead of
 // showing curly braces and quoted keys in the UI.
 function CleanProse({ text }: { text: string }) {
-  const trimmed = (text ?? "").trim();
-  const looksJson =
-    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-    (trimmed.startsWith("[") && trimmed.endsWith("]"));
-
-  if (!looksJson) return <>{text}</>;
-
+  const raw = (text ?? "").trim();
+  const parsed = tryParseJson(raw);
+  if (parsed === undefined) return <>{text}</>;
   try {
-    const parsed = JSON.parse(trimmed);
     const blocks = flattenJson(parsed);
     if (blocks.length === 0) return <>{text}</>;
     return (
@@ -644,6 +639,25 @@ function CleanProse({ text }: { text: string }) {
   } catch {
     return <>{text}</>;
   }
+}
+
+function tryParseJson(text: string): unknown | undefined {
+  if (!text) return undefined;
+  const candidates: string[] = [];
+  if ((text.startsWith("{") && text.endsWith("}")) || (text.startsWith("[") && text.endsWith("]"))) {
+    candidates.push(text);
+  }
+  // Fenced code block ```json ... ```
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence?.[1]) candidates.push(fence[1].trim());
+  // First balanced-looking object/array substring
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first !== -1 && last > first) candidates.push(text.slice(first, last + 1));
+  for (const c of candidates) {
+    try { return JSON.parse(c); } catch { /* try next */ }
+  }
+  return undefined;
 }
 
 type ProseBlock =
