@@ -323,7 +323,7 @@ function ProjectGroup({
       <p className="mt-3 text-[12.5px] italic text-foreground/60">{hint}</p>
       <Ledger className="mt-4">
         {rows.map((p) => (
-          <ProjectRow key={p.id} p={p} venture={ventureMap.get(p.venture_id)} />
+          <ProjectRow key={p.id} p={p} venture={p.venture_id ? ventureMap.get(p.venture_id) : undefined} />
         ))}
       </Ledger>
     </section>

@@ -442,7 +442,7 @@ function TaskList({
   canWrite,
 }: {
   projectId: string;
-  ventureId: string;
+  ventureId: string | null;
   tasks: Task[];
   canWrite: boolean;
 }) {
@@ -464,7 +464,7 @@ function TaskList({
       await create.mutateAsync({
         title: title.trim(),
         project_id: projectId,
-        venture_id: ventureId,
+        venture_id: ventureId ?? undefined,
         due_date: due || null,
       });
       setTitle("");
