@@ -276,22 +276,45 @@ function ProfileTab() {
   const { activeOrgId, activeMembership } = useOrg();
   const profileQ = useProfile(user?.id);
   const update = useUpdateProfile(activeOrgId);
-  const [form, setForm] = useState<{ full_name: string; preferred_name: string; title: string; avatar_url: string; timezone: string } | null>(null);
+  const [form, setForm] = useState<{
+    full_name: string;
+    preferred_name: string;
+    title: string;
+    avatar_url: string;
+    timezone: string;
+    bio: string;
+    pronouns: string;
+    location: string;
+    website: string;
+    linkedin: string;
+    twitter: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!profileQ.data) return;
+    const links = (profileQ.data.links ?? {}) as Record<string, string | undefined>;
     setForm({
       full_name: profileQ.data.full_name ?? "",
       preferred_name: profileQ.data.preferred_name ?? "",
       title: profileQ.data.title ?? "",
       avatar_url: profileQ.data.avatar_url ?? "",
       timezone: profileQ.data.timezone ?? "UTC",
+      bio: (profileQ.data as { bio?: string | null }).bio ?? "",
+      pronouns: (profileQ.data as { pronouns?: string | null }).pronouns ?? "",
+      location: (profileQ.data as { location?: string | null }).location ?? "",
+      website: links.website ?? "",
+      linkedin: links.linkedin ?? "",
+      twitter: links.twitter ?? "",
     });
   }, [profileQ.data]);
 
   async function save() {
     if (!form || !user) return;
     try {
+      const links: Record<string, string> = {};
+      if (form.website.trim()) links.website = form.website.trim();
+      if (form.linkedin.trim()) links.linkedin = form.linkedin.trim();
+      if (form.twitter.trim()) links.twitter = form.twitter.trim();
       await update.mutateAsync({
         userId: user.id,
         patch: {
@@ -300,7 +323,11 @@ function ProfileTab() {
           title: form.title || null,
           avatar_url: form.avatar_url || null,
           timezone: form.timezone || "UTC",
-        },
+          bio: form.bio || null,
+          pronouns: form.pronouns || null,
+          location: form.location || null,
+          links,
+        } as never,
       });
       toast.success("Profile saved");
     } catch (err) {
@@ -310,15 +337,83 @@ function ProfileTab() {
 
   if (!form) return <div className="h-40 animate-pulse rounded-2xl bg-card/30" />;
 
+  const displayName =
+    form.preferred_name?.trim() ||
+    form.full_name?.trim() ||
+    user?.email ||
+    "You";
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("") || "?";
+
   return (
     <div className="max-w-2xl space-y-6">
       <Section title="You">
+        <div className="mb-6 flex items-center gap-5">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border bg-secondary/40">
+            {form.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={form.avatar_url}
+                alt={displayName}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[22px] font-medium text-muted-foreground">
+                {initials}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[16px] text-foreground">{displayName}</div>
+            {form.title && (
+              <div className="truncate text-[12.5px] text-muted-foreground">{form.title}</div>
+            )}
+            {form.pronouns && (
+              <div className="mt-0.5 text-[11.5px] text-muted-foreground/80">{form.pronouns}</div>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-4 text-[13.5px]">
           <Fld label="Full name"><input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
           <Fld label="Preferred name"><input value={form.preferred_name} onChange={(e) => setForm({ ...form, preferred_name: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
           <Fld label="Title"><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Pronouns"><input value={form.pronouns} onChange={(e) => setForm({ ...form, pronouns: e.target.value })} placeholder="e.g. she/her" className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="Location"><input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="City, Country" className="w-full bg-transparent outline-none" /></Fld>
           <Fld label="Timezone"><input value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })} placeholder="e.g. America/New_York" className="w-full bg-transparent outline-none" /></Fld>
-          <Fld label="Avatar URL"><input value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} placeholder="https://" className="w-full bg-transparent outline-none" /></Fld>
+          <div className="col-span-2">
+            <Fld label="Avatar image URL">
+              <input value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} placeholder="https://…" className="w-full bg-transparent outline-none" />
+            </Fld>
+          </div>
+          <div className="col-span-2">
+            <Fld label="Bio">
+              <textarea
+                value={form.bio}
+                onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                placeholder="A short introduction. What you do, what you care about."
+                rows={4}
+                maxLength={600}
+                className="w-full resize-none bg-transparent outline-none"
+              />
+              <div className="mt-1 text-right text-[10.5px] text-muted-foreground/70">
+                {form.bio.length}/600
+              </div>
+            </Fld>
+          </div>
+        </div>
+      </Section>
+      <Section title="Links" hint="Optional. Shown on your profile.">
+        <div className="grid grid-cols-1 gap-4 text-[13.5px]">
+          <Fld label="Website"><input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://…" className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="LinkedIn"><input value={form.linkedin} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} placeholder="https://linkedin.com/in/…" className="w-full bg-transparent outline-none" /></Fld>
+          <Fld label="X / Twitter"><input value={form.twitter} onChange={(e) => setForm({ ...form, twitter: e.target.value })} placeholder="https://x.com/…" className="w-full bg-transparent outline-none" /></Fld>
         </div>
       </Section>
       <Section title="Account">
