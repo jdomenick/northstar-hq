@@ -362,15 +362,13 @@ function VariantEditor({
           />
         )}
 
-        <LabelledInput
-          label="Body"
-          value={draft.body}
-          onChange={(v) => set("body", v)}
-          disabled={disabled}
-          multiline
-          minRows={8}
-          hint={`Ideal length: ${cfg.recommendations.idealBodyChars ?? "(no guidance)"} characters.`}
-        />
+        <div>
+          <div className="mb-1.5 flex items-baseline justify-between gap-3">
+            <span className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/70">Body</span>
+            <span className="text-[10.5px] text-foreground/50">Ideal: {cfg.recommendations.idealBodyChars ?? "no guidance"}</span>
+          </div>
+          <RichTextEditor value={draft.body} onChange={(v) => set("body", v)} disabled={disabled} minRows={8} ariaLabel="Body" />
+        </div>
 
         {supports("cta") && (
           <LabelledInput
