@@ -963,7 +963,19 @@ export function EditorShell({ organizationId, parentContentItemId }: {
         <div>
           <SectionLabel>Revision history</SectionLabel>
           <div className="mt-4">
-            <RevisionHistory variants={variants} versions={versions} approvals={approvals} />
+            {active ? (
+              <VersionHistoryDrawer
+                organizationId={organizationId}
+                ventureId={ventureId}
+                contentItemId={active.id}
+                currentVersion={active.content_version}
+                currentApprovalStatus={active.approval_status}
+                versions={versions}
+                approvals={approvals}
+              />
+            ) : (
+              <div className="text-[13px] text-foreground/60">Select a variant to view history.</div>
+            )}
           </div>
         </div>
       )}
