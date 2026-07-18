@@ -2351,12 +2351,23 @@ export type Database = {
       }
       executive_insights: {
         Row: {
+          acted_on_action: string | null
+          acted_on_at: string | null
+          acted_on_by: string | null
+          confidence: number
           created_at: string
           dismissed_at: string | null
+          dismissed_by: string | null
+          dismissed_reason: string | null
+          entity_ref: string | null
+          evidence: Json
           generated_at: string
           id: string
           insight_type: string
           organization_id: string
+          pattern_key: string | null
+          pattern_version: string | null
+          priority: Database["public"]["Enums"]["insight_priority"]
           resolved_at: string | null
           severity: Database["public"]["Enums"]["insight_severity"]
           source_records: Json | null
@@ -2367,12 +2378,23 @@ export type Database = {
           venture_id: string | null
         }
         Insert: {
+          acted_on_action?: string | null
+          acted_on_at?: string | null
+          acted_on_by?: string | null
+          confidence?: number
           created_at?: string
           dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          entity_ref?: string | null
+          evidence?: Json
           generated_at?: string
           id?: string
           insight_type: string
           organization_id: string
+          pattern_key?: string | null
+          pattern_version?: string | null
+          priority?: Database["public"]["Enums"]["insight_priority"]
           resolved_at?: string | null
           severity?: Database["public"]["Enums"]["insight_severity"]
           source_records?: Json | null
@@ -2383,12 +2405,23 @@ export type Database = {
           venture_id?: string | null
         }
         Update: {
+          acted_on_action?: string | null
+          acted_on_at?: string | null
+          acted_on_by?: string | null
+          confidence?: number
           created_at?: string
           dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          entity_ref?: string | null
+          evidence?: Json
           generated_at?: string
           id?: string
           insight_type?: string
           organization_id?: string
+          pattern_key?: string | null
+          pattern_version?: string | null
+          priority?: Database["public"]["Enums"]["insight_priority"]
           resolved_at?: string | null
           severity?: Database["public"]["Enums"]["insight_severity"]
           source_records?: Json | null
@@ -3852,6 +3885,114 @@ export type Database = {
           },
         ]
       }
+      sam_executive_digests: {
+        Row: {
+          created_at: string
+          digest_date: string
+          generated_at: string
+          health_snapshot_id: string | null
+          id: string
+          insight_ids: string[]
+          method_version: string
+          organization_id: string
+          recommendation_ids: string[]
+          sections: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          digest_date: string
+          generated_at?: string
+          health_snapshot_id?: string | null
+          id?: string
+          insight_ids?: string[]
+          method_version: string
+          organization_id: string
+          recommendation_ids?: string[]
+          sections: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          digest_date?: string
+          generated_at?: string
+          health_snapshot_id?: string | null
+          id?: string
+          insight_ids?: string[]
+          method_version?: string
+          organization_id?: string
+          recommendation_ids?: string[]
+          sections?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_executive_digests_health_snapshot_id_fkey"
+            columns: ["health_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "sam_health_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_executive_digests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_health_snapshots: {
+        Row: {
+          categories: Json
+          computed_at: string
+          created_at: string
+          id: string
+          inputs: Json
+          method_version: string
+          organization_id: string
+          overall: number
+          venture_id: string | null
+        }
+        Insert: {
+          categories: Json
+          computed_at?: string
+          created_at?: string
+          id?: string
+          inputs?: Json
+          method_version: string
+          organization_id: string
+          overall: number
+          venture_id?: string | null
+        }
+        Update: {
+          categories?: Json
+          computed_at?: string
+          created_at?: string
+          id?: string
+          inputs?: Json
+          method_version?: string
+          organization_id?: string
+          overall?: number
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_health_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_health_snapshots_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sam_invocation_context_refs: {
         Row: {
           created_at: string
@@ -4525,6 +4666,142 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_recommendation_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          payload: Json | null
+          reason: string | null
+          recommendation_id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          payload?: Json | null
+          reason?: string | null
+          recommendation_id: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          payload?: Json | null
+          reason?: string | null
+          recommendation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_recommendation_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_recommendation_events_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "sam_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_recommendations: {
+        Row: {
+          confidence: number
+          converted_to_ref: Json | null
+          created_at: string
+          evidence: Json
+          expected_impact: string | null
+          id: string
+          insight_id: string | null
+          kind: string
+          method_version: string
+          organization_id: string
+          priority: Database["public"]["Enums"]["insight_priority"]
+          rationale: string
+          resolved_at: string | null
+          resolved_by: string | null
+          snooze_until: string | null
+          status: string
+          title: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          confidence?: number
+          converted_to_ref?: Json | null
+          created_at?: string
+          evidence?: Json
+          expected_impact?: string | null
+          id?: string
+          insight_id?: string | null
+          kind: string
+          method_version: string
+          organization_id: string
+          priority?: Database["public"]["Enums"]["insight_priority"]
+          rationale: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          snooze_until?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          confidence?: number
+          converted_to_ref?: Json | null
+          created_at?: string
+          evidence?: Json
+          expected_impact?: string | null
+          id?: string
+          insight_id?: string | null
+          kind?: string
+          method_version?: string
+          organization_id?: string
+          priority?: Database["public"]["Enums"]["insight_priority"]
+          rationale?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          snooze_until?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_recommendations_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "executive_insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_recommendations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_recommendations_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
             referencedColumns: ["id"]
           },
         ]
@@ -6863,6 +7140,7 @@ export type Database = {
         | "caused"
         | "resulted_in"
         | "references"
+      insight_priority: "low" | "normal" | "high" | "critical"
       insight_severity:
         | "information"
         | "attention"
@@ -7268,6 +7546,7 @@ export const Constants = {
         "resulted_in",
         "references",
       ],
+      insight_priority: ["low", "normal", "high", "critical"],
       insight_severity: [
         "information",
         "attention",
