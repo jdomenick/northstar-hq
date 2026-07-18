@@ -107,6 +107,28 @@ notYet({ key: "integration_health_recompute", displayName: "Integration Health R
   createsExternalSideEffects: false, mayRequireApproval: false, handlerVersion: "v0" });
 
 // Intelligence / knowledge
+// intelligence.sweep is implemented (Phase 3C). Handler self-registers
+// via src/lib/automation/jobs/intelligence-sweep.server.ts, loaded from
+// executor.server.ts. Runs deterministic executive detectors, updates
+// insights/recommendations/health/digest. Idempotent by unique (org, pattern_key, entity_ref).
+registerJob({
+  key: "intelligence.sweep",
+  displayName: "Executive Intelligence Sweep",
+  family: "intelligence",
+  supportedScopes: ["organization"],
+  defaultPriority: "normal",
+  defaultTimeoutSeconds: 180,
+  defaultMaxAttempts: 3,
+  retryPolicy: { kind: "exponential", maxAttempts: 3, baseDelaySeconds: 60, maxDelaySeconds: 900 },
+  idempotencyStrategy: "org_type_key",
+  dependencyBehavior: "aggregating",
+  createsExternalSideEffects: false,
+  mayRequireApproval: false,
+  handlerVersion: "v1",
+  implementationStatus: "implemented",
+  inputSchema: permissiveSchema,
+  outputSchema: permissiveSchema,
+});
 notYet({ key: "content_classification", displayName: "Content Classification", family: "intelligence",
   supportedScopes: ["organization","venture"], defaultPriority: "normal", defaultTimeoutSeconds: 180,
   defaultMaxAttempts: 3, retryPolicy: { kind: "exponential", maxAttempts: 3, baseDelaySeconds: 30 },
