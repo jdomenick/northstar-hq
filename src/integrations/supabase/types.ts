@@ -3713,36 +3713,48 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          links: Json
+          location: string | null
           onboarding_completed: boolean
           preferred_name: string | null
+          pronouns: string | null
           timezone: string | null
           title: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          links?: Json
+          location?: string | null
           onboarding_completed?: boolean
           preferred_name?: string | null
+          pronouns?: string | null
           timezone?: string | null
           title?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          links?: Json
+          location?: string | null
           onboarding_completed?: boolean
           preferred_name?: string | null
+          pronouns?: string | null
           timezone?: string | null
           title?: string | null
           updated_at?: string
