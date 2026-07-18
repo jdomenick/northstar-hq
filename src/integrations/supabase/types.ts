@@ -4336,6 +4336,62 @@ export type Database = {
           },
         ]
       }
+      sam_mcp_connections: {
+        Row: {
+          created_at: string
+          discovered_tools: Json
+          id: string
+          last_error_code: string | null
+          last_error_message: string | null
+          last_operation_id: string | null
+          last_success_at: string | null
+          last_tested_at: string | null
+          organization_id: string
+          protocol_version: string | null
+          server_url: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discovered_tools?: Json
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          last_operation_id?: string | null
+          last_success_at?: string | null
+          last_tested_at?: string | null
+          organization_id: string
+          protocol_version?: string | null
+          server_url: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discovered_tools?: Json
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          last_operation_id?: string | null
+          last_success_at?: string | null
+          last_tested_at?: string | null
+          organization_id?: string
+          protocol_version?: string | null
+          server_url?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_mcp_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sam_memory_conflicts: {
         Row: {
           created_at: string
