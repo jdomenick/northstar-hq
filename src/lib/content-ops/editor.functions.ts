@@ -196,6 +196,17 @@ const SaveVariantInput = z.object({
   // Revoking approval requires a deliberate flag - a plain save can never
   // silently overwrite an approved variant.
   overrideApproved: z.boolean().default(false),
+  // Editorial workspace fields. All optional so pre-S1f-2b callers keep
+  // working; when omitted the row's existing editorial blob is preserved.
+  workingTitle: z.string().max(500).nullable().optional(),
+  finalTitle: z.string().max(500).nullable().optional(),
+  editorial: EditorialBlobSchema.optional(),
+  evergreenTopic: z.string().max(240).nullable().optional(),
+  evergreenTags: z.array(z.string().max(64)).max(40).optional(),
+  targetAudience: z.string().max(2000).nullable().optional(),
+  // Autosave idempotency token. When present, the server dedupes against
+  // the current row's autosave_token in metadata and no-ops on match.
+  clientEditToken: z.string().min(1).max(120).optional(),
 });
 
 export const saveVariant = createServerFn({ method: "POST" })
