@@ -9,10 +9,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ArrowLeftRight, ClipboardCheck, History, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Calendar as CalendarIcon, ClipboardCheck, Copy, History, Plus, Trash2, Archive as ArchiveIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  ErrorLine, Ledger, LedgerRow, QuietPanel, SectionLabel, StatusLine,
+  ErrorLine, QuietPanel, SectionLabel,
 } from "@/components/editorial";
 import {
   getPlatformConfig, listEditorPlatforms, PROMOTION_CLASSIFICATIONS,
@@ -26,8 +26,19 @@ import {
   loadEditor, requestRevision, saveVariant, submitForApproval, updateParentMeta,
 } from "@/lib/content-ops/editor.functions";
 import { approveContentItem, rejectContentItem } from "@/lib/content-ops/approvals.functions";
+import {
+  archiveContentItem, duplicateVariant, listEvergreenTopics, unarchiveContentItem,
+} from "@/lib/content-ops/editorial.functions";
+import { scheduleVariant } from "@/lib/content-ops/scheduling.functions";
 import { PlatformPreview, type PreviewData } from "./platform-preview";
 import { MediaPickerDialog, type PickedMedia } from "./media-picker-dialog";
+import { RichTextEditor } from "./rich-text-editor";
+import {
+  EditorialFieldsPanel, EMPTY_EDITORIAL_DRAFT, editorialFromRow, editorialToPayload,
+  type EditorialDraft,
+} from "./editorial-fields-panel";
+import { VersionHistoryDrawer } from "./version-history-drawer";
+import { useAutosave, type AutosaveState } from "@/lib/content-ops/use-autosave";
 
 // ---- Local shapes ---------------------------------------------------------
 
@@ -57,6 +68,12 @@ interface VariantRow {
   metadata: Record<string, unknown> | null;
   duplicate_fingerprint: string;
   created_at: string;
+  editorial: unknown;
+  working_title: string | null;
+  final_title: string | null;
+  evergreen_topic: string | null;
+  evergreen_tags: string[] | null;
+  target_audience: string | null;
 }
 
 interface DraftState {
