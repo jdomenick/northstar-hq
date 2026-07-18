@@ -7,6 +7,7 @@ import { buildContext, serializeContext, type AssembledContext } from "./context
 import { classifyIntent, type SamIntent } from "./intent";
 import { selectProvider } from "./providers/registry.server";
 import { buildSystemPrompt, PROMPT_VERSION } from "./constitution";
+import { getCompanyConstitution } from "./company-constitution.server";
 import { SamResponseSchema, type SamResponse } from "./schema";
 import { computeConfidence, type ConfidenceObject } from "./confidence";
 import { verifyCitations, citationHref } from "./citations";
@@ -68,11 +69,13 @@ export async function runPipeline(
   const provider = selectProvider(intent);
   const meta = provider.getModelMetadata();
 
+  const companyConstitution = await getCompanyConstitution(input.orgId);
   const system = buildSystemPrompt({
     orgName: context.org?.name ?? "your organization",
     founderName: context.founder?.preferred_name ?? context.founder?.full_name ?? null,
     responseStyle: input.settings.response_style,
     challengeLevel: input.settings.challenge_level,
+    companyConstitution,
   });
 
   const contextBlock = serializeContext(context);
