@@ -29,6 +29,7 @@ import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as AuthenticatedVenturesIdRouteImport } from './routes/_authenticated/ventures.$id'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
+import { Route as AuthenticatedSettingsFounderActivationRouteImport } from './routes/_authenticated/settings.founder-activation'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedKnowledgeIdRouteImport } from './routes/_authenticated/knowledge.$id'
@@ -149,6 +150,12 @@ const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
     path: '/integrations',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsFounderActivationRoute =
+  AuthenticatedSettingsFounderActivationRouteImport.update({
+    id: '/founder-activation',
+    path: '/founder-activation',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSamMemoryRoute = AuthenticatedSamMemoryRouteImport.update({
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
@@ -329,6 +337,7 @@ export interface FileRoutesByTo {
   '/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
@@ -371,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/knowledge/$id': typeof AuthenticatedKnowledgeIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
+  '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/_authenticated/ventures/$id': typeof AuthenticatedVenturesIdRoute
   '/_authenticated/content-ops/editor/$id': typeof AuthenticatedContentOpsEditorIdRoute
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/knowledge/$id'
     | '/projects/$id'
     | '/sam/memory'
+    | '/settings/founder-activation'
     | '/settings/integrations'
     | '/ventures/$id'
     | '/content-ops/editor/$id'
@@ -453,6 +464,7 @@ export interface FileRouteTypes {
     | '/knowledge/$id'
     | '/projects/$id'
     | '/sam/memory'
+    | '/settings/founder-activation'
     | '/settings/integrations'
     | '/ventures/$id'
     | '/content-ops/editor/$id'
@@ -494,6 +506,7 @@ export interface FileRouteTypes {
     | '/_authenticated/knowledge/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/sam/memory'
+    | '/_authenticated/settings/founder-activation'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/ventures/$id'
     | '/_authenticated/content-ops/editor/$id'
@@ -661,6 +674,13 @@ declare module '@tanstack/react-router' {
       path: '/integrations'
       fullPath: '/settings/integrations'
       preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/founder-activation': {
+      id: '/_authenticated/settings/founder-activation'
+      path: '/founder-activation'
+      fullPath: '/settings/founder-activation'
+      preLoaderRoute: typeof AuthenticatedSettingsFounderActivationRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/_authenticated/sam/memory': {
@@ -913,10 +933,13 @@ const AuthenticatedSettingsIntegrationsRouteWithChildren =
   )
 
 interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsFounderActivationRoute: typeof AuthenticatedSettingsFounderActivationRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRouteWithChildren
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsFounderActivationRoute:
+    AuthenticatedSettingsFounderActivationRoute,
   AuthenticatedSettingsIntegrationsRoute:
     AuthenticatedSettingsIntegrationsRouteWithChildren,
 }
