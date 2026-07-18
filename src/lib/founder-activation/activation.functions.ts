@@ -200,6 +200,25 @@ export const importFounderActivation = createServerFn({ method: "POST" })
             continue;
           }
         }
+        // Idempotency: if a row with this name already exists for the org (and, for
+        // scoped tables, the resolved venture), treat as skipped rather than erroring
+        // on the unique index. Keeps re-runs of Founder Activation safe.
+        {
+          const nameField = (table === "projects" || table === "ventures") ? "name" : "title";
+          const label = labelOf(dec);
+          const { data: dupes } = await supabase
+            .from(table)
+            .select(`id, ${nameField}, venture_id`)
+            .eq("organization_id", orgId)
+            .is("deleted_at", null);
+          const dup = (dupes ?? []).find((r: any) =>
+            normalizeName(r[nameField] ?? "") === normalizeName(label)
+          );
+          if (dup) {
+            outcomes.push({ key: dec.key, kind, result: "skipped", id: (dup as any).id, duplicateOf: label });
+            continue;
+          }
+        }
         const insert = { ...buildInsert(dec, ventureId), organization_id: orgId, created_by: userId };
         const { data: created, error } = await supabase.from(table).insert(insert as never).select("id").single();
         if (error || !created) {
