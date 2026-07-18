@@ -127,9 +127,13 @@ export interface SocialProviderAdapter {
 }
 
 import { beehiivAdapter } from "./beehiiv";
+import { facebookAdapter } from "./facebook";
+import { instagramAdapter } from "./instagram";
 
 export const SOCIAL_PROVIDERS: Record<string, SocialProviderAdapter> = {
   [beehiivAdapter.key]: beehiivAdapter,
+  [facebookAdapter.key]: facebookAdapter,
+  [instagramAdapter.key]: instagramAdapter,
 };
 
 export function getSocialProvider(key: string): SocialProviderAdapter | null {
