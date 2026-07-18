@@ -51,5 +51,5 @@ export async function runWithTimeout<T>(promise: Promise<T>, timeoutSeconds: num
 
 // Auto-register bundled handlers on import.
 import "./jobs/website-sync.server";
-// social_publish (Beehiiv, 6a): registers handler for social_publish job type.
-import "@/lib/social/jobs/beehiiv-publish.server";
+// social_publish dispatcher: reads platform and hands off to beehiiv or meta.
+import "@/lib/social/jobs/social-publish-dispatcher.server";
