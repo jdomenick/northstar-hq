@@ -217,7 +217,7 @@ export const saveVariant = createServerFn({ method: "POST" })
 
     const { data: current, error: cErr } = await context.supabase
       .from("social_content_items")
-      .select("id, organization_id, venture_id, approval_status, status, content_version, social_account_id, campaign_id, metadata")
+      .select("id, organization_id, venture_id, approval_status, status, content_version, social_account_id, campaign_id, metadata, editorial, evergreen_topic, evergreen_tags, target_audience, working_title, final_title, brand_profile_version")
       .eq("id", data.contentItemId)
       .eq("organization_id", data.organizationId)
       .eq("venture_id", data.ventureId)
@@ -228,6 +228,31 @@ export const saveVariant = createServerFn({ method: "POST" })
     if (current.status === "published" || current.status === "publishing") {
       throw new ContentOpsError("invalid_transition", "Cannot edit a variant that has already published.");
     }
+
+    // Autosave idempotency: if the client resends the same edit token that
+    // last saved, no-op instead of writing a duplicate version.
+    const currentMeta = (current.metadata as Record<string, unknown> | null) ?? {};
+    if (data.clientEditToken && currentMeta.autosave_token === data.clientEditToken) {
+      return {
+        ok: true,
+        contentVersion: current.content_version,
+        validation: validateVariant(toValidationInput(data)),
+        deduped: true,
+        revokedApproval: false,
+      };
+    }
+
+    // Compute editorial change so approval-revocation checks cover the blob
+    // too, not only the body/title/hook/cta the existing code compared.
+    const beforeEditorial = normalizeEditorial(current.editorial);
+    const nextEditorial = data.editorial
+      ? normalizeEditorial({ ...beforeEditorial, ...data.editorial })
+      : beforeEditorial;
+    const editorialMaterialChanged = editorialChangeRevokesApproval(beforeEditorial, nextEditorial);
+    const evergreenTags = data.evergreenTags !== undefined
+      ? normalizeEvergreenTags(data.evergreenTags)
+      : (current.evergreen_tags as string[] | null) ?? [];
+
     if (current.approval_status === "approved" && !data.overrideApproved) {
       throw new ContentOpsError("invalid_transition",
         "This variant is approved. Saving would revoke approval. Confirm to override.");
@@ -244,7 +269,8 @@ export const saveVariant = createServerFn({ method: "POST" })
 
     const nextVersion = current.content_version + 1;
     const media = data.media ?? [];
-    const nextApprovalStatus = current.approval_status === "approved" ? "changes_requested" : current.approval_status;
+    const wasApproved = current.approval_status === "approved";
+    const nextApprovalStatus = wasApproved ? "changes_requested" : current.approval_status;
     const nextStatus =
       current.status === "approved" ? "changes_requested"
       : current.status === "scheduled" ? "draft"
@@ -253,10 +279,11 @@ export const saveVariant = createServerFn({ method: "POST" })
     const platformIsSocial = (SOCIAL_PLATFORMS as readonly string[]).includes(data.platform);
     const platformForDb = platformIsSocial ? data.platform : "other";
     const metadata = {
-      ...(current.metadata as Record<string, unknown> ?? {}),
+      ...currentMeta,
       editor_platform: data.platform,
       media,
       mentions: data.mentions,
+      autosave_token: data.clientEditToken ?? null,
     };
 
     const fingerprint = buildDuplicateFingerprint({
@@ -295,6 +322,20 @@ export const saveVariant = createServerFn({ method: "POST" })
         status: nextStatus,
         duplicate_fingerprint: fingerprint,
         metadata,
+        editorial: nextEditorial as never,
+        working_title: data.workingTitle !== undefined
+          ? (data.workingTitle ?? null)
+          : (current.working_title ?? null),
+        final_title: data.finalTitle !== undefined
+          ? (data.finalTitle ?? null)
+          : (current.final_title ?? null),
+        evergreen_topic: data.evergreenTopic !== undefined
+          ? (data.evergreenTopic ?? null)
+          : (current.evergreen_topic ?? null),
+        evergreen_tags: evergreenTags,
+        target_audience: data.targetAudience !== undefined
+          ? (data.targetAudience ?? null)
+          : (current.target_audience ?? null),
         risk_reasons: validation.issues
           .filter((i) => i.severity === "warning")
           .slice(0, 20)
@@ -332,10 +373,47 @@ export const saveVariant = createServerFn({ method: "POST" })
         policy_version: CONTENT_OPS_POLICY_VERSION,
         source_lineage: [],
         content_hash: snapshotHash,
+        editorial: nextEditorial as never,
+        working_title: data.workingTitle !== undefined ? (data.workingTitle ?? null) : (current.working_title ?? null),
+        final_title: data.finalTitle !== undefined ? (data.finalTitle ?? null) : (current.final_title ?? null),
+        evergreen_topic: data.evergreenTopic !== undefined ? (data.evergreenTopic ?? null) : (current.evergreen_topic ?? null),
+        evergreen_tags: evergreenTags,
+        target_audience: data.targetAudience !== undefined ? (data.targetAudience ?? null) : (current.target_audience ?? null),
+        hook: data.hook ?? null,
+        cta: data.cta ?? null,
+        alt_text: data.altText ?? null,
+        newsletter_subject: data.newsletterSubject ?? null,
+        newsletter_preview: data.newsletterPreview ?? null,
       } as never);
     if (verErr) throw new ContentOpsError("unknown", verErr.message);
 
-    return { ok: true, contentVersion: nextVersion, validation };
+    // Record an explicit revocation entry when a save invalidates an
+    // existing approval so the revision drawer can render
+    // "Approval removed because content changed."
+    if (wasApproved) {
+      const revokeReason = editorialMaterialChanged
+        ? "Approval removed because editorial content changed."
+        : "Approval removed because content changed.";
+      await context.supabase.from("content_ops_approvals").insert({
+        organization_id: data.organizationId,
+        venture_id: data.ventureId,
+        content_item_id: current.id,
+        content_version: nextVersion,
+        action: "revoked",
+        notes: revokeReason,
+        approved_by: context.userId,
+        approved_at: new Date().toISOString(),
+        brand_profile_version: (current.brand_profile_version as number | null) ?? null,
+      } as never);
+    }
+
+    return {
+      ok: true,
+      contentVersion: nextVersion,
+      validation,
+      deduped: false,
+      revokedApproval: wasApproved,
+    };
   });
 
 function toValidationInput(v: z.infer<typeof SaveVariantInput>): ValidationInput {
