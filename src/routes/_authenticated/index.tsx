@@ -128,6 +128,9 @@ function Command() {
 
       {/* Lede */}
       <section className="px-6 py-12 md:px-14 md:py-16">
+        <div className="mx-auto max-w-6xl pb-10">
+          <ExecutiveIntelligencePanel organizationId={activeOrgId} />
+        </div>
         <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.4fr_1fr] md:gap-16">
           <div>
             <div className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/60">
