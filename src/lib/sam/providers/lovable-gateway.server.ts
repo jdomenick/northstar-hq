@@ -1,4 +1,4 @@
-import { generateText, generateObject, type JSONValue } from "ai";
+import { generateText, generateObject, NoObjectGeneratedError } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import type {
   CompletionProvider,
@@ -8,6 +8,22 @@ import type {
 } from "./types";
 
 const DEFAULT_MODEL = "google/gemini-3-flash-preview";
+
+// Extract a JSON object from a text blob that may be wrapped in prose or
+// ```json fences. Returns null when no plausible JSON object is found.
+function salvageJson(text: string): unknown | null {
+  if (!text) return null;
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fence ? fence[1] : text;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    return JSON.parse(candidate.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
 
 const CAPABILITIES: ProviderCapabilities = {
   maxContextTokens: 1_000_000,
@@ -34,25 +50,64 @@ export function createLovableGatewayCompletionProvider(
     async generateStructuredResponse<T>(req: CompletionRequest): Promise<CompletionResponse<T>> {
       if (!req.responseSchema) throw new Error("responseSchema required for structured response");
       const started = Date.now();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (generateObject as any)({
-        model,
-        system: req.system,
-        messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
-        schema: req.responseSchema,
-        temperature: req.temperature ?? 0.2,
-        maxOutputTokens: req.maxOutputTokens ?? 2048,
-      });
-      return {
-        content: result.object as T,
-        providerId: "lovable",
-        modelId,
-        usage: {
-          inputTokens: result.usage?.inputTokens,
-          outputTokens: result.usage?.outputTokens,
-          latencyMs: Date.now() - started,
-        },
-      };
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (generateObject as any)({
+          model,
+          system: req.system,
+          messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
+          schema: req.responseSchema,
+          temperature: req.temperature ?? 0.2,
+          maxOutputTokens: req.maxOutputTokens ?? 2048,
+        });
+        return {
+          content: result.object as T,
+          providerId: "lovable",
+          modelId,
+          usage: {
+            inputTokens: result.usage?.inputTokens,
+            outputTokens: result.usage?.outputTokens,
+            latencyMs: Date.now() - started,
+          },
+        };
+      } catch (err) {
+        // Gemini through json_object mode is not strict-schema-enforced;
+        // if the model returns extra text or an incomplete object the SDK
+        // throws AI_NoObjectGeneratedError with the raw text attached.
+        // Salvage it: parse the JSON out of error.text and re-validate through
+        // the (now defaulted) schema so partial answers still render.
+        if (NoObjectGeneratedError.isInstance(err)) {
+          const raw = (err as unknown as { text?: string }).text ?? "";
+          const salvaged = salvageJson(raw);
+          if (salvaged !== null) {
+            const parsed = (req.responseSchema as { safeParse: (v: unknown) => { success: boolean; data?: unknown } }).safeParse(salvaged);
+            if (parsed.success) {
+              const usage = (err as unknown as { usage?: { inputTokens?: number; outputTokens?: number } }).usage;
+              return {
+                content: parsed.data as T,
+                providerId: "lovable",
+                modelId,
+                usage: {
+                  inputTokens: usage?.inputTokens,
+                  outputTokens: usage?.outputTokens,
+                  latencyMs: Date.now() - started,
+                },
+              };
+            }
+          }
+          // Final fallback: return the raw text as the answer so the user sees
+          // something instead of "Response failed."
+          if (raw.trim()) {
+            return {
+              content: { answer: raw.trim(), executive_summary: null, observations: [], risks: [], opportunities: [], recommendations: [], missing_information: [], assumptions: [], next_question: null, model_confidence_hint: null, citations: [], unsupported_action: null } as unknown as T,
+              providerId: "lovable",
+              modelId,
+              usage: { latencyMs: Date.now() - started },
+            };
+          }
+        }
+        throw err;
+      }
     },
 
     async generateTextResponse(req: CompletionRequest): Promise<CompletionResponse<string>> {
