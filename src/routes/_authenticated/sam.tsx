@@ -490,7 +490,7 @@ function MessageView({ msg, index }: { msg: Msg; index: number }) {
       )}
 
       <div className="mt-5 whitespace-pre-wrap text-[14.5px] leading-[1.8] text-foreground/85">
-        {msg.content}
+        <CleanProse text={msg.content} />
       </div>
 
       {resp?.unsupported_action && (
