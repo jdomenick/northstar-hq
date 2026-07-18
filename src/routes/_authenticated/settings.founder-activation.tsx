@@ -174,7 +174,7 @@ function FounderActivationPage() {
             </TabsList>
 
             <TabsContent value="ventures">
-              <Section>
+              <Section title="">
                 {ventures.rows.map(({ item, state }) => (
                   <div key={item.key} className="grid gap-2 rounded-md border p-4">
                     <div className="flex items-center justify-between gap-3">
@@ -190,7 +190,7 @@ function FounderActivationPage() {
             </TabsContent>
 
             <TabsContent value="projects">
-              <Section>
+              <Section title="">
                 {projects.rows.map(({ item, state }) => (
                   <div key={item.key} className="grid gap-2 rounded-md border p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -209,7 +209,7 @@ function FounderActivationPage() {
             </TabsContent>
 
             <TabsContent value="goals">
-              <Section>
+              <Section title="">
                 {goals.rows.map(({ item, state }) => (
                   <div key={item.key} className="grid gap-2 rounded-md border p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -226,7 +226,7 @@ function FounderActivationPage() {
             </TabsContent>
 
             <TabsContent value="decisions">
-              <Section>
+              <Section title="">
                 {decisions.rows.map(({ item, state }) => (
                   <div key={item.key} className="grid gap-2 rounded-md border p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -242,7 +242,7 @@ function FounderActivationPage() {
             </TabsContent>
 
             <TabsContent value="commitments">
-              <Section>
+              <Section title="">
                 {commitments.rows.map(({ item, state }) => (
                   <div key={item.key} className="grid gap-2 rounded-md border p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -259,7 +259,7 @@ function FounderActivationPage() {
             </TabsContent>
 
             <TabsContent value="review">
-              <Section>
+              <Section title="">
                 <p className="text-sm text-muted-foreground">Import will create, merge, or skip each record based on your choices, then run the SAM Executive Review and write your first Executive Brief.</p>
                 <div className="flex gap-2">
                   <Button disabled={importMut.isPending} onClick={() => importMut.mutate()}>{importMut.isPending ? "Importing..." : "Import selected records"}</Button>
