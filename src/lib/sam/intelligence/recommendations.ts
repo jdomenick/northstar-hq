@@ -16,7 +16,7 @@ function firstRefTitle(refs: EntityRef[], fallback: string): string {
 type Builder = (f: DetectorFinding) => RecommendationDraft | null;
 
 const BUILDERS: Partial<Record<DetectorFinding["patternKey"], Builder>> = {
-  stalled_project: (f) => build(f, "close_stalled_decision" satisfies RecommendationKind === "close_stalled_decision" ? "archive_project" : "archive_project", {
+  stalled_project: (f) => build(f, "archive_project", {
     title: `Archive or restart: ${firstRefTitle(f.evidence.refs, "project")}`,
     rationale: f.summary,
     expectedImpact: "Frees attention and stops false-positive risk signals on a dormant project.",
