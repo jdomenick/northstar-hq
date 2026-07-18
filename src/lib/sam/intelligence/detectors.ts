@@ -153,7 +153,7 @@ const DUPLICATE_JACCARD = 0.7;
 
 export function detectStalledProjects(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
-  const openStatuses = new Set(["planned", "in_progress", "at_risk", "blocked"]);
+  const openStatuses = new Set(["proposed", "planned", "active", "at_risk", "blocked"]);
   const activeByProject = new Map<string, Date>();
   for (const t of ds.tasks) {
     if (!t.project_id) continue;
@@ -230,7 +230,7 @@ export function detectInactiveVentures(ds: IntelligenceDataset): DetectorFinding
 export function detectPostponedCommitments(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
   for (const c of ds.commitments) {
-    if (c.deleted_at || c.status === "completed" || c.status === "cancelled") continue;
+    if (c.deleted_at || c.status === "completed" || c.status === "canceled") continue;
     if (c.postponement_count < POSTPONE_THRESHOLD) continue;
     const score = Math.min(1, c.postponement_count / 5);
     out.push(
@@ -255,7 +255,7 @@ export function detectPostponedCommitments(ds: IntelligenceDataset): DetectorFin
 
 export function detectMissingOwners(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
-  const openProjectStatuses = new Set(["planned", "in_progress", "at_risk", "blocked"]);
+  const openProjectStatuses = new Set(["proposed", "planned", "active", "at_risk", "blocked"]);
   for (const p of ds.projects) {
     if (p.deleted_at || !openProjectStatuses.has(p.status) || p.owner_user_id) continue;
     out.push(
@@ -273,7 +273,7 @@ export function detectMissingOwners(ds: IntelligenceDataset): DetectorFinding[] 
     );
   }
   for (const c of ds.commitments) {
-    if (c.deleted_at || c.status === "completed" || c.status === "cancelled" || c.owner_user_id) continue;
+    if (c.deleted_at || c.status === "completed" || c.status === "canceled" || c.owner_user_id) continue;
     out.push(
       finding({
         patternKey: "missing_owner",
@@ -308,7 +308,7 @@ function jaccard(a: string[], b: string[]): number {
 export function detectDuplicateProjects(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
   const open = ds.projects.filter(
-    (p) => !p.deleted_at && p.status !== "completed" && p.status !== "cancelled",
+    (p) => !p.deleted_at && p.status !== "completed" && p.status !== "archived",
   );
   const tokens = open.map((p) => ({ p, t: tokenize(p.name) }));
   const emitted = new Set<string>();
@@ -384,14 +384,14 @@ export function detectDecisionReversals(ds: IntelligenceDataset): DetectorFindin
   const out: DetectorFinding[] = [];
   for (const d of ds.decisions) {
     if (d.deleted_at) continue;
-    if (d.status !== "superseded") continue;
+    if (d.status !== "revisit_later") continue;
     out.push(
       finding({
         patternKey: "decision_reversal",
         ventureId: d.venture_id,
         entityRef: `decision:${d.id}`,
         title: `Decision reversed: ${d.title}`,
-        summary: `"${d.title}" has been superseded. Confirm the new direction is documented.`,
+        summary: `"${d.title}" is flagged to revisit. Confirm the new direction is documented.`,
         priority: "high",
         confidence: 1,
         severity: "warning",
@@ -435,7 +435,7 @@ export function detectGoalDrift(ds: IntelligenceDataset): DetectorFinding[] {
 export function detectLongRunningProjects(ds: IntelligenceDataset): DetectorFinding[] {
   const out: DetectorFinding[] = [];
   const now = ds.now;
-  const open = new Set(["planned", "in_progress", "at_risk", "blocked"]);
+  const open = new Set(["proposed", "planned", "active", "at_risk", "blocked"]);
   for (const p of ds.projects) {
     if (p.deleted_at || !open.has(p.status)) continue;
     const created = parseDate(p.created_at);
