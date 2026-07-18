@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
+  ImageIcon,
   Loader2,
   Plus,
   Trash2,
@@ -96,6 +97,10 @@ function SamPage() {
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [images, setImages] = useState<
+    Array<{ id: string; prompt: string; dataUrl: string; createdAt: string }>
+  >([]);
+  const [imagePending, setImagePending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -130,7 +135,7 @@ function SamPage() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length, pending]);
+  }, [messages.length, pending, images.length, imagePending]);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -164,6 +169,40 @@ function SamPage() {
       toast.error((e as Error).message || "SAM failed to respond.");
     } finally {
       setPending(false);
+      textareaRef.current?.focus();
+    }
+  }
+
+  async function handleGenerateImage(text: string) {
+    const prompt = text.trim();
+    if (!prompt || imagePending) return;
+    setImagePending(true);
+    setInput("");
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      if (!res.ok) {
+        const err = await res.text().catch(() => "");
+        toast.error(err || "Image generation failed.");
+        return;
+      }
+      const j = (await res.json()) as { image: string };
+      setImages((prev) => [
+        ...prev,
+        {
+          id: `img-${Date.now()}`,
+          prompt,
+          dataUrl: j.image,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    } catch (e) {
+      toast.error((e as Error).message || "Image generation failed.");
+    } finally {
+      setImagePending(false);
       textareaRef.current?.focus();
     }
   }
@@ -246,12 +285,43 @@ function SamPage() {
                 ))}
               </div>
             )}
+            {images.length > 0 && (
+              <div className="mt-8 space-y-8">
+                {images.map((img) => (
+                  <figure
+                    key={img.id}
+                    className="border-t border-foreground/80 pt-6"
+                  >
+                    <div className="flex items-baseline justify-between gap-4 pb-3">
+                      <SectionLabel>SAM - Generated image</SectionLabel>
+                    </div>
+                    <img
+                      src={img.dataUrl}
+                      alt={img.prompt}
+                      className="w-full border border-foreground/10"
+                    />
+                    <figcaption className="mt-3 text-[13px] italic leading-[1.7] text-foreground/70">
+                      {img.prompt}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
             {pending && (
               <div className="mt-10 border-t border-foreground/15 pt-6">
                 <SectionLabel>SAM is reading the record</SectionLabel>
                 <div className="mt-3 flex items-center gap-2 text-[13px] italic text-foreground/60">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} />
                   Assembling evidence and drafting the response.
+                </div>
+              </div>
+            )}
+            {imagePending && (
+              <div className="mt-10 border-t border-foreground/15 pt-6">
+                <SectionLabel>SAM is composing the image</SectionLabel>
+                <div className="mt-3 flex items-center gap-2 text-[13px] italic text-foreground/60">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} />
+                  Rendering visual output.
                 </div>
               </div>
             )}
@@ -262,7 +332,8 @@ function SamPage() {
           value={input}
           setValue={setInput}
           onSubmit={handleSubmit}
-          disabled={pending || !activeOrgId}
+          onGenerateImage={handleGenerateImage}
+          disabled={pending || imagePending || !activeOrgId}
           textareaRef={textareaRef}
         />
       </div>
@@ -485,7 +556,7 @@ function MessageView({ msg, index }: { msg: Msg; index: number }) {
 
       {resp?.executive_summary && (
         <p className="mt-4 font-display text-[22px] leading-[1.3] text-foreground md:text-[26px]">
-          {resp.executive_summary}
+          {sanitizeText(resp.executive_summary)}
         </p>
       )}
 
@@ -594,16 +665,46 @@ function ResponseSection({
   );
 }
 
+// Strip wrapping quotes, unescape JSON escapes, drop stray bullet marks and
+// bracketed noise. Executive answers should read like prose, not JSON.
+function sanitizeText(input: string): string {
+  if (!input) return "";
+  let t = String(input).trim();
+  // Unescape common JSON escapes
+  t = t
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "")
+    .replace(/\\t/g, " ")
+    .replace(/\\"/g, '"')
+    .replace(/\\'/g, "'");
+  // Strip fully wrapping matched quotes / backticks, repeatedly
+  for (let i = 0; i < 3; i++) {
+    if (
+      (t.startsWith('"') && t.endsWith('"')) ||
+      (t.startsWith("'") && t.endsWith("'")) ||
+      (t.startsWith("`") && t.endsWith("`")) ||
+      (t.startsWith("\u201C") && t.endsWith("\u201D"))
+    ) {
+      t = t.slice(1, -1).trim();
+    } else break;
+  }
+  // Strip leading list markers left over from JSON stringification
+  t = t.replace(/^[-*\u2022]\s+/, "");
+  // Strip trailing dangling commas
+  t = t.replace(/[\s,]+$/g, "");
+  return t;
+}
+
 // Some model outputs land as raw JSON in the answer field (fallback path,
 // or when the model over-structures). Render them as clean prose instead of
 // showing curly braces and quoted keys in the UI.
 function CleanProse({ text }: { text: string }) {
   const raw = (text ?? "").trim();
   const parsed = tryParseJson(raw);
-  if (parsed === undefined) return <>{text}</>;
+  if (parsed === undefined) return <>{sanitizeText(text)}</>;
   try {
     const blocks = flattenJson(parsed);
-    if (blocks.length === 0) return <>{text}</>;
+    if (blocks.length === 0) return <>{sanitizeText(text)}</>;
     return (
       <div className="space-y-4">
         {blocks.map((b, i) =>
@@ -614,7 +715,7 @@ function CleanProse({ text }: { text: string }) {
                   {b.label}
                 </span>
               ) : null}
-              {b.value}
+              {sanitizeText(b.value)}
             </p>
           ) : (
             <div key={i}>
@@ -627,7 +728,7 @@ function CleanProse({ text }: { text: string }) {
                 {b.items.map((item, j) => (
                   <li key={j} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
                     <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-foreground/60" />
-                    <span>{item}</span>
+                    <span>{sanitizeText(item)}</span>
                   </li>
                 ))}
               </ul>
@@ -637,7 +738,7 @@ function CleanProse({ text }: { text: string }) {
       </div>
     );
   } catch {
-    return <>{text}</>;
+    return <>{sanitizeText(text)}</>;
   }
 }
 
@@ -800,12 +901,14 @@ function Composer({
   value,
   setValue,
   onSubmit,
+  onGenerateImage,
   disabled,
   textareaRef,
 }: {
   value: string;
   setValue: (v: string) => void;
   onSubmit: (v: string) => void;
+  onGenerateImage: (v: string) => void;
   disabled: boolean;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
@@ -833,6 +936,16 @@ function Composer({
           />
           <button
             type="button"
+            onClick={() => onGenerateImage(value)}
+            disabled={disabled || !value.trim() || overLimit}
+            aria-label="Generate image"
+            title="Generate image from prompt"
+            className="mb-1 inline-flex h-9 w-9 shrink-0 items-center justify-center border border-foreground/40 text-foreground/80 transition-colors hover:border-foreground hover:text-foreground disabled:cursor-not-allowed disabled:border-foreground/20 disabled:text-foreground/25"
+          >
+            <ImageIcon className="h-4 w-4" strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
             onClick={() => onSubmit(value)}
             disabled={disabled || !value.trim() || overLimit}
             aria-label="Send message"
@@ -846,7 +959,7 @@ function Composer({
           </button>
         </div>
         <div className="mt-2 flex items-center justify-between text-[10.5px] uppercase tracking-[0.22em] text-foreground/50">
-          <span>Return sends - Shift + Return for a new line</span>
+          <span>Return sends - Image button renders visual output</span>
           {overLimit && (
             <span className="text-[oklch(0.5_0.18_27)]">
               Over {LIMITS.sam.maxMessageChars} characters

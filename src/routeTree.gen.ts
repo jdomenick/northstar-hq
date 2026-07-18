@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
+import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as AuthenticatedVenturesRouteImport } from './routes/_authenticated/ventures'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSamRouteImport } from './routes/_authenticated/sam'
@@ -78,6 +79,11 @@ const AuthForgotRoute = AuthForgotRouteImport.update({
   id: '/forgot',
   path: '/forgot',
   getParentRoute: () => AuthRoute,
+} as any)
+const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
+  id: '/api/generate-image',
+  path: '/api/generate-image',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedVenturesRoute = AuthenticatedVenturesRouteImport.update({
   id: '/ventures',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/sam': typeof AuthenticatedSamRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/commitments/$id': typeof AuthenticatedCommitmentsIdRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/sam': typeof AuthenticatedSamRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/': typeof AuthenticatedIndexRoute
@@ -368,6 +376,7 @@ export interface FileRoutesById {
   '/_authenticated/sam': typeof AuthenticatedSamRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/ventures': typeof AuthenticatedVenturesRouteWithChildren
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/sam'
     | '/settings'
     | '/ventures'
+    | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
     | '/commitments/$id'
@@ -452,6 +462,7 @@ export interface FileRouteTypes {
     | '/sam'
     | '/settings'
     | '/ventures'
+    | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
     | '/'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam'
     | '/_authenticated/settings'
     | '/_authenticated/ventures'
+    | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
     | '/_authenticated/'
@@ -525,6 +537,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
+  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -577,6 +590,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/forgot'
       preLoaderRoute: typeof AuthForgotRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/api/generate-image': {
+      id: '/api/generate-image'
+      path: '/api/generate-image'
+      fullPath: '/api/generate-image'
+      preLoaderRoute: typeof ApiGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/ventures': {
       id: '/_authenticated/ventures'
@@ -1015,6 +1035,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
+  ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
