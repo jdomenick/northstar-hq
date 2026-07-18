@@ -62,7 +62,7 @@ export function computeHealth(ds: IntelligenceDataset): HealthReport {
   const openDurations: number[] = [];
   for (const d of ds.decisions) {
     if (d.deleted_at) continue;
-    if (d.status === "final" || d.status === "superseded" || d.status === "cancelled") continue;
+    if (d.status === "decided" || d.status === "closed") continue;
     const c = toDate(d.created_at);
     if (!c) continue;
     openDurations.push(daysBetween(now, c));
@@ -73,7 +73,7 @@ export function computeHealth(ds: IntelligenceDataset): HealthReport {
 
   // Project health: share not blocked/at_risk
   const openProjects = ds.projects.filter(
-    (p) => !p.deleted_at && p.status !== "completed" && p.status !== "cancelled",
+    (p) => !p.deleted_at && p.status !== "completed" && p.status !== "archived",
   );
   const unhealthy = openProjects.filter((p) => p.status === "at_risk" || p.status === "blocked").length;
   const projectHealth = openProjects.length === 0 ? 1 : clamp01(1 - unhealthy / openProjects.length);
@@ -100,7 +100,7 @@ export function computeHealth(ds: IntelligenceDataset): HealthReport {
   const commitment_completion = cat(completion, { completed_90d: completedInWindow, on_time: onTime }, "on_time_ratio_v1");
 
   // Goal progress: share of active goals with progress > 0 or recent update
-  const activeGoals = ds.goals.filter((g) => g.status === "active" || g.status === "in_progress");
+  const activeGoals = ds.goals.filter((g) => g.status === "active" || g.status === "at_risk");
   const goalsMoving = activeGoals.filter((g) => g.progress_percentage > 0).length;
   const goalProgress = activeGoals.length === 0 ? 0.5 : clamp01(goalsMoving / activeGoals.length);
   const goal_progress = cat(goalProgress, { active: activeGoals.length, moving: goalsMoving }, "share_moving_v1");

@@ -59,7 +59,7 @@ export function assembleDigest(input: DigestInputs): DigestReport {
   // Today's priorities: overdue commitments + open decisions past review + at-risk projects
   const todaysItems: DigestItem[] = [];
   const overdueCommitments = ds.commitments
-    .filter((c) => !c.deleted_at && c.status !== "completed" && c.status !== "cancelled")
+    .filter((c) => !c.deleted_at && c.status !== "completed" && c.status !== "canceled")
     .filter((c) => c.due_date && new Date(c.due_date) <= now)
     .slice(0, 6);
   for (const c of overdueCommitments) {
@@ -94,7 +94,7 @@ export function assembleDigest(input: DigestInputs): DigestReport {
 
   // Upcoming commitments (next 7d)
   const upcoming = ds.commitments
-    .filter((c) => !c.deleted_at && c.status !== "completed" && c.status !== "cancelled")
+    .filter((c) => !c.deleted_at && c.status !== "completed" && c.status !== "canceled")
     .filter((c) => c.due_date && new Date(c.due_date) > now && new Date(c.due_date) <= in7Days)
     .sort((a, b) => (a.due_date! < b.due_date! ? -1 : 1))
     .slice(0, 8);
@@ -104,9 +104,9 @@ export function assembleDigest(input: DigestInputs): DigestReport {
     .filter((d) => !d.deleted_at)
     .filter(
       (d) =>
-        d.status === "in_review" ||
-        d.status === "options_generated" ||
-        (d.review_date && new Date(d.review_date) <= now && d.status !== "final"),
+        d.status === "under_review" ||
+        d.status === "waiting_for_founder" ||
+        (d.review_date && new Date(d.review_date) <= now && d.status !== "decided" && d.status !== "closed"),
     )
     .slice(0, 6);
 
