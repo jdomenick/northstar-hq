@@ -490,7 +490,7 @@ function MessageView({ msg, index }: { msg: Msg; index: number }) {
       )}
 
       <div className="mt-5 whitespace-pre-wrap text-[14.5px] leading-[1.8] text-foreground/85">
-        {msg.content}
+        <CleanProse text={msg.content} />
       </div>
 
       {resp?.unsupported_action && (
@@ -592,6 +592,106 @@ function ResponseSection({
       </ul>
     </div>
   );
+}
+
+// Some model outputs land as raw JSON in the answer field (fallback path,
+// or when the model over-structures). Render them as clean prose instead of
+// showing curly braces and quoted keys in the UI.
+function CleanProse({ text }: { text: string }) {
+  const trimmed = (text ?? "").trim();
+  const looksJson =
+    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+    (trimmed.startsWith("[") && trimmed.endsWith("]"));
+
+  if (!looksJson) return <>{text}</>;
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    const blocks = flattenJson(parsed);
+    if (blocks.length === 0) return <>{text}</>;
+    return (
+      <div className="space-y-4">
+        {blocks.map((b, i) =>
+          b.kind === "paragraph" ? (
+            <p key={i}>
+              {b.label ? (
+                <span className="mr-2 text-[10.5px] uppercase tracking-[0.22em] text-foreground/55">
+                  {b.label}
+                </span>
+              ) : null}
+              {b.value}
+            </p>
+          ) : (
+            <div key={i}>
+              {b.label ? (
+                <div className="mb-2 text-[10.5px] uppercase tracking-[0.22em] text-foreground/55">
+                  {b.label}
+                </div>
+              ) : null}
+              <ul className="space-y-2">
+                {b.items.map((item, j) => (
+                  <li key={j} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-foreground/60" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        )}
+      </div>
+    );
+  } catch {
+    return <>{text}</>;
+  }
+}
+
+type ProseBlock =
+  | { kind: "paragraph"; label: string | null; value: string }
+  | { kind: "list"; label: string | null; items: string[] };
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function stringifyValue(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return JSON.stringify(v);
+}
+
+function flattenJson(input: unknown): ProseBlock[] {
+  const blocks: ProseBlock[] = [];
+  if (Array.isArray(input)) {
+    const items = input.map(stringifyValue).filter(Boolean);
+    if (items.length) blocks.push({ kind: "list", label: null, items });
+    return blocks;
+  }
+  if (input && typeof input === "object") {
+    for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+      const label = humanizeKey(key);
+      if (Array.isArray(value)) {
+        const items = value.map(stringifyValue).filter(Boolean);
+        if (items.length) blocks.push({ kind: "list", label, items });
+      } else if (value && typeof value === "object") {
+        const nested = flattenJson(value);
+        if (nested.length) {
+          blocks.push({ kind: "paragraph", label, value: "" });
+          blocks.push(...nested);
+        }
+      } else {
+        const s = stringifyValue(value);
+        if (s) blocks.push({ kind: "paragraph", label, value: s });
+      }
+    }
+    return blocks;
+  }
+  const s = stringifyValue(input);
+  if (s) blocks.push({ kind: "paragraph", label: null, value: s });
+  return blocks;
 }
 
 function SourcesDrawer({
