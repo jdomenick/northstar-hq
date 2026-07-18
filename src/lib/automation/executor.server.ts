@@ -62,5 +62,6 @@ export async function runWithTimeout<T>(promise: Promise<T>, timeoutSeconds: num
 
 // Auto-register bundled handlers on import.
 import "./jobs/website-sync.server";
+import "./jobs/intelligence-sweep.server";
 // social_publish dispatcher: reads platform and hands off to beehiiv or meta.
 import "@/lib/social/jobs/social-publish-dispatcher.server";
