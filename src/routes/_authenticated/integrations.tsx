@@ -7,6 +7,7 @@ import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
 import { getMetaConnectorHealth } from "@/lib/social/providers/meta/health.functions";
+import { SamMcpConnectionPanel } from "@/components/sam-mcp-connection-panel";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   component: IntegrationsPage,
@@ -142,6 +143,9 @@ function IntegrationsPage() {
             {connectError}
           </div>
         ) : null}
+        <Section title="SAM">
+          <SamMcpConnectionPanel />
+        </Section>
         {cats.map((cat) => (
           <Section key={cat} title={cat}>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
