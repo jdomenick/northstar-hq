@@ -77,10 +77,10 @@ export const runIntelligenceSweep = createServerFn({ method: "POST" })
     const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
     const { data: learnedRows } = await supabase
       .from("sam_memory_items")
-      .select("id, title, statement, confirmed_at")
+      .select("id, title, statement, last_confirmed_at")
       .eq("organization_id", organizationId)
-      .gte("confirmed_at", dayAgo)
-      .order("confirmed_at", { ascending: false })
+      .gte("last_confirmed_at", dayAgo)
+      .order("last_confirmed_at", { ascending: false })
       .limit(10);
 
     // Recent wins (last 7 days): completed projects/commitments, achieved goals
@@ -256,7 +256,14 @@ export const actOnRecommendation = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ActInput.parse(i))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const patch: Record<string, unknown> = {};
+    type RecUpdate = {
+      status?: "pending" | "accepted" | "dismissed" | "snoozed" | "converted";
+      resolved_at?: string;
+      resolved_by?: string;
+      snooze_until?: string;
+      converted_to_ref?: unknown;
+    };
+    const patch: RecUpdate = {};
     switch (data.action) {
       case "accepted":
         patch.status = "accepted";
@@ -275,7 +282,7 @@ export const actOnRecommendation = createServerFn({ method: "POST" })
       case "converted_task":
       case "converted_goal":
         patch.status = "converted";
-        patch.converted_to_ref = (data.payload ?? { kind: data.action }) as never;
+        patch.converted_to_ref = data.payload ?? { kind: data.action };
         patch.resolved_at = new Date().toISOString();
         patch.resolved_by = userId;
         break;
@@ -286,7 +293,7 @@ export const actOnRecommendation = createServerFn({ method: "POST" })
     if (Object.keys(patch).length) {
       const { error } = await supabase
         .from("sam_recommendations")
-        .update(patch)
+        .update(patch as never)
         .eq("id", data.recommendationId)
         .eq("organization_id", data.organizationId);
       if (error) throw error;
