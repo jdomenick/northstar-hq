@@ -27,10 +27,13 @@ export type HandlerFn = (ctx: HandlerContext) => Promise<HandlerResult>;
 // ESM and execute registerHandler() BEFORE any top-level `const` in this
 // module is initialized. Using a lazy getter avoids the TDZ crash that
 // otherwise silently drops every handler registration.
-let HANDLERS: Map<string, HandlerFn> | null = null;
+// `var` (not `let`/`const`) so the binding is hoisted and initialized to
+// undefined before hoisted side-effect imports execute registerHandler.
+// eslint-disable-next-line no-var
+var HANDLERS_LAZY: Map<string, HandlerFn> | undefined;
 function handlerMap(): Map<string, HandlerFn> {
-  if (!HANDLERS) HANDLERS = new Map();
-  return HANDLERS;
+  if (!HANDLERS_LAZY) HANDLERS_LAZY = new Map();
+  return HANDLERS_LAZY;
 }
 
 export function registerHandler(jobType: string, fn: HandlerFn): void {
