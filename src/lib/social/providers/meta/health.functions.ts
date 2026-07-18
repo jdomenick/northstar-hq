@@ -14,7 +14,7 @@ const Input = z.object({ organizationId: z.string().uuid() });
 export const getMetaConnectorHealth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => Input.parse(v))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<{ configured: boolean; missing: string[]; graphVersion: string; destinations: Array<{ id: string; kind: string; external_id: string; display_name: string; publish_available: boolean; insights_available: boolean; last_capability_reason: string | null }>; error: string | null }> => {
     const cfg = readMetaConfigStatus();
     const { data: dests, error } = await context.supabase
       .from("meta_destinations")
@@ -25,7 +25,7 @@ export const getMetaConnectorHealth = createServerFn({ method: "POST" })
         configured: cfg.configured,
         missing: cfg.missing,
         graphVersion: META_GRAPH_VERSION,
-        destinations: [] as Array<Record<string, unknown>>,
+        destinations: [],
         error: "destination_read_failed",
       };
     }
@@ -33,7 +33,7 @@ export const getMetaConnectorHealth = createServerFn({ method: "POST" })
       configured: cfg.configured,
       missing: cfg.missing,
       graphVersion: META_GRAPH_VERSION,
-      destinations: (dests ?? []) as Array<Record<string, unknown>>,
+      destinations: ((dests ?? []) as Array<{ id: string; kind: string; external_id: string; display_name: string; publish_available: boolean; insights_available: boolean; last_capability_reason: string | null }>),
       error: null,
     };
   });
