@@ -442,7 +442,7 @@ function TaskList({
   canWrite,
 }: {
   projectId: string;
-  ventureId: string;
+  ventureId: string | null;
   tasks: Task[];
   canWrite: boolean;
 }) {
