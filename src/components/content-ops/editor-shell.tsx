@@ -810,6 +810,47 @@ export function EditorShell({ organizationId, parentContentItemId }: {
     onError: (e: Error) => setError(e.message),
   });
 
+  const duplicateMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      return duplicateFn({ data: { organizationId, ventureId, contentItemId: active.id } });
+    },
+    onSuccess: (res) => { invalidate(); if (res?.id) setActiveId(res.id); },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const archiveMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      const isArchived = active.status === "archived";
+      return isArchived
+        ? unarchiveFn({ data: { organizationId, ventureId, contentItemId: active.id } })
+        : archiveFn({ data: { organizationId, ventureId, contentItemId: active.id } });
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const scheduleMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      const input = window.prompt("Schedule for (ISO datetime, e.g. 2026-08-01T14:30:00Z):");
+      if (!input) throw new Error("cancelled");
+      const when = new Date(input);
+      if (Number.isNaN(when.getTime())) throw new Error("Invalid date/time");
+      return scheduleFn({
+        data: {
+          organizationId, ventureId,
+          contentItemId: active.id,
+          scheduledFor: when.toISOString(),
+          contentVersion: active.content_version,
+        } as never,
+      });
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => { if (e.message !== "cancelled") setError(e.message); },
+  });
+
   const parentMeta = (parent?.metadata as Record<string, unknown> | null) ?? {};
   const parentCampaignId = parent?.campaign_id ?? null;
   const parentPillarId = (parentMeta.pillar_id as string | null) ?? null;
