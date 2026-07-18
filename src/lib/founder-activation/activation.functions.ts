@@ -204,7 +204,7 @@ export const importFounderActivation = createServerFn({ method: "POST" })
         // scoped tables, the resolved venture), treat as skipped rather than erroring
         // on the unique index. Keeps re-runs of Founder Activation safe.
         {
-          const nameField = (table === "projects" || table === "ventures") ? "name" : "title";
+          const nameField: "name" | "title" = table === "projects" ? "name" : "title";
           const label = labelOf(dec);
           const { data: dupes } = await supabase
             .from(table)
