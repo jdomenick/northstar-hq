@@ -73,7 +73,7 @@ export interface DsGoal {
   venture_id: string | null;
   title: string;
   status: string;
-  progress_percentage: number;
+  progress_percentage: number; // derived from current_value / target_value
   target_date: string | null;
   updated_at: string;
 }

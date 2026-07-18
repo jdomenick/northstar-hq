@@ -66,7 +66,7 @@ export async function loadIntelligenceDataset(
     supabase
       .from("goals")
       .select(
-        "id, organization_id, venture_id, title, status, progress_percentage, target_date, updated_at",
+        "id, organization_id, venture_id, title, status, current_value, target_value, target_date, updated_at",
       )
       .eq("organization_id", organizationId),
     supabase
@@ -90,7 +90,21 @@ export async function loadIntelligenceDataset(
     tasks: (tasksQ.data ?? []) as DsTask[],
     commitments: (commitmentsQ.data ?? []) as DsCommitment[],
     decisions: (decisionsQ.data ?? []) as DsDecision[],
-    goals: (goalsQ.data ?? []) as DsGoal[],
+    goals: (goalsQ.data ?? []).map((g) => {
+      const cur = typeof g.current_value === "number" ? g.current_value : Number(g.current_value ?? 0);
+      const tgt = typeof g.target_value === "number" ? g.target_value : Number(g.target_value ?? 0);
+      const pct = tgt > 0 ? Math.max(0, Math.min(100, Math.round((cur / tgt) * 100))) : 0;
+      return {
+        id: g.id,
+        organization_id: g.organization_id,
+        venture_id: g.venture_id,
+        title: g.title,
+        status: g.status as string,
+        progress_percentage: pct,
+        target_date: g.target_date,
+        updated_at: g.updated_at,
+      } as DsGoal;
+    }),
     activity: (activityQ.data ?? []) as DsActivity[],
     memoryConflicts: (conflictsQ.data ?? []) as DsMemoryConflict[],
   };
