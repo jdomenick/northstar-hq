@@ -33,17 +33,20 @@ export const UnsupportedActionSchema = z.object({
 // Executive response contract  -  see docs/sam/04-reasoning.md.
 export const SamResponseSchema = z.object({
   answer: z.string(),
-  executive_summary: z.string().nullable(),
-  observations: z.array(z.string()),
-  risks: z.array(z.string()),
-  opportunities: z.array(z.string()),
-  recommendations: z.array(z.string()),
-  missing_information: z.array(z.string()),
-  assumptions: z.array(z.string()),
-  next_question: z.string().nullable(),
-  model_confidence_hint: z.enum(["low", "moderate", "high", "very_high"]).nullable(),
-  citations: z.array(CitationSchema),
-  unsupported_action: UnsupportedActionSchema.nullable(),
+  executive_summary: z.string().nullable().default(null),
+  observations: z.array(z.string()).default([]),
+  risks: z.array(z.string()).default([]),
+  opportunities: z.array(z.string()).default([]),
+  recommendations: z.array(z.string()).default([]),
+  missing_information: z.array(z.string()).default([]),
+  assumptions: z.array(z.string()).default([]),
+  next_question: z.string().nullable().default(null),
+  model_confidence_hint: z
+    .enum(["low", "moderate", "high", "very_high"])
+    .nullable()
+    .default(null),
+  citations: z.array(CitationSchema).default([]),
+  unsupported_action: UnsupportedActionSchema.nullable().default(null),
 });
 
 export type SamResponse = z.infer<typeof SamResponseSchema>;
