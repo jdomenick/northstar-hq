@@ -1033,6 +1033,66 @@ export type Database = {
           },
         ]
       }
+      content_evergreen_topics: {
+        Row: {
+          archived_at: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          label: string
+          organization_id: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          label: string
+          organization_id: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          label?: string
+          organization_id?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_evergreen_topics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_evergreen_topics_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_learnings: {
         Row: {
           audience_segment: string | null
@@ -4885,6 +4945,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           approved_content_version: number | null
+          archived_at: string | null
           automation_generated: boolean
           body: string
           brand_profile_version: number | null
@@ -4898,8 +4959,12 @@ export type Database = {
           cta: string | null
           deleted_at: string | null
           duplicate_fingerprint: string
+          editorial: Json
+          evergreen_tags: string[]
+          evergreen_topic: string | null
           external_post_id: string | null
           external_post_url: string | null
+          final_title: string | null
           first_comment: string | null
           hashtags: Json
           hook: string | null
@@ -4926,9 +4991,11 @@ export type Database = {
           social_account_id: string | null
           source_lineage: Json
           status: string
+          target_audience: string | null
           title: string | null
           updated_at: string
           venture_id: string
+          working_title: string | null
         }
         Insert: {
           alt_text?: string | null
@@ -4936,6 +5003,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           approved_content_version?: number | null
+          archived_at?: string | null
           automation_generated?: boolean
           body: string
           brand_profile_version?: number | null
@@ -4949,8 +5017,12 @@ export type Database = {
           cta?: string | null
           deleted_at?: string | null
           duplicate_fingerprint: string
+          editorial?: Json
+          evergreen_tags?: string[]
+          evergreen_topic?: string | null
           external_post_id?: string | null
           external_post_url?: string | null
+          final_title?: string | null
           first_comment?: string | null
           hashtags?: Json
           hook?: string | null
@@ -4977,9 +5049,11 @@ export type Database = {
           social_account_id?: string | null
           source_lineage?: Json
           status?: string
+          target_audience?: string | null
           title?: string | null
           updated_at?: string
           venture_id: string
+          working_title?: string | null
         }
         Update: {
           alt_text?: string | null
@@ -4987,6 +5061,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           approved_content_version?: number | null
+          archived_at?: string | null
           automation_generated?: boolean
           body?: string
           brand_profile_version?: number | null
@@ -5000,8 +5075,12 @@ export type Database = {
           cta?: string | null
           deleted_at?: string | null
           duplicate_fingerprint?: string
+          editorial?: Json
+          evergreen_tags?: string[]
+          evergreen_topic?: string | null
           external_post_id?: string | null
           external_post_url?: string | null
+          final_title?: string | null
           first_comment?: string | null
           hashtags?: Json
           hook?: string | null
@@ -5028,9 +5107,11 @@ export type Database = {
           social_account_id?: string | null
           source_lineage?: Json
           status?: string
+          target_audience?: string | null
           title?: string | null
           updated_at?: string
           venture_id?: string
+          working_title?: string | null
         }
         Relationships: [
           {
@@ -5301,64 +5382,100 @@ export type Database = {
       }
       social_content_versions: {
         Row: {
+          alt_text: string | null
           body: string
           brand_profile_version: number | null
           change_reason: string | null
           content_hash: string
           content_item_id: string
           created_at: string
+          cta: string | null
+          editorial: Json
+          evergreen_tags: string[]
+          evergreen_topic: string | null
+          final_title: string | null
           first_comment: string | null
           generated_by: string
           generated_by_actor_id: string | null
           hashtags: Json
+          hook: string | null
           id: string
           link_url: string | null
           media_requirements: Json
+          newsletter_preview: string | null
+          newsletter_subject: string | null
           organization_id: string
           policy_version: string
+          restored_from_version: number | null
           source_lineage: Json
+          target_audience: string | null
           title: string | null
           version: number
+          working_title: string | null
         }
         Insert: {
+          alt_text?: string | null
           body: string
           brand_profile_version?: number | null
           change_reason?: string | null
           content_hash: string
           content_item_id: string
           created_at?: string
+          cta?: string | null
+          editorial?: Json
+          evergreen_tags?: string[]
+          evergreen_topic?: string | null
+          final_title?: string | null
           first_comment?: string | null
           generated_by?: string
           generated_by_actor_id?: string | null
           hashtags?: Json
+          hook?: string | null
           id?: string
           link_url?: string | null
           media_requirements?: Json
+          newsletter_preview?: string | null
+          newsletter_subject?: string | null
           organization_id: string
           policy_version?: string
+          restored_from_version?: number | null
           source_lineage?: Json
+          target_audience?: string | null
           title?: string | null
           version: number
+          working_title?: string | null
         }
         Update: {
+          alt_text?: string | null
           body?: string
           brand_profile_version?: number | null
           change_reason?: string | null
           content_hash?: string
           content_item_id?: string
           created_at?: string
+          cta?: string | null
+          editorial?: Json
+          evergreen_tags?: string[]
+          evergreen_topic?: string | null
+          final_title?: string | null
           first_comment?: string | null
           generated_by?: string
           generated_by_actor_id?: string | null
           hashtags?: Json
+          hook?: string | null
           id?: string
           link_url?: string | null
           media_requirements?: Json
+          newsletter_preview?: string | null
+          newsletter_subject?: string | null
           organization_id?: string
           policy_version?: string
+          restored_from_version?: number | null
           source_lineage?: Json
+          target_audience?: string | null
           title?: string | null
           version?: number
+          working_title?: string | null
         }
         Relationships: [
           {
