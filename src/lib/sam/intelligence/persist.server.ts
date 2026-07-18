@@ -137,7 +137,7 @@ export async function upsertRecommendations(
   organizationId: string,
   drafts: RecommendationDraft[],
   insightsByKey: Map<string, string>, // `${patternKey}|${entityRef}` -> insightId
-  actorUserId: string,
+  actorUserId: string | null,
 ): Promise<PersistedRecommendation[]> {
   if (drafts.length === 0) return [];
 
