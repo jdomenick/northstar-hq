@@ -7,7 +7,7 @@
 
 import { z } from "zod";
 import { AutomationError } from "@/lib/automation/errors";
-import { registerHandler, type HandlerFn } from "@/lib/automation/executor.server";
+import type { HandlerFn } from "@/lib/automation/executor.server";
 import {
   evaluatePublishGates,
   PUBLISH_GATES_VERSION,
@@ -21,7 +21,7 @@ export const BeehiivPublishInputSchema = z.object({
 
 export const BEEHIIV_PUBLISH_HANDLER_VERSION = "beehiiv.publish.v1-6a";
 
-const handler: HandlerFn = async ({ supabase, job }) => {
+export const beehiivPublishHandler: HandlerFn = async ({ supabase, job }) => {
   const parsed = BeehiivPublishInputSchema.safeParse(job.input_payload ?? {});
   if (!parsed.success) throw new AutomationError("malformed_input", parsed.error.message);
   const { contentItemId, trigger } = parsed.data;
@@ -133,4 +133,4 @@ const handler: HandlerFn = async ({ supabase, job }) => {
   };
 };
 
-registerHandler("social_publish", handler);
+// Registration happens in dispatcher (src/lib/social/jobs/social-publish-dispatcher.server.ts).
