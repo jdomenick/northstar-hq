@@ -1090,6 +1090,13 @@ export function EditorShell({ organizationId, parentContentItemId }: {
 
       {mode === "edit" && active && activeDraft && activeCfg && validation && (
         <>
+          <EditorialFieldsPanel
+            value={activeEditorial}
+            onChange={setActiveEditorial}
+            disabled={active.status === "published" || active.status === "publishing"}
+            topics={(topicsQ.data ?? []) as Array<{ id: string; slug: string; label: string; category: string | null }>}
+          />
+
           <VariantEditor
             variant={active}
             cfg={activeCfg}
@@ -1110,6 +1117,7 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                 <span>Status: <b className="font-medium text-foreground/85">{active.status}</b></span>
                 <span>Approval: <b className="font-medium text-foreground/85">{active.approval_status}</b></span>
                 {activeDraft.dirty && <span className="text-[oklch(0.55_0.14_65)]">Unsaved changes</span>}
+                <AutosaveStatusPill state={autosave.state} enabled={autosaveEnabled} />
               </div>
               <div className="flex flex-wrap gap-2">
                 <InkButton
@@ -1123,6 +1131,20 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                   title={!active.parent_content_item_id ? "Cannot delete the parent variant" : undefined}
                 >
                   <Trash2 className="h-3 w-3" /> Delete variant
+                </InkButton>
+                <InkButton
+                  onClick={() => duplicateMut.mutate()}
+                  disabled={duplicateMut.isPending}
+                  title="Create an editable copy as a new draft"
+                >
+                  <Copy className="h-3 w-3" /> {duplicateMut.isPending ? "Duplicating..." : "Duplicate"}
+                </InkButton>
+                <InkButton
+                  onClick={() => archiveMut.mutate()}
+                  disabled={archiveMut.isPending || active.status === "publishing"}
+                  title={active.status === "archived" ? "Restore from archive" : "Move to archive"}
+                >
+                  <ArchiveIcon className="h-3 w-3" /> {active.status === "archived" ? "Unarchive" : "Archive"}
                 </InkButton>
                 <InkButton
                   onClick={doSave}
@@ -1158,6 +1180,13 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                 >
                   Approve
                 </InkButton>
+                <InkButton
+                  onClick={() => scheduleMut.mutate()}
+                  disabled={scheduleMut.isPending || active.approval_status !== "approved"}
+                  title={active.approval_status !== "approved" ? "Approve first" : "Enqueue for scheduled publication"}
+                >
+                  <CalendarIcon className="h-3 w-3" /> {scheduleMut.isPending ? "Scheduling..." : "Schedule"}
+                </InkButton>
               </div>
             </div>
           </div>
@@ -1165,4 +1194,29 @@ export function EditorShell({ organizationId, parentContentItemId }: {
       )}
     </div>
   );
+}
+
+function AutosaveStatusPill({ state, enabled }: { state: AutosaveState; enabled: boolean }) {
+  if (!enabled && state.status === "idle") return null;
+  const label =
+    state.status === "saving" ? "Saving..."
+    : state.status === "saved" ? (state.lastSavedAt ? `Saved ${timeAgo(state.lastSavedAt)}` : "Saved")
+    : state.status === "retrying" ? `Retrying (attempt ${state.attempt + 1})...`
+    : state.status === "failed" ? "Autosave failed"
+    : state.status === "offline" ? "Offline - will save when back online"
+    : "";
+  if (!label) return null;
+  const tone =
+    state.status === "failed" ? "text-[oklch(0.5_0.18_27)]"
+    : state.status === "retrying" || state.status === "offline" ? "text-[oklch(0.55_0.14_65)]"
+    : "text-foreground/70";
+  return <span className={cn("text-[11px]", tone)} title={state.errorMessage ?? undefined}>{label}</span>;
+}
+
+function timeAgo(t: number): string {
+  const s = Math.max(1, Math.round((Date.now() - t) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.round(m / 60)}h ago`;
 }
