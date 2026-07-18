@@ -1862,6 +1862,140 @@ export type Database = {
           },
         ]
       }
+      content_publication_history: {
+        Row: {
+          actor_user_id: string | null
+          api_version: string
+          automation_job_id: string | null
+          content_item_id: string
+          content_version_id: string | null
+          created_at: string
+          destination_id: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          idempotency_key: string
+          organization_id: string
+          permalink: string | null
+          provider: string
+          provider_media_id: string | null
+          provider_post_id: string | null
+          publish_generation: number
+          request_snapshot: Json
+          response_snapshot: Json
+          social_account_id: string | null
+          status: string
+          updated_at: string
+          venture_id: string
+          verification_response: Json | null
+          verified_at: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          api_version: string
+          automation_job_id?: string | null
+          content_item_id: string
+          content_version_id?: string | null
+          created_at?: string
+          destination_id?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key: string
+          organization_id: string
+          permalink?: string | null
+          provider: string
+          provider_media_id?: string | null
+          provider_post_id?: string | null
+          publish_generation?: number
+          request_snapshot?: Json
+          response_snapshot?: Json
+          social_account_id?: string | null
+          status: string
+          updated_at?: string
+          venture_id: string
+          verification_response?: Json | null
+          verified_at?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          api_version?: string
+          automation_job_id?: string | null
+          content_item_id?: string
+          content_version_id?: string | null
+          created_at?: string
+          destination_id?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string
+          organization_id?: string
+          permalink?: string | null
+          provider?: string
+          provider_media_id?: string | null
+          provider_post_id?: string | null
+          publish_generation?: number
+          request_snapshot?: Json
+          response_snapshot?: Json
+          social_account_id?: string | null
+          status?: string
+          updated_at?: string
+          venture_id?: string
+          verification_response?: Json | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_publication_history_automation_job_id_fkey"
+            columns: ["automation_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_content_version_id_fkey"
+            columns: ["content_version_id"]
+            isOneToOne: false
+            referencedRelation: "social_content_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "meta_destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_publication_history_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_messages: {
         Row: {
           content: string
@@ -2989,6 +3123,262 @@ export type Database = {
             columns: ["venture_id"]
             isOneToOne: false
             referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_destinations: {
+        Row: {
+          connected_fb_page_id: string | null
+          connected_ig_id: string | null
+          created_at: string
+          display_name: string
+          external_id: string
+          granted_permissions: string[]
+          id: string
+          insights_available: boolean
+          kind: string
+          last_capability_check: string | null
+          last_capability_reason: string | null
+          metadata: Json
+          organization_id: string
+          page_tasks: string[]
+          publish_available: boolean
+          social_account_id: string | null
+          updated_at: string
+          username: string | null
+          venture_id: string
+        }
+        Insert: {
+          connected_fb_page_id?: string | null
+          connected_ig_id?: string | null
+          created_at?: string
+          display_name: string
+          external_id: string
+          granted_permissions?: string[]
+          id?: string
+          insights_available?: boolean
+          kind: string
+          last_capability_check?: string | null
+          last_capability_reason?: string | null
+          metadata?: Json
+          organization_id: string
+          page_tasks?: string[]
+          publish_available?: boolean
+          social_account_id?: string | null
+          updated_at?: string
+          username?: string | null
+          venture_id: string
+        }
+        Update: {
+          connected_fb_page_id?: string | null
+          connected_ig_id?: string | null
+          created_at?: string
+          display_name?: string
+          external_id?: string
+          granted_permissions?: string[]
+          id?: string
+          insights_available?: boolean
+          kind?: string
+          last_capability_check?: string | null
+          last_capability_reason?: string | null
+          metadata?: Json
+          organization_id?: string
+          page_tasks?: string[]
+          publish_available?: boolean
+          social_account_id?: string | null
+          updated_at?: string
+          username?: string | null
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_destinations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_destinations_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_destinations_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_media_delivery_tokens: {
+        Row: {
+          asset_id: string
+          consumed_at: string | null
+          created_at: string
+          delivered_bytes: number | null
+          delivery_ip: unknown
+          expires_at: string
+          id: string
+          organization_id: string
+          purpose: string
+          token: string
+        }
+        Insert: {
+          asset_id: string
+          consumed_at?: string | null
+          created_at?: string
+          delivered_bytes?: number | null
+          delivery_ip?: unknown
+          expires_at: string
+          id?: string
+          organization_id: string
+          purpose?: string
+          token: string
+        }
+        Update: {
+          asset_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          delivered_bytes?: number | null
+          delivery_ip?: unknown
+          expires_at?: string
+          id?: string
+          organization_id?: string
+          purpose?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_media_delivery_tokens_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "content_media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_media_delivery_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_oauth_states: {
+        Row: {
+          code_verifier: string | null
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          organization_id: string
+          purpose: string
+          redirect_uri: string
+          requested_by: string | null
+          requested_scopes: string[]
+          state: string
+          venture_id: string | null
+        }
+        Insert: {
+          code_verifier?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          organization_id: string
+          purpose?: string
+          redirect_uri: string
+          requested_by?: string | null
+          requested_scopes?: string[]
+          state: string
+          venture_id?: string | null
+        }
+        Update: {
+          code_verifier?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          organization_id?: string
+          purpose?: string
+          redirect_uri?: string
+          requested_by?: string | null
+          requested_scopes?: string[]
+          state?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_oauth_states_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_oauth_states_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_page_tokens: {
+        Row: {
+          destination_id: string
+          encrypted_token: string
+          encryption_scheme: string
+          expires_at: string | null
+          id: string
+          last_refresh_at: string | null
+          obtained_at: string
+          organization_id: string
+          revoked_at: string | null
+          scopes: string[]
+        }
+        Insert: {
+          destination_id: string
+          encrypted_token: string
+          encryption_scheme?: string
+          expires_at?: string | null
+          id?: string
+          last_refresh_at?: string | null
+          obtained_at?: string
+          organization_id: string
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Update: {
+          destination_id?: string
+          encrypted_token?: string
+          encryption_scheme?: string
+          expires_at?: string | null
+          id?: string
+          last_refresh_at?: string | null
+          obtained_at?: string
+          organization_id?: string
+          revoked_at?: string | null
+          scopes?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_page_tokens_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: true
+            referencedRelation: "meta_destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_page_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -4941,12 +5331,15 @@ export type Database = {
       social_content_items: {
         Row: {
           alt_text: string | null
+          approval_revoked_at: string | null
+          approval_revoked_reason: string | null
           approval_status: string
           approved_at: string | null
           approved_by: string | null
           approved_content_version: number | null
           archived_at: string | null
           automation_generated: boolean
+          blocked_reason: string | null
           body: string
           brand_profile_version: number | null
           campaign_id: string | null
@@ -4982,6 +5375,7 @@ export type Database = {
           parent_content_item_id: string | null
           platform: string
           policy_version: string
+          publish_generation: number
           published_at: string | null
           publishing_window_end: string | null
           publishing_window_start: string | null
@@ -4999,12 +5393,15 @@ export type Database = {
         }
         Insert: {
           alt_text?: string | null
+          approval_revoked_at?: string | null
+          approval_revoked_reason?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
           approved_content_version?: number | null
           archived_at?: string | null
           automation_generated?: boolean
+          blocked_reason?: string | null
           body: string
           brand_profile_version?: number | null
           campaign_id?: string | null
@@ -5040,6 +5437,7 @@ export type Database = {
           parent_content_item_id?: string | null
           platform: string
           policy_version?: string
+          publish_generation?: number
           published_at?: string | null
           publishing_window_end?: string | null
           publishing_window_start?: string | null
@@ -5057,12 +5455,15 @@ export type Database = {
         }
         Update: {
           alt_text?: string | null
+          approval_revoked_at?: string | null
+          approval_revoked_reason?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
           approved_content_version?: number | null
           archived_at?: string | null
           automation_generated?: boolean
+          blocked_reason?: string | null
           body?: string
           brand_profile_version?: number | null
           campaign_id?: string | null
@@ -5098,6 +5499,7 @@ export type Database = {
           parent_content_item_id?: string | null
           platform?: string
           policy_version?: string
+          publish_generation?: number
           published_at?: string | null
           publishing_window_end?: string | null
           publishing_window_start?: string | null
