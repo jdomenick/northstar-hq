@@ -15,6 +15,13 @@ import { buildDuplicateFingerprint } from "@/lib/social/deduplication.server";
 import { getPlatformConfig, PROMOTION_CLASSIFICATIONS, type EditorPlatform } from "./platform-registry";
 import { validateVariant, type ValidationInput, type ValidationResult } from "./editor-validation";
 import { SOCIAL_PLATFORMS, SOCIAL_CONTENT_TYPES } from "@/lib/constants";
+import {
+  EMPTY_EDITORIAL_BLOB,
+  editorialChangeRevokesApproval,
+  normalizeEditorial,
+  normalizeEvergreenTags,
+  type EditorialBlob,
+} from "./editorial";
 
 // ---- Shared shapes ---------------------------------------------------------
 
@@ -35,6 +42,36 @@ const MediaAttachmentSchema = z.object({
   assetId: uuid.nullable().optional(),
   width: z.number().int().min(1).nullable().optional(),
   height: z.number().int().min(1).nullable().optional(),
+});
+
+// Editorial blob schema. All members optional; server normalizes with
+// normalizeEditorial() so unknown fields drop and shapes are enforced.
+const EditorialLinkSchema = z.object({
+  url: z.string().min(1).max(2048),
+  label: z.string().max(240).nullable().optional(),
+});
+const EditorialSourceSchema = z.object({
+  title: z.string().min(1).max(240),
+  url: z.string().max(2048).nullable().optional(),
+  documentId: z.string().max(240).nullable().optional(),
+});
+const EditorialBlobSchema = z.object({
+  workingTitle: z.string().max(500).nullable().optional(),
+  finalTitle: z.string().max(500).nullable().optional(),
+  creativeBrief: z.string().max(8000).nullable().optional(),
+  designerNotes: z.string().max(8000).nullable().optional(),
+  samNotes: z.string().max(8000).nullable().optional(),
+  internalNotes: z.string().max(8000).nullable().optional(),
+  platformNotes: z.string().max(8000).nullable().optional(),
+  externalLinks: z.array(EditorialLinkSchema).max(50).optional(),
+  sourceDocuments: z.array(EditorialSourceSchema).max(50).optional(),
+  referenceUrls: z.array(z.string().max(2048)).max(50).optional(),
+  mentionedPeople: z.array(z.string().max(240)).max(50).optional(),
+  mentionedCompanies: z.array(z.string().max(240)).max(50).optional(),
+  mentionedBrands: z.array(z.string().max(240)).max(50).optional(),
+  targetAudience: z.string().max(2000).nullable().optional(),
+  evergreenTopic: z.string().max(240).nullable().optional(),
+  evergreenTags: z.array(z.string().max(64)).max(40).optional(),
 });
 
 // ---- Load ------------------------------------------------------------------
