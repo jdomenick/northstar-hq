@@ -3,6 +3,7 @@ import { ArrowUpRight, AlertTriangle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
+import { ExecutiveIntelligencePanel } from "@/components/executive-intelligence-panel";
 import {
   useActivity,
   useCommitments,
