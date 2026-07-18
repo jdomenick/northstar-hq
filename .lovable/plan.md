@@ -1,55 +1,74 @@
+# S1f-2b - Editorial Workspace
 
-# SAM Content Operations Engine - Staged Plan
+This is the largest UI/data change since S1c. To keep it shippable, verifiable, and reversible, I want to break it into four in-order sub-stages, all inside S1f-2b, each ending with typecheck + build + tests green. No X connector work until all four are done.
 
-This milestone is a full vertical business loop (strategy -> plan -> generate -> approve -> schedule -> publish -> verify -> measure -> learn -> replan). It is genuinely multiple weeks of work across many turns. I will not pretend to ship it in one turn, and I will not fake a "complete" connector. Below is how I propose to sequence it so every turn ends on green typecheck + build and each stage produces something real.
+## Scope split
 
-Before I start, two decisions are needed from you (question 1 and 2 below). Everything else I will drive from existing Northstar architecture.
+### S1f-2b.1 - Data model & field expansion (backend-first)
 
-## Reuse (no duplication)
+New nullable columns on `social_content_items` (parent-only fields live in metadata JSON to keep variants tight):
 
-I will build on top of, not beside:
-- `integration_connections`, `integration_sources`, `integration_sync_runs`
-- `automation_jobs`, `automation_definitions`, scheduler, worker, retry, recovery, health
-- Existing `social_*` tables (accounts, campaigns, content_plans, content_items, content_versions, content_metrics, publication_attempts) - these already cover most of section 3's model
-- `venture_brand_profiles`, `venture_operating_context`, `organization_operating_context`
-- SAM pipeline, memory, workflows, provider abstraction
-- Paper & Ink primitives in `src/components/editorial.tsx`
+Variant fields (real columns, backwards compatible):
+- `working_title text`, `final_title text` (existing `title` becomes an alias/computed view surfaced as "Working Title" until we backfill)
+- Everything else lives in a typed `editorial` JSONB blob on the row, versioned into `social_content_versions.editorial` for revision integrity:
+  - creative_brief, designer_notes, sam_notes, internal_notes, platform_notes
+  - external_links[], source_documents[], reference_urls[]
+  - mentioned_people[], mentioned_companies[], mentioned_brands[]
+  - target_audience
 
-Gaps I expect to fill (not rebuild): venture content operating profile fields not yet on `venture_brand_profiles`, autonomy mode + kill switches, content_learnings table, publishing verification state machine on top of `social_publication_attempts`, connector adapter contract in `src/lib/social/providers/`.
+Parent-only fields (on parent row's metadata + surfaced as first-class):
+- `evergreen_topic`, `evergreen_tags[]` (new column `evergreen_tags text[]` for index + future semantic search)
+- pillar / campaign / target_audience already exist; keep
 
-## Stages (each stage = one or more turns, each ends green)
+New table: `content_evergreen_topics` (org+venture scoped, seed with Healing Path canonical list). Tagging becomes a real relation later; v1 stores tags as text[] with a validated vocabulary loaded from this table (extensible, editable). Backend keeps unknown tags but flags them.
 
-1. Audit + gap doc. Read existing social_*, brand profiles, automation runtime, SAM planner surface. Produce `docs/architecture/content-operations.md` mapping every section-3 concept to an existing or new table. No code changes.
-2. Domain migration. Additive columns + new tables (`content_learnings`, `venture_content_autonomy`, kill-switch flags). GRANTs + RLS + audit history. No app code yet.
-3. Server services: profile, strategy, calendar, content item, variant, asset brief, approval, autonomy, kill switch. `createServerFn` under `src/lib/content-ops/`. Schema-validated. Reuses automation queue for scheduling.
-4. Planning + generation pipeline. Deterministic validators (promo ratio, pillar balance, duplication, platform rules) run before persistence. Provider call via existing PAL. Structured output only.
-5. Paper & Ink Content Operations workspace under `/_authenticated/content/` (Command, Calendar, Drafts, Approvals, Scheduled, Published, Performance, Learnings, Settings). Editorial calendar + approval queue on real data.
-6. One real publishing connector, end to end, honestly. Choice driven by question 2 below. Real OAuth, real publish, real external URL, real verification, real metrics where the API allows. Idempotency key + content fingerprint. Uses `automation_jobs` for scheduling and retry.
-7. Metrics collection + learning engine. Scheduled metric refresh job. Learnings only when minimum sample thresholds are met, always with evidence refs.
-8. SAM typed commands + Brief integration + notifications. Typed action contracts, not text parsing. Brief items link back to source records.
-9. E2E verification with Healing Path in Approval Required mode. Completion report per section 28.
+Migration includes GRANTs, RLS, updated_at trigger, and a snapshot into `social_content_versions` of the full editorial blob (add `editorial jsonb` there too).
 
-I will run typecheck at the end of every stage and the production build at the end of stages 2, 5, 6, and 9. I will not advance a stage while red.
+### S1f-2b.2 - Autosave, approval-integrity, version compare/restore (server + minimal UI)
 
-## Explicit non-goals for this milestone
+Server:
+- `autosaveVariant` server fn: same shape as `saveVariant` but idempotent by (contentItemId, contentVersion, clientEditToken) - dedupes rapid saves and returns `{ savedAt, contentVersion, revokedApproval }`.
+- Approval revocation is already partial; extend to editorial blob changes and record an "approval_revoked_due_to_change" `content_ops_approvals` row so history shows the reason line "Approval removed because content changed."
+- `restoreVariantVersion(contentItemId, version)` server fn: writes a new version cloned from an old one; increments content_version; snapshots.
+- `diffVariantVersions(a, b)`: pure server helper returning a text diff per field (no external deps; uses a small LCS in TS).
 
-- No Gmail / Calendar / Drive ingestion work beyond what directly feeds Content Ops.
-- No second visual redesign.
-- No parallel scheduler, connector framework, or org/venture model.
-- No Full Autopilot default. New ventures start in Approval Required.
-- No "complete" claim on any connector that cannot actually publish + verify with real credentials.
+UI (in EditorShell):
+- Autosave state machine badge in header: Saving / Saved / Offline / Retrying / Failed. Debounced 800ms, coalesces field changes, backs off on network error.
+- Revision drawer gets Compare (pick two versions, per-field diff) and Restore actions.
+- Approval-revoked banner surfaces on any variant whose latest approval was auto-revoked.
 
-## Technical notes (for the record, safe to skim)
+### S1f-2b.3 - Field UI, evergreen tags, executive action bar, rich text
 
-- Content model: extend `social_content_items` + `social_content_versions` rather than forking. Add `content_learnings`, `venture_content_autonomy`, `content_ops_kill_switches`, and audit history tables. Every new `public.*` table gets GRANTs in the same migration.
-- Publishing: `automation_jobs` with `job_type='social_publish'`, handler registered via existing `registerHandler`. Idempotency key = hash(content_item_id, content_version, social_account_id). Content fingerprint stored on the attempt.
-- Adapter contract lives in `src/lib/social/providers/` (already stubbed). Real adapter added only for the chosen initial platform.
-- Autonomy + kill switches evaluated server-side inside the publish handler, not the UI.
-- Learnings require min sample size + baseline comparison; provider may explain, must not invent.
+- New collapsible sections in the variant editor: Editorial (working/final title, creative brief, notes), References (links, source docs, reference URLs), People & Brands (mentioned people/companies/brands with chip inputs), Audience & Topics (target audience, evergreen topic single-select, evergreen tags multi-select from vocabulary with free-add).
+- Executive action bar (sticky footer): Save, Submit, Approve, Reject, Request Revision, Duplicate, Archive, Restore, Schedule, Publish (routes to calendar with prefilled slot; live publish still gated by connectors), Delete. Each action goes through existing permission checks (`requireMembership` executive/member) and disables when not allowed. Wires Duplicate and Archive/Restore to new server fns; Schedule opens the existing `content-ops/calendar` schedule dialog.
+- Rich text: minimal ProseMirror alternative is overkill. Ship a lightweight contenteditable-based editor built on `@tiptap/core + @tiptap/starter-kit` (small, tree-shaken; already Worker-safe as pure JS) supporting Bold, Italic, H2/H3, bullets, numbered lists, blockquote, link, inline image (from Media Picker). Body stored as Markdown (converted server-side); platforms that need plain text render from Markdown deterministically. Existing plain-text bodies read fine as-is.
 
-## Questions before I start
+### S1f-2b.4 - Performance, tests, docs, verification
 
-1. Approval scope for section 25. Confirm: initial live validation runs in Approval Required mode against Healing Path, and I do not publish anything publicly without you explicitly approving each item in the UI. Yes/no.
-2. Initial real connector. You listed Beehiiv, Facebook Page, Instagram Business, LinkedIn, X, Reddit. Which ONE do you already have working credentials + publishing permissions for today? (Meta/Instagram require app review for Instagram Content Publishing; X requires paid tier for posting; LinkedIn organization posting needs a reviewed app; Beehiiv is usually the fastest real path via API key.) Tell me the one and I will build that adapter end to end first.
+- Split EditorShell into `EditorShell`, `VariantEditor`, `RevisionDrawer`, `ExecutiveBar`, `ReferencesSection`, `PeopleBrandsSection`, `TopicsSection`, `RichTextEditor`. Memoize per-variant draft state so typing in one section doesn't rerender previews for other variants. `useDeferredValue` on the preview pipeline.
+- Draft state moves to `useReducer` keyed by variantId; heavy derived state (validation, preview) behind `useMemo` keyed by the specific fields consumed.
+- Tests (added, not replacing):
+  - Pure: diff helper (LCS), evergreen tag normalization, autosave dedupe key, approval-revocation predicate, executive-action permission matrix.
+  - Server (contract): saveVariant revokes approval on editorial change; restoreVariantVersion increments version; duplicate/archive/restore transitions.
+  - Existing 77 tests continue passing.
+- Docs: extend `docs/architecture/content-editor.md` with autosave state machine, revision model, evergreen taxonomy, executive action permissions table.
 
-Once you answer those two, I will start with Stage 1 (audit + gap doc) in the next turn.
+## Architecture decisions
+
+- Editorial fields go in a typed `editorial` JSONB blob + a dedicated `evergreen_tags text[]` column. Rationale: 15+ new fields as columns bloats the row and slows migrations; JSONB is versioned atomically alongside body/hook in `social_content_versions`; `evergreen_tags` is indexed as `text[]` for cheap GIN search now and vector-search later.
+- Autosave uses `clientEditToken` for idempotency, not a distributed lock. Server refuses stale saves (contentVersion mismatch) with a specific error the UI translates to "Refresh - someone else edited this."
+- Rich text stored as Markdown, not HTML/JSON. Portable across platforms, cheap to render, safe to fingerprint for duplicate detection.
+- Schedule and Publish in the executive bar do NOT bypass connector gates; a blocked connector shows the truthful blocked reason inline.
+- No breaking changes: every new field is nullable/optional; existing rows read cleanly; existing server fns keep their contracts.
+
+## Deferred (explicitly not this stage)
+
+- Real semantic search on evergreen_tags (needs embeddings pipeline). We add the column and taxonomy now; search wires up in a later stage.
+- Collaborative multi-cursor editing. Autosave + version integrity is the collaboration layer for v1.
+- SAM Review Panel warnings inside the editor (S1f-2c or S1e continuation).
+
+## Order of execution
+
+I will do .1 -> .2 -> .3 -> .4 as separate turns, each ending with typecheck + build + tests green and a short report. I stop and wait between .1 and .2 only if the migration reveals a schema issue; otherwise I proceed straight through.
+
+Confirm this scope, or tell me what to cut, and I'll start with .1 (migration).
