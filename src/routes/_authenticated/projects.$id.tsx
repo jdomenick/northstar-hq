@@ -464,7 +464,7 @@ function TaskList({
       await create.mutateAsync({
         title: title.trim(),
         project_id: projectId,
-        venture_id: ventureId,
+        venture_id: ventureId ?? undefined,
         due_date: due || null,
       });
       setTitle("");
