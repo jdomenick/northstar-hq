@@ -120,7 +120,16 @@ function FounderActivationPage() {
     mutationFn: async () => {
       if (!activeOrgId) throw new Error("No active organization");
       const buildList = (items: any[] | undefined, states: Record<string, RowState>) =>
-        (items ?? []).map((it) => ({ key: it.key, action: "create" as Action, ...states[it.key], mergeTargetId: states[it.key]?.action === "merge" ? (states[it.key]?.mergeTargetId ?? it.existingMatches[0]?.id) : undefined }));
+        (items ?? []).map((it) => {
+          const s = states[it.key];
+          const action: Action = s?.action ?? (it.existingMatches[0] ? "merge" : "create");
+          return {
+            ...s,
+            key: it.key,
+            action,
+            mergeTargetId: action === "merge" ? (s?.mergeTargetId ?? it.existingMatches[0]?.id) : undefined,
+          };
+        });
       const importRes = await importFn({
         data: {
           organizationId: activeOrgId,
