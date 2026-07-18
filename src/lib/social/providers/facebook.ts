@@ -1,6 +1,6 @@
-// Facebook Pages adapter. Capabilities derive live from Meta config + a
-// resolved credential; publish() is never invoked while capabilities report
-// publishAvailable=false. Request builders are pure (see request-builders).
+// Facebook Pages adapter (framework only). Capabilities derive live from Meta
+// config; publish() truthfully returns blocked_missing_credentials until a
+// real OAuth-obtained credential is wired in. No HTTP calls in this phase.
 
 import type {
   SocialProviderAdapter,
@@ -15,12 +15,11 @@ const ADAPTER_VERSION = "facebook.v0.1.0-framework";
 
 export const facebookAdapter: SocialProviderAdapter = {
   key: "facebook",
-  implementationStatus: "framework_only",
+  implementationStatus: "blocked_no_credentials",
   connectorVersion: ADAPTER_VERSION,
 
   getCapabilities() {
     const cfg = readMetaConfigStatus();
-    // Framework capability: no resolved credential yet, so connected=false.
     const summary = summarizeMetaCapabilities({
       configured: cfg.configured,
       connected: false,
@@ -39,23 +38,15 @@ export const facebookAdapter: SocialProviderAdapter = {
       : "Meta account not connected";
     return {
       status: "blocked_missing_credentials",
-      providerKey: "facebook",
-      externalId: null,
-      externalUrl: null,
-      publishedAt: null,
-      providerResponse: { blocked: true, reason },
+      externalPostId: null,
+      externalPostUrl: null,
       providerMessage: reason,
+      raw: { blocked: true, reason },
     };
   },
 
   async fetchMetrics(): Promise<MetricsResult> {
-    return {
-      status: "unavailable",
-      providerKey: "facebook",
-      metrics: [],
-      collectedAt: new Date().toISOString(),
-      providerResponse: { reason: "Meta not connected" },
-    };
+    return { raw: { reason: "Meta not connected" } };
   },
 
   async verifyPublication() {

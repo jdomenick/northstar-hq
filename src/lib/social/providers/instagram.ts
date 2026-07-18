@@ -1,5 +1,4 @@
-// Instagram Business adapter. Same framework posture as Facebook: no HTTP
-// call is executed while capabilities report publishAvailable=false.
+// Instagram Business adapter (framework only). Same posture as Facebook.
 
 import type {
   SocialProviderAdapter,
@@ -14,7 +13,7 @@ const ADAPTER_VERSION = "instagram.v0.1.0-framework";
 
 export const instagramAdapter: SocialProviderAdapter = {
   key: "instagram",
-  implementationStatus: "framework_only",
+  implementationStatus: "blocked_no_credentials",
   connectorVersion: ADAPTER_VERSION,
 
   getCapabilities() {
@@ -37,23 +36,15 @@ export const instagramAdapter: SocialProviderAdapter = {
       : "Meta account not connected";
     return {
       status: "blocked_missing_credentials",
-      providerKey: "instagram",
-      externalId: null,
-      externalUrl: null,
-      publishedAt: null,
-      providerResponse: { blocked: true, reason },
+      externalPostId: null,
+      externalPostUrl: null,
       providerMessage: reason,
+      raw: { blocked: true, reason },
     };
   },
 
   async fetchMetrics(): Promise<MetricsResult> {
-    return {
-      status: "unavailable",
-      providerKey: "instagram",
-      metrics: [],
-      collectedAt: new Date().toISOString(),
-      providerResponse: { reason: "Meta not connected" },
-    };
+    return { raw: { reason: "Meta not connected" } };
   },
 
   async verifyPublication() {
