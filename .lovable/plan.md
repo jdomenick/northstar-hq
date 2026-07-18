@@ -1,74 +1,99 @@
-# S1f-2b - Editorial Workspace
+# Stage S2a-Meta: Credential-Independent Infrastructure
 
-This is the largest UI/data change since S1c. To keep it shippable, verifiable, and reversible, I want to break it into four in-order sub-stages, all inside S1f-2b, each ending with typecheck + build + tests green. No X connector work until all four are done.
+Build the complete Meta (Facebook + Instagram) publishing infrastructure so tomorrow's only remaining steps are: add secrets, complete OAuth, select destinations, approve, publish. No fake credentials, no simulated posts, no "live" claims until real OAuth succeeds.
 
-## Scope split
+## Guiding invariants (enforced in every file)
 
-### S1f-2b.1 - Data model & field expansion (backend-first)
+- Meta capabilities report `configured=false / connected=false / reason="Meta credentials required"` until `META_APP_ID`, `META_APP_SECRET`, `META_WEBHOOK_VERIFY_TOKEN` all exist AND a real OAuth token is persisted.
+- Meta-targeted jobs stop at a truthful `Blocked: Connector Not Configured` terminal state (not a retry loop) until connected.
+- No provider HTTP call is made without real credentials + real OAuth token. Request builders exist, are unit-tested against fixtures, but are never invoked in blocked state.
+- OAuth routes exist at real paths, return `503 meta_not_configured` until secrets exist. `META_APP_SECRET` never leaves server modules.
+- Idempotency key = sha256(org|contentItem|approvedVersion|destination|provider|publishGeneration). Enforced in DB via unique index on `automation_jobs.idempotency_key`.
+- Server-driven scheduler only. Existing `automation_jobs` worker + pg_cron tick is the sole executor. No client timers.
+- Approval invalidation is trigger-enforced: any change to caption/media/destination/schedule after `approved` bumps state to `approval_revoked` with reason.
 
-New nullable columns on `social_content_items` (parent-only fields live in metadata JSON to keep variants tight):
+## Phase A - Data model + capability contract
 
-Variant fields (real columns, backwards compatible):
-- `working_title text`, `final_title text` (existing `title` becomes an alias/computed view surfaced as "Working Title" until we backfill)
-- Everything else lives in a typed `editorial` JSONB blob on the row, versioned into `social_content_versions.editorial` for revision integrity:
-  - creative_brief, designer_notes, sam_notes, internal_notes, platform_notes
-  - external_links[], source_documents[], reference_urls[]
-  - mentioned_people[], mentioned_companies[], mentioned_brands[]
-  - target_audience
+- Migration `20260718_meta_infrastructure.sql`:
+  - Extend `social_content_items.status` enum to cover the full state set (Draft, Awaiting Approval, Approved, Scheduled, Queued, Publishing, Processing Media, Pending Verification, Published, Failed, Canceled, Approval Revoked).
+  - New table `meta_oauth_states` (org, state, code_verifier, redirect_uri, requested_by, expires_at, consumed_at, purpose).
+  - New table `meta_destinations` (org, venture, social_account_id, kind=facebook_page|instagram_business, external_id, name, username, connected_ig_id, connected_fb_page_id, granted_permissions[], page_tasks[], publish_available, insights_available, last_capability_check, last_capability_reason).
+  - New table `meta_page_tokens` (destination_id, encrypted_token, scopes[], obtained_at, expires_at, last_refresh_at). Encryption via `pgsodium` secret box using service-role-only key derived from `SUPABASE_SERVICE_ROLE_KEY` at server layer (tokens never selected client-side).
+  - Extend `social_accounts` to carry `provider_user_id`, `provider_long_lived_token_ref`, `granted_scopes[]`, `last_token_check_at`.
+  - New table `content_publication_history` (content_item_id, generation, destination_id, provider_post_id, permalink, api_version, request_snapshot, response_snapshot, verified_at, verification_response_ref, actor).
+  - New table `meta_media_delivery_tokens` (asset_id, org, token, expires_at, consumed_at, delivered_url, purpose='ig_container').
+  - Extend `automation_jobs` with unique `idempotency_key` (nullable, unique when not null) and `blocked_reason` text column (already may exist; add if missing).
+  - Grants + RLS for all new tables. `meta_page_tokens` has NO authenticated SELECT policy - service role only.
+  - Trigger `invalidate_approval_on_material_change` on `social_content_items` and `social_content_versions`.
 
-Parent-only fields (on parent row's metadata + surfaced as first-class):
-- `evergreen_topic`, `evergreen_tags[]` (new column `evergreen_tags text[]` for index + future semantic search)
-- pillar / campaign / target_audience already exist; keep
+## Phase B - Provider adapter framework
 
-New table: `content_evergreen_topics` (org+venture scoped, seed with Healing Path canonical list). Tagging becomes a real relation later; v1 stores tags as text[] with a validated vocabulary loaded from this table (extensible, editable). Backend keeps unknown tags but flags them.
+Files:
+- `src/lib/social/providers/meta/config.server.ts` - env presence check, `getMetaConfig()`, `isMetaConfigured()`.
+- `src/lib/social/providers/meta/oauth.server.ts` - state gen, PKCE, authorize URL builder, code exchange, long-lived token exchange, granted-permission fetch, deauthorization signature verify, data-deletion signature verify + confirmation payload.
+- `src/lib/social/providers/meta/graph.server.ts` - low-level v25.0 fetch wrapper (never called without token; classifies errors).
+- `src/lib/social/providers/meta/destinations.server.ts` - `/me/accounts` FB Page discovery + `instagram_business_account` linkage + capability probe (publish + insights).
+- `src/lib/social/providers/meta/tokens.server.ts` - encrypted persistence + retrieval (server-only).
+- `src/lib/social/providers/facebook.ts` - implements `SocialProviderAdapter`. Request builders: text, link, photo, multi-photo. Response parser. `capabilities()` derives live from config + connection + granted permissions.
+- `src/lib/social/providers/instagram.ts` - single-image + carousel container workflow (create child, create parent, poll status_code, publish), builders + parsers, capability derivation.
+- `src/lib/social/providers/meta/index.ts` - unified `meta` provider registration surface.
+- `src/lib/social/providers/meta/errors.ts` - normalized error codes for the failure taxonomy in Section 13.
+- `src/lib/social/providers/meta/verification.server.ts` - `GET /{post-id}` and `GET /{media-id}` handlers, checksum comparison of approved caption/title vs provider content.
+- `src/lib/social/providers/meta/metrics.server.ts` - capability-filtered metric selection for v25.0 (FB post_impressions/_organic/reactions_by_type_total/clicks/video_views; IG reach/likes/comments/saved/shares/views/total_interactions/profile_activity/profile_visits/follows/reposts). Never invents values; missing = `unavailable`.
 
-Migration includes GRANTs, RLS, updated_at trigger, and a snapshot into `social_content_versions` of the full editorial blob (add `editorial jsonb` there too).
+Register `facebook` and `instagram` in `src/lib/social/registry.server.ts`.
 
-### S1f-2b.2 - Autosave, approval-integrity, version compare/restore (server + minimal UI)
+## Phase C - OAuth + media-delivery routes
 
-Server:
-- `autosaveVariant` server fn: same shape as `saveVariant` but idempotent by (contentItemId, contentVersion, clientEditToken) - dedupes rapid saves and returns `{ savedAt, contentVersion, revokedApproval }`.
-- Approval revocation is already partial; extend to editorial blob changes and record an "approval_revoked_due_to_change" `content_ops_approvals` row so history shows the reason line "Approval removed because content changed."
-- `restoreVariantVersion(contentItemId, version)` server fn: writes a new version cloned from an old one; increments content_version; snapshots.
-- `diffVariantVersions(a, b)`: pure server helper returning a text diff per field (no external deps; uses a small LCS in TS).
+- `src/routes/api/public/oauth/meta/authorize.ts` (GET) - authenticated (via signed launch token from app), builds authorize URL, persists state, redirects. 503 `meta_not_configured` when secrets missing.
+- `src/routes/api/public/oauth/meta/callback.ts` (GET) - validates state (single-use, unexpired, org-scoped), exchanges code, obtains long-lived user token, discovers destinations, persists tokens + destinations, redirects to `/settings/integrations/meta`.
+- `src/routes/api/public/oauth/meta/deauthorize.ts` (POST) - verifies Meta `signed_request`, marks account disconnected, kills page tokens.
+- `src/routes/api/public/oauth/meta/data-deletion.ts` (POST) - verifies signed_request, enqueues deletion job, returns `{ url, confirmation_code }` per Meta spec.
+- `src/routes/api/public/media/meta-delivery.$token.ts` (GET) - validates single-use, unexpired delivery token; streams asset with correct MIME; scoped to org+asset+purpose; records delivery attempt; never exposes bucket listing.
 
-UI (in EditorShell):
-- Autosave state machine badge in header: Saving / Saved / Offline / Retrying / Failed. Debounced 800ms, coalesces field changes, backs off on network error.
-- Revision drawer gets Compare (pick two versions, per-field diff) and Restore actions.
-- Approval-revoked banner surfaces on any variant whose latest approval was auto-revoked.
+All routes: input validated with Zod, no PII in responses, no secret logging.
 
-### S1f-2b.3 - Field UI, evergreen tags, executive action bar, rich text
+## Phase D - Publish job runner + idempotency + failure taxonomy
 
-- New collapsible sections in the variant editor: Editorial (working/final title, creative brief, notes), References (links, source docs, reference URLs), People & Brands (mentioned people/companies/brands with chip inputs), Audience & Topics (target audience, evergreen topic single-select, evergreen tags multi-select from vocabulary with free-add).
-- Executive action bar (sticky footer): Save, Submit, Approve, Reject, Request Revision, Duplicate, Archive, Restore, Schedule, Publish (routes to calendar with prefilled slot; live publish still gated by connectors), Delete. Each action goes through existing permission checks (`requireMembership` executive/member) and disables when not allowed. Wires Duplicate and Archive/Restore to new server fns; Schedule opens the existing `content-ops/calendar` schedule dialog.
-- Rich text: minimal ProseMirror alternative is overkill. Ship a lightweight contenteditable-based editor built on `@tiptap/core + @tiptap/starter-kit` (small, tree-shaken; already Worker-safe as pure JS) supporting Bold, Italic, H2/H3, bullets, numbered lists, blockquote, link, inline image (from Media Picker). Body stored as Markdown (converted server-side); platforms that need plain text render from Markdown deterministically. Existing plain-text bodies read fine as-is.
+- Extend `src/lib/social/jobs/beehiiv-publish.server.ts` pattern - create `src/lib/social/jobs/meta-publish.server.ts` registered for `social_publish` when `provider in (facebook, instagram)`.
+- Refactor `src/lib/automation/executor.server.ts` job dispatch to route `social_publish` by `payload.provider`.
+- Runner steps (each a pure function, individually tested):
+  1. Load job + content item + approved version.
+  2. Recheck approval state + version checksum.
+  3. Recheck destination still linked + permissions still granted.
+  4. Recheck media attachments exist + accessible.
+  5. Recheck provider capabilities (`isMetaConfigured` + token present + capability probe cache < 24h else refresh).
+  6. Compute idempotency key; short-circuit to existing `content_publication_history` row if present.
+  7. Blocked state exits: return `blocked_terminal` (no retry) with structured `blocked_reason`.
+  8. When all clear AND real token exists: invoke provider adapter.
+  9. Persist request/response snapshots to `content_publication_history`.
+  10. Enqueue verification job (delay 60s for FB, poll loop for IG container).
+  11. Emit activity event + Brief signal + SAM recommendation stub.
+- `src/lib/social/failure-taxonomy.ts` - the 22 stable codes from Section 13, each with `retryable: boolean`, `userMessage`, `recommendedAction`.
 
-### S1f-2b.4 - Performance, tests, docs, verification
+## Phase E - UI: Connector Health + Validation Panel + tests
 
-- Split EditorShell into `EditorShell`, `VariantEditor`, `RevisionDrawer`, `ExecutiveBar`, `ReferencesSection`, `PeopleBrandsSection`, `TopicsSection`, `RichTextEditor`. Memoize per-variant draft state so typing in one section doesn't rerender previews for other variants. `useDeferredValue` on the preview pipeline.
-- Draft state moves to `useReducer` keyed by variantId; heavy derived state (validation, preview) behind `useMemo` keyed by the specific fields consumed.
-- Tests (added, not replacing):
-  - Pure: diff helper (LCS), evergreen tag normalization, autosave dedupe key, approval-revocation predicate, executive-action permission matrix.
-  - Server (contract): saveVariant revokes approval on editorial change; restoreVariantVersion increments version; duplicate/archive/restore transitions.
-  - Existing 77 tests continue passing.
-- Docs: extend `docs/architecture/content-editor.md` with autosave state machine, revision model, evergreen taxonomy, executive action permissions table.
+- `src/components/social/meta-connector-health.tsx` - reads live capability state, renders the pre/post-connection matrix from Section 14. Wired into `/content-ops` and `/settings/integrations`.
+- `src/components/social/meta-validation-panel.tsx` - the Section 15 panel. Pre-credential: shows scheduler/worker/approval/media/provider readiness. Post-connection: uses the same production publish path (no separate test workflow).
+- Extend `/content-ops` route with a "Meta" tab that mounts these panels.
+- Tests (`.test.mjs`, pure functions where possible; server tests via test harness pattern already used):
+  - `meta-oauth-state.test.mjs` - state gen, expiration, replay protection, org scoping.
+  - `meta-request-builders.test.mjs` - FB text/link/photo/multi-photo, IG single/carousel container + publish payloads against v25.0 fixtures.
+  - `meta-response-parsers.test.mjs` - success + all error classes.
+  - `meta-capabilities.test.mjs` - configured/connected/publish-available matrix for every credential+token+permission combo.
+  - `meta-idempotency.test.mjs` - key derivation stability, duplicate prevention, generation bump.
+  - `approval-invalidation.test.mjs` - each material-change vector revokes approval.
+  - `publish-runner-blocked.test.mjs` - blocked-terminal exit paths, no HTTP call attempted, no retry consumed indefinitely.
+  - `failure-taxonomy.test.mjs` - all 22 codes classified.
+  - `media-delivery-token.test.mjs` - single-use, expiration, org-scope, MIME.
+  - `verification-state-machine.test.mjs`.
+  - `metrics-capability-filter.test.mjs` - unavailable != zero.
+  - Extend existing scheduler/worker tests to cover Meta-provider dispatch + restart recovery.
 
-## Architecture decisions
+## Deliverables + report
 
-- Editorial fields go in a typed `editorial` JSONB blob + a dedicated `evergreen_tags text[]` column. Rationale: 15+ new fields as columns bloats the row and slows migrations; JSONB is versioned atomically alongside body/hook in `social_content_versions`; `evergreen_tags` is indexed as `text[]` for cheap GIN search now and vector-search later.
-- Autosave uses `clientEditToken` for idempotency, not a distributed lock. Server refuses stale saves (contentVersion mismatch) with a specific error the UI translates to "Refresh - someone else edited this."
-- Rich text stored as Markdown, not HTML/JSON. Portable across platforms, cheap to render, safe to fingerprint for duplicate detection.
-- Schedule and Publish in the executive bar do NOT bypass connector gates; a blocked connector shows the truthful blocked reason inline.
-- No breaking changes: every new field is nullable/optional; existing rows read cleanly; existing server fns keep their contracts.
+At end: run all `.test.mjs` suites, typecheck, production build. Produce the 23-item completion report exactly as specified in Section 17, including tomorrow's exact 5-step user action list and the enumerated "unproven until live OAuth" surfaces.
 
-## Deferred (explicitly not this stage)
+## Execution note
 
-- Real semantic search on evergreen_tags (needs embeddings pipeline). We add the column and taxonomy now; search wires up in a later stage.
-- Collaborative multi-cursor editing. Autosave + version integrity is the collaboration layer for v1.
-- SAM Review Panel warnings inside the editor (S1f-2c or S1e continuation).
-
-## Order of execution
-
-I will do .1 -> .2 -> .3 -> .4 as separate turns, each ending with typecheck + build + tests green and a short report. I stop and wait between .1 and .2 only if the migration reveals a schema issue; otherwise I proceed straight through.
-
-Confirm this scope, or tell me what to cut, and I'll start with .1 (migration).
+This is 4-6 hours of work across ~40 files. I will execute Phase A -> B -> C -> D -> E sequentially in this single turn without further questions, verifying build + tests at Phase B/D/E boundaries. If any phase reveals a blocking discovery (e.g. missing pgsodium extension), I'll adapt (fall back to app-layer AES-GCM via WebCrypto keyed on service role) rather than stop.

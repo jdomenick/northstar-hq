@@ -43,6 +43,11 @@ import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/p
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
 import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
 import { Route as AuthenticatedContentOpsEditorIdRouteImport } from './routes/_authenticated/content-ops.editor.$id'
+import { Route as ApiPublicOauthMetaDeauthorizeRouteImport } from './routes/api/public/oauth/meta/deauthorize'
+import { Route as ApiPublicOauthMetaDataDeletionRouteImport } from './routes/api/public/oauth/meta/data-deletion'
+import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
+import { Route as ApiPublicOauthMetaAuthorizeRouteImport } from './routes/api/public/oauth/meta/authorize'
+import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/api/public/media/meta-delivery.$token'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -226,6 +231,36 @@ const AuthenticatedContentOpsEditorIdRoute =
     path: '/editor/$id',
     getParentRoute: () => AuthenticatedContentOpsRoute,
   } as any)
+const ApiPublicOauthMetaDeauthorizeRoute =
+  ApiPublicOauthMetaDeauthorizeRouteImport.update({
+    id: '/api/public/oauth/meta/deauthorize',
+    path: '/api/public/oauth/meta/deauthorize',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOauthMetaDataDeletionRoute =
+  ApiPublicOauthMetaDataDeletionRouteImport.update({
+    id: '/api/public/oauth/meta/data-deletion',
+    path: '/api/public/oauth/meta/data-deletion',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOauthMetaCallbackRoute =
+  ApiPublicOauthMetaCallbackRouteImport.update({
+    id: '/api/public/oauth/meta/callback',
+    path: '/api/public/oauth/meta/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOauthMetaAuthorizeRoute =
+  ApiPublicOauthMetaAuthorizeRouteImport.update({
+    id: '/api/public/oauth/meta/authorize',
+    path: '/api/public/oauth/meta/authorize',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMediaMetaDeliveryTokenRoute =
+  ApiPublicMediaMetaDeliveryTokenRouteImport.update({
+    id: '/api/public/media/meta-delivery/$token',
+    path: '/api/public/media/meta-delivery/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -261,6 +296,11 @@ export interface FileRoutesByFullPath {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
+  '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
+  '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
@@ -296,6 +336,11 @@ export interface FileRoutesByTo {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
+  '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
+  '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -333,6 +378,11 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
+  '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
+  '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
+  '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
+  '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -370,6 +420,11 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/media/meta-delivery/$token'
+    | '/api/public/oauth/meta/authorize'
+    | '/api/public/oauth/meta/callback'
+    | '/api/public/oauth/meta/data-deletion'
+    | '/api/public/oauth/meta/deauthorize'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -405,6 +460,11 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/media/meta-delivery/$token'
+    | '/api/public/oauth/meta/authorize'
+    | '/api/public/oauth/meta/callback'
+    | '/api/public/oauth/meta/data-deletion'
+    | '/api/public/oauth/meta/deauthorize'
   id:
     | '__root__'
     | '/_authenticated'
@@ -441,6 +501,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/media/meta-delivery/$token'
+    | '/api/public/oauth/meta/authorize'
+    | '/api/public/oauth/meta/callback'
+    | '/api/public/oauth/meta/data-deletion'
+    | '/api/public/oauth/meta/deauthorize'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -449,6 +514,11 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
+  ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
+  ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
+  ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
+  ApiPublicOauthMetaDataDeletionRoute: typeof ApiPublicOauthMetaDataDeletionRoute
+  ApiPublicOauthMetaDeauthorizeRoute: typeof ApiPublicOauthMetaDeauthorizeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -691,6 +761,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContentOpsEditorIdRouteImport
       parentRoute: typeof AuthenticatedContentOpsRoute
     }
+    '/api/public/oauth/meta/deauthorize': {
+      id: '/api/public/oauth/meta/deauthorize'
+      path: '/api/public/oauth/meta/deauthorize'
+      fullPath: '/api/public/oauth/meta/deauthorize'
+      preLoaderRoute: typeof ApiPublicOauthMetaDeauthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/meta/data-deletion': {
+      id: '/api/public/oauth/meta/data-deletion'
+      path: '/api/public/oauth/meta/data-deletion'
+      fullPath: '/api/public/oauth/meta/data-deletion'
+      preLoaderRoute: typeof ApiPublicOauthMetaDataDeletionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/meta/callback': {
+      id: '/api/public/oauth/meta/callback'
+      path: '/api/public/oauth/meta/callback'
+      fullPath: '/api/public/oauth/meta/callback'
+      preLoaderRoute: typeof ApiPublicOauthMetaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/meta/authorize': {
+      id: '/api/public/oauth/meta/authorize'
+      path: '/api/public/oauth/meta/authorize'
+      fullPath: '/api/public/oauth/meta/authorize'
+      preLoaderRoute: typeof ApiPublicOauthMetaAuthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/media/meta-delivery/$token': {
+      id: '/api/public/media/meta-delivery/$token'
+      path: '/api/public/media/meta-delivery/$token'
+      fullPath: '/api/public/media/meta-delivery/$token'
+      preLoaderRoute: typeof ApiPublicMediaMetaDeliveryTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -889,17 +994,12 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
+  ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
+  ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,
+  ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
+  ApiPublicOauthMetaDataDeletionRoute: ApiPublicOauthMetaDataDeletionRoute,
+  ApiPublicOauthMetaDeauthorizeRoute: ApiPublicOauthMetaDeauthorizeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
