@@ -526,7 +526,7 @@ function SideBySide({ variants, drafts }: { variants: VariantRow[]; drafts: Reco
   );
 }
 
-// ---- Revision drawer ------------------------------------------------------
+// ---- Revision drawer (see version-history-drawer.tsx) ---------------------
 
 interface VersionRow {
   id: string;
@@ -546,58 +546,6 @@ interface ApprovalRow {
   notes: string | null;
   approved_by: string | null;
   approved_at: string;
-}
-
-function RevisionHistory({
-  variants, versions, approvals,
-}: {
-  variants: VariantRow[];
-  versions: VersionRow[];
-  approvals: ApprovalRow[];
-}) {
-  const nameFor = (id: string) => {
-    const v = variants.find((v) => v.id === id);
-    if (!v) return "Unknown";
-    const meta = v.metadata ?? {};
-    const p = (meta.editor_platform as string | undefined) ?? v.platform;
-    return getPlatformConfig(p).displayName;
-  };
-  const events = [
-    ...versions.map((v) => ({
-      key: `v:${v.id}`, at: v.created_at, variantId: v.content_item_id,
-      title: `Revised to v${v.version}`,
-      body: v.change_reason ?? `by ${v.generated_by}`,
-      tone: "neutral" as const,
-    })),
-    ...approvals.map((a) => ({
-      key: `a:${a.id}`, at: a.approved_at, variantId: a.content_item_id,
-      title: a.action === "approved" ? `Approved v${a.content_version}`
-           : a.action === "rejected" ? `Rejected v${a.content_version}`
-           : a.action === "requested_revision" ? `Revision requested on v${a.content_version}`
-           : a.action === "batch_approved" ? `Batch-approved v${a.content_version}`
-           : `${a.action} v${a.content_version}`,
-      body: a.notes ?? null,
-      tone: a.action === "rejected" ? ("attention" as const) : ("positive" as const),
-    })),
-  ].sort((x, y) => (x.at < y.at ? 1 : -1));
-
-  if (events.length === 0) {
-    return <div className="text-[13px] text-foreground/60">No revisions or approvals yet.</div>;
-  }
-  return (
-    <Ledger>
-      {events.map((e) => (
-        <LedgerRow
-          key={e.key}
-          status={<StatusLine tone={e.tone}>{nameFor(e.variantId)}</StatusLine>}
-          title={e.title}
-          meta={new Date(e.at).toLocaleString()}
-        >
-          {e.body}
-        </LedgerRow>
-      ))}
-    </Ledger>
-  );
 }
 
 // ---- Main shell -----------------------------------------------------------
