@@ -3782,7 +3782,7 @@ export type Database = {
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string
-          venture_id: string
+          venture_id: string | null
         }
         Insert: {
           blocker_summary?: string | null
@@ -3804,7 +3804,7 @@ export type Database = {
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
-          venture_id: string
+          venture_id?: string | null
         }
         Update: {
           blocker_summary?: string | null
@@ -3826,7 +3826,7 @@ export type Database = {
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
-          venture_id?: string
+          venture_id?: string | null
         }
         Relationships: [
           {
