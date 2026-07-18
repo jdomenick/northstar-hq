@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import {
   useOrganization,
   useOrgMembersFull,
@@ -60,6 +60,15 @@ function SettingsPage() {
     <div>
       <PageHeader eyebrow="Settings" title="Preferences" description="Tune how Northstar works for you and your team." />
       <PageBody>
+        <div className="mb-6 rounded-md border border-border/60 bg-card/40 p-4 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="font-medium">Founder Activation</div>
+              <div className="text-muted-foreground">Seed Northstar with your real ventures, projects, goals, decisions, and commitments so SAM has the context it needs.</div>
+            </div>
+            <Link to="/settings/founder-activation" className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-secondary/60">Open</Link>
+          </div>
+        </div>
         <Tabs defaultValue="profile">
           <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
             {SECTIONS.map((s) => (
