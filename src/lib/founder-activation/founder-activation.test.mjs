@@ -37,7 +37,7 @@ test("pickTopBy returns top N by score", () => {
 
 test("proposal set matches the founder brief counts", () => {
   assert.equal(VENTURES.length, 5);
-  assert.equal(PROJECTS.length, 16);
+  assert.equal(PROJECTS.length, 18);
   assert.equal(GOALS.length, 5);
   assert.equal(DECISIONS.length, 7);
   assert.equal(COMMITMENTS.length, 4);
