@@ -9,10 +9,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ArrowLeftRight, ClipboardCheck, History, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Calendar as CalendarIcon, ClipboardCheck, Copy, History, Plus, Trash2, Archive as ArchiveIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  ErrorLine, Ledger, LedgerRow, QuietPanel, SectionLabel, StatusLine,
+  ErrorLine, QuietPanel, SectionLabel,
 } from "@/components/editorial";
 import {
   getPlatformConfig, listEditorPlatforms, PROMOTION_CLASSIFICATIONS,
@@ -26,8 +26,19 @@ import {
   loadEditor, requestRevision, saveVariant, submitForApproval, updateParentMeta,
 } from "@/lib/content-ops/editor.functions";
 import { approveContentItem, rejectContentItem } from "@/lib/content-ops/approvals.functions";
+import {
+  archiveContentItem, duplicateVariant, listEvergreenTopics, unarchiveContentItem,
+} from "@/lib/content-ops/editorial.functions";
+import { scheduleVariant } from "@/lib/content-ops/scheduling.functions";
 import { PlatformPreview, type PreviewData } from "./platform-preview";
 import { MediaPickerDialog, type PickedMedia } from "./media-picker-dialog";
+import { RichTextEditor } from "./rich-text-editor";
+import {
+  EditorialFieldsPanel, EMPTY_EDITORIAL_DRAFT, editorialFromRow, editorialToPayload,
+  type EditorialDraft,
+} from "./editorial-fields-panel";
+import { VersionHistoryDrawer } from "./version-history-drawer";
+import { useAutosave, type AutosaveState } from "@/lib/content-ops/use-autosave";
 
 // ---- Local shapes ---------------------------------------------------------
 
@@ -57,6 +68,12 @@ interface VariantRow {
   metadata: Record<string, unknown> | null;
   duplicate_fingerprint: string;
   created_at: string;
+  editorial: unknown;
+  working_title: string | null;
+  final_title: string | null;
+  evergreen_topic: string | null;
+  evergreen_tags: string[] | null;
+  target_audience: string | null;
 }
 
 interface DraftState {
@@ -345,15 +362,13 @@ function VariantEditor({
           />
         )}
 
-        <LabelledInput
-          label="Body"
-          value={draft.body}
-          onChange={(v) => set("body", v)}
-          disabled={disabled}
-          multiline
-          minRows={8}
-          hint={`Ideal length: ${cfg.recommendations.idealBodyChars ?? "(no guidance)"} characters.`}
-        />
+        <div>
+          <div className="mb-1.5 flex items-baseline justify-between gap-3">
+            <span className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/70">Body</span>
+            <span className="text-[10.5px] text-foreground/50">Ideal: {cfg.recommendations.idealBodyChars ?? "no guidance"}</span>
+          </div>
+          <RichTextEditor value={draft.body} onChange={(v) => set("body", v)} disabled={disabled} minRows={8} ariaLabel="Body" />
+        </div>
 
         {supports("cta") && (
           <LabelledInput
@@ -509,7 +524,7 @@ function SideBySide({ variants, drafts }: { variants: VariantRow[]; drafts: Reco
   );
 }
 
-// ---- Revision drawer ------------------------------------------------------
+// ---- Revision drawer (see version-history-drawer.tsx) ---------------------
 
 interface VersionRow {
   id: string;
@@ -531,58 +546,6 @@ interface ApprovalRow {
   approved_at: string;
 }
 
-function RevisionHistory({
-  variants, versions, approvals,
-}: {
-  variants: VariantRow[];
-  versions: VersionRow[];
-  approvals: ApprovalRow[];
-}) {
-  const nameFor = (id: string) => {
-    const v = variants.find((v) => v.id === id);
-    if (!v) return "Unknown";
-    const meta = v.metadata ?? {};
-    const p = (meta.editor_platform as string | undefined) ?? v.platform;
-    return getPlatformConfig(p).displayName;
-  };
-  const events = [
-    ...versions.map((v) => ({
-      key: `v:${v.id}`, at: v.created_at, variantId: v.content_item_id,
-      title: `Revised to v${v.version}`,
-      body: v.change_reason ?? `by ${v.generated_by}`,
-      tone: "neutral" as const,
-    })),
-    ...approvals.map((a) => ({
-      key: `a:${a.id}`, at: a.approved_at, variantId: a.content_item_id,
-      title: a.action === "approved" ? `Approved v${a.content_version}`
-           : a.action === "rejected" ? `Rejected v${a.content_version}`
-           : a.action === "requested_revision" ? `Revision requested on v${a.content_version}`
-           : a.action === "batch_approved" ? `Batch-approved v${a.content_version}`
-           : `${a.action} v${a.content_version}`,
-      body: a.notes ?? null,
-      tone: a.action === "rejected" ? ("attention" as const) : ("positive" as const),
-    })),
-  ].sort((x, y) => (x.at < y.at ? 1 : -1));
-
-  if (events.length === 0) {
-    return <div className="text-[13px] text-foreground/60">No revisions or approvals yet.</div>;
-  }
-  return (
-    <Ledger>
-      {events.map((e) => (
-        <LedgerRow
-          key={e.key}
-          status={<StatusLine tone={e.tone}>{nameFor(e.variantId)}</StatusLine>}
-          title={e.title}
-          meta={new Date(e.at).toLocaleString()}
-        >
-          {e.body}
-        </LedgerRow>
-      ))}
-    </Ledger>
-  );
-}
-
 // ---- Main shell -----------------------------------------------------------
 
 export function EditorShell({ organizationId, parentContentItemId }: {
@@ -601,6 +564,11 @@ export function EditorShell({ organizationId, parentContentItemId }: {
   const approveFn = useServerFn(approveContentItem);
   const rejectFn = useServerFn(rejectContentItem);
   const updateParentFn = useServerFn(updateParentMeta);
+  const duplicateFn = useServerFn(duplicateVariant);
+  const archiveFn = useServerFn(archiveContentItem);
+  const unarchiveFn = useServerFn(unarchiveContentItem);
+  const scheduleFn = useServerFn(scheduleVariant);
+  const listTopicsFn = useServerFn(listEvergreenTopics);
 
   const editorKey = ["content-ops", "editor", organizationId, parentContentItemId];
   const editorQ = useQuery({
@@ -628,6 +596,7 @@ export function EditorShell({ organizationId, parentContentItemId }: {
   const duplicates = (editorQ.data?.duplicates ?? []) as Array<{ fingerprint: string; contentItemId: string }>;
 
   const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
+  const [editorialDrafts, setEditorialDrafts] = useState<Record<string, EditorialDraft>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<"edit" | "compare" | "history">("edit");
   const [error, setError] = useState<string | null>(null);
@@ -639,12 +608,35 @@ export function EditorShell({ organizationId, parentContentItemId }: {
       for (const v of variants) if (!next[v.id]) next[v.id] = draftFromRow(v);
       return next;
     });
+    setEditorialDrafts((prev) => {
+      const next = { ...prev };
+      for (const v of variants) if (!next[v.id]) {
+        const draft = editorialFromRow(v.editorial);
+        // Merge dedicated columns that live outside the JSONB blob.
+        next[v.id] = {
+          ...draft,
+          workingTitle: v.working_title ?? draft.workingTitle ?? "",
+          finalTitle: v.final_title ?? draft.finalTitle ?? "",
+          evergreenTopic: v.evergreen_topic ?? draft.evergreenTopic ?? "",
+          evergreenTags: (v.evergreen_tags ?? draft.evergreenTags ?? []).filter(Boolean),
+          targetAudience: v.target_audience ?? draft.targetAudience ?? "",
+        };
+      }
+      return next;
+    });
     setActiveId((prev) => prev ?? variants[0]?.id ?? null);
   }, [variants]);
 
   const active = variants.find((v) => v.id === activeId) ?? null;
   const activeDraft = active ? drafts[active.id] : null;
   const activeCfg = active && activeDraft ? getPlatformConfig(activeDraft.platform) : null;
+  const activeEditorial = active ? (editorialDrafts[active.id] ?? EMPTY_EDITORIAL_DRAFT) : EMPTY_EDITORIAL_DRAFT;
+
+  const topicsQ = useQuery({
+    queryKey: ["content-ops", "evergreen-topics", organizationId, ventureId],
+    enabled: !!ventureId,
+    queryFn: () => listTopicsFn({ data: { organizationId, ventureId: ventureId! } }),
+  });
 
   const dupOfActive = useMemo(() => {
     if (!active) return null;
@@ -662,13 +654,20 @@ export function EditorShell({ organizationId, parentContentItemId }: {
     setDrafts((prev) => ({ ...prev, [activeId]: fn(prev[activeId]!) }));
   }, [activeId]);
 
+  const setActiveEditorial = useCallback((next: EditorialDraft) => {
+    if (!activeId) return;
+    setEditorialDrafts((prev) => ({ ...prev, [activeId]: next }));
+    setDrafts((prev) => activeId && prev[activeId] ? { ...prev, [activeId]: { ...prev[activeId]!, dirty: true } } : prev);
+  }, [activeId]);
+
   // ---- Mutations ---------------------------------------------------------
 
   const invalidate = () => qc.invalidateQueries({ queryKey: editorKey });
 
   const saveMut = useMutation({
-    mutationFn: async (opts: { overrideApproved: boolean; changeReason?: string }) => {
+    mutationFn: async (opts: { overrideApproved: boolean; changeReason?: string; clientEditToken?: string }) => {
       if (!active || !activeDraft || !ventureId) throw new Error("no active variant");
+      const ed = editorialToPayload(activeEditorial);
       const payload = {
         organizationId, ventureId,
         contentItemId: active.id,
@@ -688,6 +687,13 @@ export function EditorShell({ organizationId, parentContentItemId }: {
         media: activeDraft.media,
         changeReason: opts.changeReason,
         overrideApproved: opts.overrideApproved,
+        workingTitle: ed.workingTitle,
+        finalTitle: ed.finalTitle,
+        editorial: ed,
+        evergreenTopic: ed.evergreenTopic,
+        evergreenTags: ed.evergreenTags,
+        targetAudience: ed.targetAudience,
+        clientEditToken: opts.clientEditToken,
       };
       return saveFn({ data: payload });
     },
@@ -698,6 +704,30 @@ export function EditorShell({ organizationId, parentContentItemId }: {
     },
     onError: (e: Error) => setError(e.message),
   });
+
+  // Autosave: fires while editing. Never shows "Saved" until the server
+  // acknowledges. Cannot silently override an approved variant - it disables
+  // itself in that case so the operator has to explicitly click Save.
+  const autosaveEnabled = !!active
+    && active.approval_status !== "approved"
+    && active.status !== "published"
+    && active.status !== "publishing"
+    && !!activeDraft?.dirty;
+  const autosave = useAutosave({
+    enabled: autosaveEnabled,
+    getSnapshot: () => (active && activeDraft ? { id: active.id, v: active.content_version } : null),
+    save: async (_snap, token) => {
+      await new Promise<void>((resolve, reject) => {
+        saveMut.mutate(
+          { overrideApproved: false, clientEditToken: token, changeReason: "autosave" },
+          { onSuccess: () => resolve(), onError: (e) => reject(e as Error) },
+        );
+      });
+    },
+  });
+  useEffect(() => { if (autosaveEnabled) autosave.notifyEdit(); }, [
+    autosaveEnabled, activeDraft, activeEditorial,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doSave = () => {
     if (!active) return;
@@ -778,6 +808,47 @@ export function EditorShell({ organizationId, parentContentItemId }: {
       if (activeId === id) setActiveId(variants.find((v) => v.id !== id)?.id ?? null);
     },
     onError: (e: Error) => setError(e.message),
+  });
+
+  const duplicateMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      return duplicateFn({ data: { organizationId, ventureId, contentItemId: active.id } });
+    },
+    onSuccess: (res) => { invalidate(); if (res?.id) setActiveId(res.id); },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const archiveMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      const isArchived = active.status === "archived";
+      return isArchived
+        ? unarchiveFn({ data: { organizationId, ventureId, contentItemId: active.id } })
+        : archiveFn({ data: { organizationId, ventureId, contentItemId: active.id } });
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const scheduleMut = useMutation({
+    mutationFn: async () => {
+      if (!active || !ventureId) throw new Error("no active variant");
+      const input = window.prompt("Schedule for (ISO datetime, e.g. 2026-08-01T14:30:00Z):");
+      if (!input) throw new Error("cancelled");
+      const when = new Date(input);
+      if (Number.isNaN(when.getTime())) throw new Error("Invalid date/time");
+      return scheduleFn({
+        data: {
+          organizationId, ventureId,
+          contentItemId: active.id,
+          scheduledFor: when.toISOString(),
+          contentVersion: active.content_version,
+        } as never,
+      });
+    },
+    onSuccess: invalidate,
+    onError: (e: Error) => { if (e.message !== "cancelled") setError(e.message); },
   });
 
   const parentMeta = (parent?.metadata as Record<string, unknown> | null) ?? {};
@@ -1000,13 +1071,32 @@ export function EditorShell({ organizationId, parentContentItemId }: {
         <div>
           <SectionLabel>Revision history</SectionLabel>
           <div className="mt-4">
-            <RevisionHistory variants={variants} versions={versions} approvals={approvals} />
+            {active ? (
+              <VersionHistoryDrawer
+                organizationId={organizationId}
+                ventureId={ventureId}
+                contentItemId={active.id}
+                currentVersion={active.content_version}
+                currentApprovalStatus={active.approval_status}
+                versions={versions}
+                approvals={approvals}
+              />
+            ) : (
+              <div className="text-[13px] text-foreground/60">Select a variant to view history.</div>
+            )}
           </div>
         </div>
       )}
 
       {mode === "edit" && active && activeDraft && activeCfg && validation && (
         <>
+          <EditorialFieldsPanel
+            value={activeEditorial}
+            onChange={setActiveEditorial}
+            disabled={active.status === "published" || active.status === "publishing"}
+            topics={(topicsQ.data ?? []) as Array<{ id: string; slug: string; label: string; category: string | null }>}
+          />
+
           <VariantEditor
             variant={active}
             cfg={activeCfg}
@@ -1027,6 +1117,7 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                 <span>Status: <b className="font-medium text-foreground/85">{active.status}</b></span>
                 <span>Approval: <b className="font-medium text-foreground/85">{active.approval_status}</b></span>
                 {activeDraft.dirty && <span className="text-[oklch(0.55_0.14_65)]">Unsaved changes</span>}
+                <AutosaveStatusPill state={autosave.state} enabled={autosaveEnabled} />
               </div>
               <div className="flex flex-wrap gap-2">
                 <InkButton
@@ -1040,6 +1131,20 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                   title={!active.parent_content_item_id ? "Cannot delete the parent variant" : undefined}
                 >
                   <Trash2 className="h-3 w-3" /> Delete variant
+                </InkButton>
+                <InkButton
+                  onClick={() => duplicateMut.mutate()}
+                  disabled={duplicateMut.isPending}
+                  title="Create an editable copy as a new draft"
+                >
+                  <Copy className="h-3 w-3" /> {duplicateMut.isPending ? "Duplicating..." : "Duplicate"}
+                </InkButton>
+                <InkButton
+                  onClick={() => archiveMut.mutate()}
+                  disabled={archiveMut.isPending || active.status === "publishing"}
+                  title={active.status === "archived" ? "Restore from archive" : "Move to archive"}
+                >
+                  <ArchiveIcon className="h-3 w-3" /> {active.status === "archived" ? "Unarchive" : "Archive"}
                 </InkButton>
                 <InkButton
                   onClick={doSave}
@@ -1075,6 +1180,13 @@ export function EditorShell({ organizationId, parentContentItemId }: {
                 >
                   Approve
                 </InkButton>
+                <InkButton
+                  onClick={() => scheduleMut.mutate()}
+                  disabled={scheduleMut.isPending || active.approval_status !== "approved"}
+                  title={active.approval_status !== "approved" ? "Approve first" : "Enqueue for scheduled publication"}
+                >
+                  <CalendarIcon className="h-3 w-3" /> {scheduleMut.isPending ? "Scheduling..." : "Schedule"}
+                </InkButton>
               </div>
             </div>
           </div>
@@ -1082,4 +1194,29 @@ export function EditorShell({ organizationId, parentContentItemId }: {
       )}
     </div>
   );
+}
+
+function AutosaveStatusPill({ state, enabled }: { state: AutosaveState; enabled: boolean }) {
+  if (!enabled && state.status === "idle") return null;
+  const label =
+    state.status === "saving" ? "Saving..."
+    : state.status === "saved" ? (state.lastSavedAt ? `Saved ${timeAgo(state.lastSavedAt)}` : "Saved")
+    : state.status === "retrying" ? `Retrying (attempt ${state.attempt + 1})...`
+    : state.status === "failed" ? "Autosave failed"
+    : state.status === "offline" ? "Offline - will save when back online"
+    : "";
+  if (!label) return null;
+  const tone =
+    state.status === "failed" ? "text-[oklch(0.5_0.18_27)]"
+    : state.status === "retrying" || state.status === "offline" ? "text-[oklch(0.55_0.14_65)]"
+    : "text-foreground/70";
+  return <span className={cn("text-[11px]", tone)} title={state.errorMessage ?? undefined}>{label}</span>;
+}
+
+function timeAgo(t: number): string {
+  const s = Math.max(1, Math.round((Date.now() - t) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  return `${Math.round(m / 60)}h ago`;
 }
