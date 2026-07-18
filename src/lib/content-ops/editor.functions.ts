@@ -16,11 +16,9 @@ import { getPlatformConfig, PROMOTION_CLASSIFICATIONS, type EditorPlatform } fro
 import { validateVariant, type ValidationInput, type ValidationResult } from "./editor-validation";
 import { SOCIAL_PLATFORMS, SOCIAL_CONTENT_TYPES } from "@/lib/constants";
 import {
-  EMPTY_EDITORIAL_BLOB,
   editorialChangeRevokesApproval,
   normalizeEditorial,
   normalizeEvergreenTags,
-  type EditorialBlob,
 } from "./editorial";
 
 // ---- Shared shapes ---------------------------------------------------------
