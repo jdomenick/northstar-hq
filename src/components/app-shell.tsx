@@ -49,7 +49,7 @@ import { can } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
-  to: "/" | "/mission-control" | "/revenue" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
+  to: "/" | "/mission-control" | "/sam-control" | "/revenue" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -64,6 +64,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/mission-control", label: "Mission Control", icon: Rocket },
       { to: "/", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/sam", label: "Ask SAM", icon: Sparkles },
+      { to: "/sam-control", label: "SAM Control", icon: Gauge },
     ],
   },
   {
