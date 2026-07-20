@@ -38,7 +38,7 @@ Without `offline.access` tokens die in ~2h with no refresh path.
 - X rejects near-duplicate tweets from the same account; our duplicate
   fingerprint gate must catch this first.
 
-## Credentials Northstar will read
+## Credentials NorthStar Labs will read
 
 | Secret name        | Where to find it                          |
 |--------------------|-------------------------------------------|

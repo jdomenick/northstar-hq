@@ -346,7 +346,7 @@ function Command() {
 
         {/* Colophon */}
         <div className="mt-16 flex flex-wrap items-baseline justify-between gap-3 border-t border-foreground/15 pt-5 text-[10.5px] uppercase tracking-[0.24em] text-foreground/50">
-          <span>Northstar , Executive Operating System</span>
+          <span>NorthStar Labs , Executive Operating System</span>
           <span>
             {activeVentures.length} active {activeVentures.length === 1 ? "venture" : "ventures"}
           </span>

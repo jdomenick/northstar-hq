@@ -20,7 +20,7 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background paper-grain px-6">
       <div className="w-full max-w-lg text-center">
         <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/60">
-          Northstar , 404
+          NorthStar Labs , 404
         </div>
         <div className="mt-4 border-y border-foreground/80 py-6">
           <h1 className="font-display text-[80px] leading-none tracking-tight text-foreground md:text-[112px]">
@@ -62,7 +62,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           </h1>
         </div>
         <p className="mx-auto mt-6 max-w-md text-[14px] leading-[1.75] text-foreground/70">
-          Northstar hit an unexpected error on our end. Try again, or return home.
+          NorthStar Labs hit an unexpected error on our end. Try again, or return home.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button

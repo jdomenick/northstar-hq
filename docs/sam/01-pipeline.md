@@ -110,7 +110,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
   `hybrid`. Only `filter` ships now.
 
 ### 5. Rules Engine
-- **Purpose.** Apply Northstar's deterministic executive rules before any
+- **Purpose.** Apply NorthStar Labs' deterministic executive rules before any
   model call: overdue detection, stalled-project thresholds, decision
   waiting states, goal-at-risk math, postponement rules. These are the
   same rules that already power `src/lib/accountability.ts`.
@@ -148,7 +148,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
 
 ### 8. Recommendation Engine
 - **Purpose.** Distill the ReasoningTrace into 0..N `Recommendation`
-  objects with proposed actions that map to real Northstar mutations
+  objects with proposed actions that map to real NorthStar Labs mutations
   (create task, reschedule commitment, mark decision waiting).
 - **Inputs.** ReasoningTrace, RuleFindings, ContextBundle.
 - **Outputs.** `Recommendation[] { id, kind, title, rationaleRefs[],
@@ -168,7 +168,7 @@ to an LLM, and that call is bounded by the Provider Abstraction Layer.
 
 ### 10. Citation Builder
 - **Purpose.** For every claim and recommendation, emit `Citation[]`
-  pointing to real Northstar records (doc 06). Also classify each cite
+  pointing to real NorthStar Labs records (doc 06). Also classify each cite
   as direct evidence, supporting evidence, assumption, or inference.
 - **Inputs.** ReasoningTrace, Recommendations, GraphSlice, KnowledgeSet.
 - **Outputs.** `Citations` graph keyed by claim id.

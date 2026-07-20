@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-07-17
-- Deciders: Northstar engineering
+- Deciders: NorthStar Labs engineering
 - Related: docs/sam/01-pipeline.md, docs/sam/09-provider-abstraction.md
 
 ## Context
@@ -23,7 +23,7 @@ only through the Provider Abstraction Layer.
   executive reasoning, rules, or memory conflict resolution.
 
 ## Rationale
-The pipeline stages Northstar owns (Graph, Rules, Memory, Confidence,
+The pipeline stages NorthStar Labs owns (Graph, Rules, Memory, Confidence,
 Citations, Learning, Audit) are the moat. The LLM is a replaceable
 component.
 

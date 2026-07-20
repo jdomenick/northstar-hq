@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/content-ops")({
   component: ContentOpsWorkspace,
   head: () => ({
     meta: [
-      { title: "Content Operations - Northstar" },
+      { title: "Content Operations - NorthStar Labs" },
       {
         name: "description",
         content:

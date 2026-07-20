@@ -1,6 +1,6 @@
 # 02  -  Executive Graph
 
-The Executive Graph is Northstar's proprietary knowledge structure. It is a
+The Executive Graph is NorthStar Labs' proprietary knowledge structure. It is a
 logical model  -  not a graph database. It projects the existing relational
 schema into a typed node/edge space that every SAM stage reasons over.
 

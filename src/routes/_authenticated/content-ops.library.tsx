@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/content-ops/library")({
   component: LibraryPage,
   head: () => ({
     meta: [
-      { title: "Files & Assets Library - Northstar" },
+      { title: "Files & Assets Library - NorthStar Labs" },
       { name: "description", content: "SAM's universal asset library: folders, favorites, collections, and unified search." },
     ],
   }),

@@ -36,7 +36,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/ventures/$id")({
   component: VentureDetail,
-  head: () => ({ meta: [{ title: "Venture  -  Northstar" }] }),
+  head: () => ({ meta: [{ title: "Venture  -  NorthStar Labs" }] }),
 });
 
 function VentureDetail() {

@@ -4,7 +4,7 @@ Status: adopted in Phase 3D.2b.
 
 ## Hierarchy
 
-Northstar is an Executive Operating System, not a website manager. The
+NorthStar Labs is an Executive Operating System, not a website manager. The
 long-term data flow is:
 
 ```

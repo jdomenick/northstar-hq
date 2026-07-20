@@ -1,9 +1,9 @@
-// Reusable typed Northstar → SAM MCP service. All future SAM MCP calls
+// Reusable typed NorthStar Labs → SAM MCP service. All future SAM MCP calls
 // MUST go through this service - no UI component or shared client-safe
 // module may call the raw client. The service owns:
 //   - persistence of connection status into public.sam_mcp_connections
 //   - sanitized audit events (activity_events)
-//   - typed helpers for the specific SAM tools Northstar consumes
+//   - typed helpers for the specific SAM tools NorthStar Labs consumes
 
 import {
   mcpCallTool,

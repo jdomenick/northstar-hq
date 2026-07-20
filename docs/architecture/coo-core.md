@@ -1,6 +1,6 @@
 # AI COO Core - Architecture (Phase 3D.3a)
 
-Northstar's SAM is an AI COO, not a chat assistant.
+NorthStar Labs' SAM is an AI COO, not a chat assistant.
 This document owns the durable core that makes that possible:
 
 - The **operating context** that describes the organization and each venture
@@ -79,7 +79,7 @@ rewrite.
 
 ## 2. Access rules
 
-All new tables follow the standard Northstar RLS pattern.
+All new tables follow the standard NorthStar Labs RLS pattern.
 
 - **Read**: any active member of the organization
   (`is_org_member(organization_id, auth.uid())`).

@@ -4,7 +4,7 @@ Status: Accepted (Phase 3B)
 
 ## Context
 
-Northstar's architecture calls for an Executive Graph without introducing a
+NorthStar Labs' architecture calls for an Executive Graph without introducing a
 graph database or unbounded traversal endpoints exposed to clients.
 
 ## Decision

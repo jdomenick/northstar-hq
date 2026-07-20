@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/projects")({
   component: ProjectsLayout,
   head: () => ({
     meta: [
-      { title: "Projects - Northstar" },
+      { title: "Projects - NorthStar Labs" },
       {
         name: "description",
         content: "Every project across every venture, in one executive view.",

@@ -11,8 +11,8 @@ export const Route = createFileRoute("/_authenticated/settings/integrations/new"
   component: NewWebsiteConnection,
   head: () => ({
     meta: [
-      { title: "New website connection  -  Northstar" },
-      { name: "description", content: "Register a website so Northstar can discover its knowledge sources." },
+      { title: "New website connection  -  NorthStar Labs" },
+      { name: "description", content: "Register a website so NorthStar Labs can discover its knowledge sources." },
     ],
   }),
 });
@@ -50,7 +50,7 @@ function NewWebsiteConnection() {
 
   return (
     <div>
-      <PageHeader eyebrow="Settings / Integrations" title="Add a website." description="Northstar will validate the URL, read robots.txt, and discover candidate pages. Nothing is published or promoted without your approval." />
+      <PageHeader eyebrow="Settings / Integrations" title="Add a website." description="NorthStar Labs will validate the URL, read robots.txt, and discover candidate pages. Nothing is published or promoted without your approval." />
       <PageBody>
         <Section title="Details">
           <form

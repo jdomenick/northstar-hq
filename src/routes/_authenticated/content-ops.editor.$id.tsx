@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/content-ops/editor/$id")({
   component: ContentEditorRoute,
   head: () => ({
     meta: [
-      { title: "Content editor - Northstar" },
+      { title: "Content editor - NorthStar Labs" },
       {
         name: "description",
         content:

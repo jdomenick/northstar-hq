@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/goals")({
   component: GoalsLayout,
   head: () => ({
     meta: [
-      { title: "Goals  -  Northstar" },
+      { title: "Goals  -  NorthStar Labs" },
       { name: "description", content: "Measurable outcomes across every venture." },
     ],
   }),

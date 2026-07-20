@@ -29,7 +29,7 @@ import { isCommitmentOverdue } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
-  head: () => ({ meta: [{ title: "Project  -  Northstar" }] }),
+  head: () => ({ meta: [{ title: "Project  -  NorthStar Labs" }] }),
 });
 
 const STATUS_LABEL: Record<ProjectStatus, string> = {

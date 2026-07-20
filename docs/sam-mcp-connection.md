@@ -1,6 +1,6 @@
-# Northstar → SAM MCP Connection
+# NorthStar Labs → SAM MCP Connection
 
-Northstar talks to the deployed SAM Intelligent Operating Platform through the
+NorthStar Labs talks to the deployed SAM Intelligent Operating Platform through the
 official SAM MCP server. This document describes the one-time setup, the live
 proof, and the exact evidence that confirms the connection.
 
@@ -11,12 +11,12 @@ proof, and the exact evidence that confirms the connection.
 - Transport: Streamable HTTP (JSON-RPC 2.0)
 - MCP protocol version: `2025-06-18`
 
-All requests originate from Northstar's server runtime. The browser never sees
+All requests originate from NorthStar Labs' server runtime. The browser never sees
 the endpoint, the API key, or any raw SAM payload.
 
 ## Secret configuration (one-time, manual)
 
-SAM issues a per-tenant API key. Northstar stores it as a server-side secret
+SAM issues a per-tenant API key. NorthStar Labs stores it as a server-side secret
 named exactly:
 
 ```
@@ -25,8 +25,8 @@ SAM_MCP_API_KEY
 
 To install it:
 
-1. In the SAM host, generate a Northstar-scoped API key.
-2. In Northstar, open **Project Settings → Secrets**.
+1. In the SAM host, generate a NorthStar Labs-scoped API key.
+2. In NorthStar Labs, open **Project Settings → Secrets**.
 3. Add a new secret with the exact name `SAM_MCP_API_KEY` and paste the value
    from step 1. No prefix, no quotes, no trailing whitespace.
 4. Wait for the server to pick up the new secret (a redeploy or the next
@@ -92,12 +92,12 @@ client-safe module may import `client.server.ts` directly.
 Every call is executed with:
 
 - server-only `Authorization: Bearer $SAM_MCP_API_KEY`
-- `X-Northstar-Organization-Id` and `X-Northstar-Actor-User-Id` headers to
+- `X-NorthStar Labs-Organization-Id` and `X-NorthStar Labs-Actor-User-Id` headers to
   preserve organization boundaries and actor identity inside SAM
 - a hard `AbortController` timeout (default 15s)
 - an in-process token bucket per organization to prevent runaway loops
 
-## Evidence that Northstar and SAM are connected
+## Evidence that NorthStar Labs and SAM are connected
 
 After a successful Test Connection, all of the following are true and are the
 exact evidence to check:

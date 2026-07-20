@@ -1,10 +1,10 @@
-# Northstar Automation Engine (Job Engine)
+# NorthStar Labs Automation Engine (Job Engine)
 
 _Phase 3D.2c-i - core schema and framework only_
 
 ## Why a Job Engine and not per-connector schedulers
 
-Northstar is an Executive Operating System. Website sync, social publishing,
+NorthStar Labs is an Executive Operating System. Website sync, social publishing,
 SAM briefings, memory maintenance, financial refreshes, and dozens of future
 automations share the same durability, retry, dependency, and audit needs. A
 single provider-neutral Job Engine gives us:

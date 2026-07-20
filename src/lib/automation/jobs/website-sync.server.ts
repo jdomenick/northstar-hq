@@ -2,7 +2,7 @@
 // URL safety, safe fetch, HTML extraction, path scoring, normalization,
 // hashing, change detection, classification, version recording, freshness.
 // Handler is idempotent per (source, content_hash): same content = no new
-// version. External side-effect only in that Northstar persists a version.
+// version. External side-effect only in that NorthStar Labs persists a version.
 
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";

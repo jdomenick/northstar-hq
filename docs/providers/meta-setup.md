@@ -76,7 +76,7 @@ IG has no text-only posts. All media URLs must be publicly reachable
 https; the S1d media pipeline exposes approved assets on a signed URL
 long enough for Meta to fetch.
 
-## Credentials Northstar will read
+## Credentials NorthStar Labs will read
 
 | Secret name         | Where to find it                                |
 |---------------------|-------------------------------------------------|

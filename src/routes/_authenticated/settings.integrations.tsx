@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/settings/integrations")({
   component: IntegrationsIndex,
   head: () => ({
     meta: [
-      { title: "Automation - Northstar" },
+      { title: "Automation - NorthStar Labs" },
       {
         name: "description",
         content: "Registered connections, their standing, and when they last ran.",
@@ -73,7 +73,7 @@ function IntegrationsIndex() {
       <PageHeader
         eyebrow="Automation"
         title="Connections and their standing."
-        description="What Northstar is authorized to read from, when each connection last ran, and whether it is healthy. Nothing runs unattended without your consent."
+        description="What NorthStar Labs is authorized to read from, when each connection last ran, and whether it is healthy. Nothing runs unattended without your consent."
         actions={
           <Link
             to="/settings/integrations/new"

@@ -123,7 +123,7 @@ export async function runPipeline(
     hrefs[`${c.entity_type}:${c.entity_id}`] = citationHref(c.entity_type, c.entity_id);
   }
 
-  // 11. Deterministic confidence  -  Northstar owns the score
+  // 11. Deterministic confidence  -  NorthStar Labs owns the score
   const confidence = computeConfidence(response, context);
 
   return {

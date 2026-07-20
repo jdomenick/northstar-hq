@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/accountability")({
   component: AccountabilityIndex,
   head: () => ({
     meta: [
-      { title: "Accountability - Northstar" },
+      { title: "Accountability - NorthStar Labs" },
       {
         name: "description",
         content:

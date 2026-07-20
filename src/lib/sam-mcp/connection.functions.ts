@@ -1,4 +1,4 @@
-// Client-callable server functions for the Northstar SAM MCP connection.
+// Client-callable server functions for the NorthStar Labs SAM MCP connection.
 // Both are admin-only. The API key never crosses this boundary.
 
 import { createServerFn } from "@tanstack/react-start";

@@ -13,7 +13,7 @@ import { goalProgressPct } from "@/lib/accountability";
 
 export const Route = createFileRoute("/_authenticated/goals/$id")({
   component: GoalDetail,
-  head: () => ({ meta: [{ title: "Goal  -  Northstar" }] }),
+  head: () => ({ meta: [{ title: "Goal  -  NorthStar Labs" }] }),
 });
 
 const STATUS_LABEL: Record<GoalStatus, string> = {

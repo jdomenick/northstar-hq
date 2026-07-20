@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/decisions")({
   component: DecisionsLayout,
   head: () => ({
     meta: [
-      { title: "Decisions - Northstar" },
+      { title: "Decisions - NorthStar Labs" },
       {
         name: "description",
         content: "Every open question, its context, and who it's waiting on.",

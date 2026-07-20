@@ -27,7 +27,7 @@ function AuthenticatedLayout() {
   }, [loading, user, orgLoading, memberships, pathname, navigate]);
 
   if (loading || !user) {
-    return <FullscreenLoader label="Preparing Northstar" />;
+    return <FullscreenLoader label="Preparing NorthStar Labs" />;
   }
 
   if (orgLoading) {
@@ -50,7 +50,7 @@ function FullscreenLoader({ label }: { label: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background paper-grain">
       <div className="flex flex-col items-center gap-5">
-        <div className="font-display text-[36px] leading-none text-foreground">Northstar</div>
+        <div className="font-display text-[36px] leading-none text-foreground">NorthStar Labs</div>
         <div className="h-px w-16 bg-foreground/40" />
         <div className="text-[10.5px] uppercase tracking-[0.28em] text-foreground/60">
           {label}

@@ -32,10 +32,10 @@ export const Route = createFileRoute("/_authenticated/sam")({
   component: SamPage,
   head: () => ({
     meta: [
-      { title: "SAM - Northstar" },
+      { title: "SAM - NorthStar Labs" },
       {
         name: "description",
-        content: "SAM. Northstar's executive intelligence system.",
+        content: "SAM. NorthStar Labs' executive intelligence system.",
       },
     ],
   }),

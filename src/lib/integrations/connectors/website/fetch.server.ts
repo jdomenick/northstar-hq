@@ -7,7 +7,7 @@ import { IntegrationError } from "../../errors";
 import { validatePublicUrl, type SafeUrl } from "./url-safety.server";
 
 const MAX_REDIRECTS = 5;
-const USER_AGENT = "NorthstarBot/1.0 (+https://northstar-operator-core.lovable.app)";
+const USER_AGENT = "NorthStar LabsBot/1.0 (+https://northstar-operator-core.lovable.app)";
 
 export interface FetchTextResult {
   finalUrl: SafeUrl;

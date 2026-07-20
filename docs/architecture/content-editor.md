@@ -1,7 +1,7 @@
 # Shared Content Operations editor (S1b)
 
 The Content Operations editor is the single authoring surface for every
-outbound content destination in Northstar. Its job is to make one operator
+outbound content destination in NorthStar Labs. Its job is to make one operator
 intent (a "content item") faithfully compose across an open-ended set of
 platforms - Facebook, Instagram, X, LinkedIn, Reddit today; Threads, TikTok,
 YouTube, Pinterest, Bluesky, Beehiiv, and email tomorrow - without needing
