@@ -28,31 +28,40 @@ import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 
-type ActionReceipt =
-  | { status: "executed"; kind: string; missionId?: string; missionTitle?: string; directiveId?: string; summary: string }
-  | { status: "requires_approval"; kind: string; reason: string; summary: string }
-  | { status: "blocked"; kind: string; reason: string; summary: string }
-  | { status: "failed"; kind: string; error: string; summary: string };
+type ActionReceipt = {
+  status: "success" | "blocked" | "failed" | "ambiguous" | "none";
+  kind: string;
+  explanation: string;
+  ids: Record<string, string>;
+  hrefs: Record<string, string>;
+  blockers: string[];
+  detection: { confidence: number; reason: string };
+};
 
 function ActionReceiptCard({ receipt }: { receipt: ActionReceipt }) {
+  if (receipt.status === "none") return null;
   const tone =
-    receipt.status === "executed"
+    receipt.status === "success"
       ? "border-[oklch(0.72_0.14_155)] bg-[oklch(0.72_0.14_155)]/10"
-      : receipt.status === "requires_approval"
+      : receipt.status === "ambiguous"
         ? "border-[oklch(0.78_0.14_85)] bg-[oklch(0.78_0.14_85)]/10"
-        : receipt.status === "blocked"
-          ? "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10"
-          : "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10";
+        : "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10";
+  const missionId = receipt.ids.missionId;
   return (
     <div className={cn("mt-6 rounded-md border-l-2 px-4 py-3", tone)}>
       <div className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/70">
-        SAM action - {receipt.status.replace("_", " ")}
+        SAM action - {receipt.kind.replace(/_/g, " ")} - {receipt.status}
       </div>
-      <div className="mt-1.5 text-[13.5px] text-foreground">{receipt.summary}</div>
-      {receipt.status === "executed" && receipt.missionId && (
+      <div className="mt-1.5 text-[13.5px] text-foreground">{receipt.explanation}</div>
+      {receipt.blockers.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-[12px] text-foreground/70">
+          {receipt.blockers.map((b, i) => <li key={i}>- {b}</li>)}
+        </ul>
+      )}
+      {missionId && (
         <Link
           to="/sam/missions/$id"
-          params={{ id: receipt.missionId }}
+          params={{ id: missionId }}
           className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-primary hover:underline"
         >
           Open mission <ArrowRight className="h-3 w-3" />
