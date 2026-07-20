@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
-import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { getSamControlSnapshot } from "@/lib/sam-control/snapshot.functions";
@@ -44,12 +43,13 @@ function SamControlPage() {
   });
 
   return (
-    <AppShell>
+    <>
       <PageHeader
+        eyebrow="Live operations"
         title="SAM Mega Control Panel"
         description="One pane of glass across automation, executive intelligence, operators, ventures, approvals, blockers, integrations, and founder controls."
       />
-      <div className="mx-auto w-full max-w-[1400px] px-4 py-6 space-y-6">
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-5 md:px-8 md:py-7">
         {!activeOrgId ? (
           <Empty label="Select an organization to load the control panel." />
         ) : q.isLoading ? (
@@ -60,7 +60,7 @@ function SamControlPage() {
           <Panel data={q.data} />
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }
 
@@ -81,7 +81,7 @@ function Panel({ data }: { data: any }) {
   return (
     <>
       {/* Executive KPIs */}
-      <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+      <section className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-[0_14px_40px_-34px_oklch(0.22_0.02_255/0.5)] sm:grid-cols-4 xl:grid-cols-7">
         <Kpi icon={Gauge} label="Health" value={healthScore == null ? "-" : `${healthScore}`} tone="primary" />
         <Kpi icon={Zap} label="Running" value={jobsRunning} />
         <Kpi icon={Clock} label="Queued" value={jobsQueued} />
@@ -91,9 +91,9 @@ function Panel({ data }: { data: any }) {
         <Kpi icon={ShieldAlert} label="Blockers" value={(c.blockedConnections ?? 0) + (c.activeKillSwitches ?? 0)} tone={((c.blockedConnections ?? 0) + (c.activeKillSwitches ?? 0)) ? "danger" : "muted"} />
       </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
         {/* Live Automation + Queue */}
-        <Card title="Live Automation" icon={Activity} className="xl:col-span-2">
+        <Card title="Live Automation" icon={Activity} eyebrow="Execution engine" className="xl:col-span-8">
           <QueueStrip counts={c.jobs ?? {}} />
           <div className="mt-4">
             <SectionLabel>Recent jobs</SectionLabel>
@@ -102,7 +102,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Executive */}
-        <Card title="Executive Dashboard" icon={Sparkles}>
+        <Card title="Executive Intelligence" icon={Sparkles} eyebrow="Decision signal" className="xl:col-span-4">
           {health ? (
             <div>
               <div className="text-[42px] font-display leading-none text-foreground">
@@ -143,7 +143,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Operator */}
-        <Card title="Operator Dashboard" icon={Users}>
+        <Card title="Operator Dashboard" icon={Users} eyebrow="Workforce" className="xl:col-span-4">
           <div className="grid grid-cols-3 gap-2 text-center">
             {["queued", "in_progress", "blocked"].map((s) => (
               <div key={s} className="rounded-md border border-border/60 bg-card/40 p-2.5">
@@ -170,7 +170,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Ventures */}
-        <Card title="Venture Dashboard" icon={Building2}>
+        <Card title="Venture Dashboard" icon={Building2} eyebrow="Portfolio" className="xl:col-span-4">
           <ul className="space-y-1.5 max-h-96 overflow-auto">
             {(data.ventures ?? []).map((v: any) => (
               <li key={v.id} className="flex items-center justify-between rounded-md border border-border/40 bg-card/40 px-3 py-2 text-[12.5px]">
@@ -185,7 +185,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Approvals */}
-        <Card title="Approvals" icon={ListChecks}>
+        <Card title="Approvals" icon={ListChecks} eyebrow="Human control" className="xl:col-span-4">
           <ul className="space-y-1.5 max-h-96 overflow-auto">
             {(data.approvals ?? []).map((a: any) => (
               <li key={a.id} className="rounded-md border border-border/40 bg-card/40 px-3 py-2 text-[12px]">
@@ -201,12 +201,12 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Blockers */}
-        <Card title="Blockers" icon={ShieldAlert}>
+        <Card title="Blockers" icon={ShieldAlert} eyebrow="Attention required" className="xl:col-span-4">
           <BlockerList data={data} />
         </Card>
 
         {/* Integrations */}
-        <Card title="Integration Dashboard" icon={Plug} className="xl:col-span-2">
+        <Card title="Integration Dashboard" icon={Plug} eyebrow="Connected systems" className="xl:col-span-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {(data.integrations ?? []).map((i: any) => (
               <div key={i.id} className="flex items-center justify-between rounded-md border border-border/40 bg-card/40 px-3 py-2 text-[12.5px]">
@@ -222,7 +222,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Founder Controls */}
-        <Card title="Founder Controls" icon={ShieldAlert}>
+        <Card title="Founder Controls" icon={ShieldAlert} eyebrow="Governance" className="xl:col-span-4">
           <SectionLabel>Kill switches</SectionLabel>
           <ul className="mt-2 space-y-1.5">
             {(data.killSwitches ?? []).slice(0, 8).map((k: any) => (
@@ -250,7 +250,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Monitoring */}
-        <Card title="Monitoring" icon={Cpu}>
+        <Card title="Monitoring" icon={Cpu} eyebrow="SAM telemetry" className="xl:col-span-4">
           <SectionLabel>Recent SAM invocations</SectionLabel>
           <ul className="mt-2 space-y-1.5 max-h-56 overflow-auto">
             {(data.invocations ?? []).slice(0, 10).map((i: any) => (
@@ -276,7 +276,7 @@ function Panel({ data }: { data: any }) {
         </Card>
 
         {/* Live Execution Timeline */}
-        <Card title="Live Execution Timeline" icon={Activity} className="xl:col-span-3">
+        <Card title="Live Execution Timeline" icon={Activity} eyebrow="Audit stream" className="xl:col-span-8">
           <ul className="relative border-l border-border/50 pl-4 space-y-2 max-h-[520px] overflow-auto">
             {(data.activity ?? []).map((e: any) => (
               <li key={e.id} className="relative">
@@ -299,14 +299,20 @@ function humanizeAction(a: string) {
   return (a ?? "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function Card({ title, icon: Icon, children, className }: { title: string; icon: any; children: React.ReactNode; className?: string }) {
+function Card({ title, eyebrow, icon: Icon, children, className }: { title: string; eyebrow?: string; icon: any; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-xl border border-border/50 bg-card/50 p-5", className)}>
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
-        <h2 className="font-display text-[15px] tracking-tight text-foreground">{title}</h2>
+    <section className={cn("rounded-md border border-border bg-card shadow-[0_16px_42px_-38px_oklch(0.22_0.02_255/0.55)]", className)}>
+      <div className="flex items-center justify-between border-b border-border px-4 py-3.5 md:px-5">
+        <div className="min-w-0">
+          {eyebrow ? <div className="mb-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{eyebrow}</div> : null}
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.8} />
+            <h2 className="truncate font-display text-[14px] font-semibold text-foreground">{title}</h2>
+          </div>
+        </div>
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
       </div>
-      {children}
+      <div className="p-4 md:p-5">{children}</div>
     </section>
   );
 }
@@ -320,12 +326,12 @@ function Kpi({ icon: Icon, label, value, tone = "default" }: { icon: any; label:
     tone === "muted" ? "text-muted-foreground" :
     "text-foreground";
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 px-4 py-3">
+    <div className="min-w-0 border-b border-r border-border px-3 py-3.5 last:border-r-0 xl:border-b-0 xl:px-4">
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         <Icon className="h-3 w-3" strokeWidth={2} />
         {label}
       </div>
-      <div className={cn("mt-1 font-display text-[26px] leading-none", toneCls)}>{value}</div>
+      <div className={cn("mt-1.5 font-display text-[26px] font-semibold leading-none tabular-nums", toneCls)}>{value}</div>
     </div>
   );
 }

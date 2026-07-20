@@ -61,7 +61,7 @@ function MissionControl() {
   return (
     <div className="min-h-screen">
       {/* Header bar */}
-      <header className="border-b border-border/60 bg-gradient-to-b from-card/30 to-transparent px-4 pt-6 md:px-10 md:pt-8">
+      <header className="border-b border-border bg-card/55 px-4 pt-6 md:px-10 md:pt-8">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-end justify-between gap-4 pb-5">
             <div className="min-w-0">
@@ -69,7 +69,7 @@ function MissionControl() {
                 <span className="h-1 w-1 rounded-full bg-primary shadow-[0_0_6px_var(--color-primary)]" />
                 <span className="truncate">{orgName} · Mission Control</span>
               </div>
-              <h1 className="mt-2 font-display text-[26px] leading-[1.05] tracking-tight md:text-[32px]">The control room</h1>
+              <h1 className="mt-2 font-display text-[27px] font-semibold leading-[1.1] md:text-[34px]">Mission Control</h1>
             </div>
             <div className="text-right text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground">
               {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
@@ -80,7 +80,7 @@ function MissionControl() {
 
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-10 md:py-8 space-y-8">
         {/* Top KPI strip */}
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <section className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-[0_14px_40px_-34px_oklch(0.22_0.02_255/0.5)] md:grid-cols-4">
           <KpiTile label="MRR" value={formatMoney(rev.mrrCents, { compact: true })} sub={`${rev.activeClients} active clients`} />
           <KpiTile label="Pipeline" value={formatMoney(rev.pipelineValueCents, { compact: true })} sub={`${formatMoney(rev.weightedForecastCents, { compact: true })} weighted`} />
           <KpiTile label="Net cash · 30d" value={formatMoney(rev.netCash30Cents, { compact: true })} sub={`${formatMoney(rev.inflow30Cents, { compact: true })} in, ${formatMoney(rev.outflow30Cents, { compact: true })} out`} tone={rev.netCash30Cents < 0 ? "warn" : "ok"} />
@@ -183,19 +183,19 @@ function MissionControl() {
 
 function SectionHeader({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-2.5">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-4 border-b border-border pb-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <span className="h-1 w-1 shrink-0 rounded-full bg-primary/80" />
         <h2 className="truncate text-[10.5px] font-medium uppercase tracking-[0.22em] text-foreground/80">{title}</h2>
       </div>
-      {hint && <div className="shrink-0 text-[11px] text-muted-foreground">{hint}</div>}
+      {hint && <div className="hidden shrink-0 text-[11px] text-muted-foreground sm:block">{hint}</div>}
     </div>
   );
 }
 
 function KpiTile({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "ok" | "warn" }) {
   return (
-    <div className="surface-elevated rounded-lg p-4 transition-colors hover:bg-card">
+    <div className="min-w-0 border-b border-r border-border p-4 last:border-r-0 md:border-b-0">
       <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
       <div className={cn("mt-2 font-display text-[24px] leading-none tabular-nums text-foreground", tone === "warn" && "text-destructive")}>{value}</div>
       {sub && <div className="mt-2 text-[11px] text-muted-foreground">{sub}</div>}
@@ -213,12 +213,12 @@ function ExecCard({
   link: { to: "/ventures" | "/projects" | "/revenue" | "/integrations"; label: string };
 }) {
   return (
-    <div className="flex flex-col rounded-md border border-border/70 bg-card p-5">
-      <div className="flex items-start justify-between">
+    <div className="flex flex-col rounded-md border border-border bg-card shadow-[0_16px_42px_-38px_oklch(0.22_0.02_255/0.55)]">
+      <div className="flex items-start justify-between border-b border-border px-5 py-4">
         <div>
           <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-foreground/70" strokeWidth={1.75} />
-            <div className="font-display text-[20px] leading-none">{title}</div>
+            <Icon className="h-4 w-4 text-primary" strokeWidth={1.8} />
+            <div className="font-display text-[17px] font-semibold leading-none">{title}</div>
           </div>
           <div className="mt-1 text-[11px] uppercase tracking-[0.2em] text-foreground/55">{subtitle}</div>
         </div>
@@ -226,7 +226,7 @@ function ExecCard({
           {link.label} <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
         </Link>
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 border-b border-border px-5 py-4">
         {stats.map((s) => (
           <div key={s.label} className="min-w-0">
             <div className={cn("font-display text-[22px] leading-none tabular-nums", s.tone === "warn" && "text-[oklch(0.5_0.18_27)]")}>{s.value}</div>
@@ -234,7 +234,7 @@ function ExecCard({
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[13px] leading-relaxed text-foreground/75">{detail}</p>
+      <p className="px-5 py-4 text-[13px] leading-relaxed text-foreground/75">{detail}</p>
     </div>
   );
 }
@@ -262,8 +262,8 @@ function OperatorPanel({
   const done = (tasks.data ?? []).filter((t) => t.status === "done").slice(0, 5);
 
   return (
-    <div className="rounded-md border border-border/70 bg-card">
-      <div className="flex items-start justify-between gap-3 border-b border-border/70 p-5">
+    <div className="rounded-md border border-border bg-card shadow-[0_16px_42px_-38px_oklch(0.22_0.02_255/0.55)]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b border-border p-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <div className="font-display text-[22px] leading-none">{title}</div>
