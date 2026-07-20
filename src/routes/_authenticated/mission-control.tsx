@@ -61,21 +61,24 @@ function MissionControl() {
   return (
     <div className="min-h-screen">
       {/* Header bar */}
-      <header className="border-b border-foreground/15 px-4 py-6 md:px-10 md:py-8">
+      <header className="border-b border-border/60 bg-gradient-to-b from-card/30 to-transparent px-4 pt-6 md:px-10 md:pt-8">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-wrap items-baseline justify-between gap-4">
-            <div>
-              <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/60">{orgName} · Mission Control</div>
-              <h1 className="mt-2 font-display text-[36px] leading-[1.02] tracking-tight md:text-[52px]">The control room</h1>
+          <div className="flex flex-wrap items-end justify-between gap-4 pb-5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                <span className="h-1 w-1 rounded-full bg-primary shadow-[0_0_6px_var(--color-primary)]" />
+                <span className="truncate">{orgName} · Mission Control</span>
+              </div>
+              <h1 className="mt-2 font-display text-[26px] leading-[1.05] tracking-tight md:text-[32px]">The control room</h1>
             </div>
-            <div className="text-right text-[11px] uppercase tracking-[0.22em] text-foreground/60">
+            <div className="text-right text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground">
               {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
             </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-10 md:py-10 space-y-10">
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-10 md:py-8 space-y-8">
         {/* Top KPI strip */}
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiTile label="MRR" value={formatMoney(rev.mrrCents, { compact: true })} sub={`${rev.activeClients} active clients`} />
@@ -180,19 +183,22 @@ function MissionControl() {
 
 function SectionHeader({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-foreground/70 pb-2">
-      <h2 className="font-display text-[24px] leading-none">{title}</h2>
-      {hint && <div className="text-[11px] italic text-foreground/55">{hint}</div>}
+    <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-2.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="h-1 w-1 shrink-0 rounded-full bg-primary/80" />
+        <h2 className="truncate text-[10.5px] font-medium uppercase tracking-[0.22em] text-foreground/80">{title}</h2>
+      </div>
+      {hint && <div className="shrink-0 text-[11px] text-muted-foreground">{hint}</div>}
     </div>
   );
 }
 
 function KpiTile({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "ok" | "warn" }) {
   return (
-    <div className="rounded-md border border-border/70 bg-card p-4">
-      <div className="text-[10px] uppercase tracking-[0.22em] text-foreground/55">{label}</div>
-      <div className={cn("mt-2 font-display text-[26px] leading-none tabular-nums", tone === "warn" && "text-[oklch(0.5_0.18_27)]")}>{value}</div>
-      {sub && <div className="mt-2 text-[11.5px] text-foreground/60">{sub}</div>}
+    <div className="surface-elevated rounded-lg p-4 transition-colors hover:bg-card">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+      <div className={cn("mt-2 font-display text-[24px] leading-none tabular-nums text-foreground", tone === "warn" && "text-destructive")}>{value}</div>
+      {sub && <div className="mt-2 text-[11px] text-muted-foreground">{sub}</div>}
     </div>
   );
 }
