@@ -28,6 +28,49 @@ import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 
+type ActionReceipt = {
+  status: "success" | "blocked" | "failed" | "ambiguous" | "none";
+  kind: string;
+  explanation: string;
+  ids: Record<string, string>;
+  hrefs: Record<string, string>;
+  blockers: string[];
+  detection: { confidence: number; reason: string };
+};
+
+function ActionReceiptCard({ receipt }: { receipt: ActionReceipt }) {
+  if (receipt.status === "none") return null;
+  const tone =
+    receipt.status === "success"
+      ? "border-[oklch(0.72_0.14_155)] bg-[oklch(0.72_0.14_155)]/10"
+      : receipt.status === "ambiguous"
+        ? "border-[oklch(0.78_0.14_85)] bg-[oklch(0.78_0.14_85)]/10"
+        : "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10";
+  const missionId = receipt.ids.missionId;
+  return (
+    <div className={cn("mt-6 rounded-md border-l-2 px-4 py-3", tone)}>
+      <div className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/70">
+        SAM action - {receipt.kind.replace(/_/g, " ")} - {receipt.status}
+      </div>
+      <div className="mt-1.5 text-[13.5px] text-foreground">{receipt.explanation}</div>
+      {receipt.blockers.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-[12px] text-foreground/70">
+          {receipt.blockers.map((b, i) => <li key={i}>- {b}</li>)}
+        </ul>
+      )}
+      {missionId && (
+        <Link
+          to="/sam/missions/$id"
+          params={{ id: missionId }}
+          className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-primary hover:underline"
+        >
+          Open mission <ArrowRight className="h-3 w-3" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/sam/")({
   component: SamPage,
   head: () => ({
@@ -64,6 +107,7 @@ type SamMessageMetadata = {
     relevance: string | null;
   }>;
   hrefs?: Record<string, string | null>;
+  action_receipt?: ActionReceipt;
   response?: {
     executive_summary: string | null;
     observations: string[];
@@ -248,7 +292,7 @@ function SamPage() {
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center justify-between gap-4">
               <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
-                SAM - Executive Intelligence - Read only
+                SAM - Executive Intelligence
               </div>
               <button
                 className="lg:hidden text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
@@ -491,9 +535,10 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
         What do you want to understand?
       </h2>
       <p className="mt-5 max-w-xl text-[14.5px] leading-[1.75] text-foreground/70">
-        SAM reads your organization&apos;s live record. Every answer cites the projects,
-        decisions, and commitments it relies on. SAM analyzes and advises;
-        it does not take actions on your behalf.
+        SAM reads your organization&apos;s live record. It executes work within
+        the authority you grant it, requests approval when required, and reports
+        blockers truthfully. Every answer cites the projects, decisions, and
+        commitments it relies on.
       </p>
       <div className="mt-10 border-t border-foreground/80">
         <div className="border-b border-foreground/10 py-3">
@@ -600,6 +645,10 @@ function MessageView({ msg, index }: { msg: Msg; index: number }) {
 
       {(meta.citations?.length ?? 0) > 0 && (
         <SourcesDrawer citations={meta.citations!} hrefs={meta.hrefs ?? {}} />
+      )}
+
+      {meta.action_receipt && (
+        <ActionReceiptCard receipt={meta.action_receipt as ActionReceipt} />
       )}
 
       {meta.confidence?.reasons && meta.confidence.reasons.length > 0 && (

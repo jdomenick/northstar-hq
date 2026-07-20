@@ -5,7 +5,11 @@ import { useMemo } from "react";
 import { PageHeader } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { getSamControlSnapshot } from "@/lib/sam-control/snapshot.functions";
+import { getAutonomy, setAutonomy, runProofMissionFromControl } from "@/lib/sam/autonomy/autonomy.functions";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Activity,
   AlertTriangle,
@@ -57,10 +61,87 @@ function SamControlPage() {
         ) : q.error ? (
           <Empty label="Failed to load snapshot." tone="danger" />
         ) : q.data ? (
-          <Panel data={q.data} />
+          <>
+            <FounderControls organizationId={activeOrgId} />
+            <Panel data={q.data} />
+          </>
         ) : null}
       </div>
     </>
+  );
+}
+
+function FounderControls({ organizationId }: { organizationId: string }) {
+  const getFn = useServerFn(getAutonomy);
+  const setFn = useServerFn(setAutonomy);
+  const proofFn = useServerFn(runProofMissionFromControl);
+  const [confirm, setConfirm] = useState("");
+  const [lastReceipt, setLastReceipt] = useState<{ status: string; explanation: string; ids: Record<string, string> } | null>(null);
+  const a = useQuery({
+    queryKey: ["sam-autonomy", organizationId],
+    queryFn: () => getFn({ data: { organizationId } }),
+    refetchInterval: 10000,
+  });
+  const state = a.data?.state ?? "active";
+  async function change(next: "active" | "paused" | "emergency_stopped") {
+    try {
+      await setFn({ data: { organizationId, state: next, confirm: next === "emergency_stopped" ? "STOP" : undefined } });
+      toast.success(`SAM state -> ${next}`);
+      a.refetch();
+    } catch (e) { toast.error((e as Error).message); }
+  }
+  async function runProof() {
+    try {
+      const r = await proofFn({ data: { organizationId } });
+      setLastReceipt({ status: r.status, explanation: r.explanation, ids: r.ids });
+      if (r.status === "success") toast.success("Proof mission queued");
+      else toast.error(`Proof ${r.status}: ${r.explanation}`);
+    } catch (e) { toast.error((e as Error).message); }
+  }
+  const tone = state === "active"
+    ? "text-[oklch(0.78_0.14_155)]"
+    : state === "paused"
+      ? "text-[oklch(0.82_0.14_85)]"
+      : "text-[oklch(0.78_0.18_27)]";
+  return (
+    <section className="rounded-md border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground">Founder controls</div>
+          <div className="mt-1 flex items-center gap-2 text-[13px]">
+            SAM state: <span className={cn("font-semibold uppercase tracking-[0.14em]", tone)}>{state}</span>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => change("active")} disabled={state === "active"}
+            className="rounded-md border border-border px-3 py-1.5 text-[12px] uppercase tracking-[0.16em] hover:bg-muted disabled:opacity-40">Resume</button>
+          <button onClick={() => change("paused")} disabled={state === "paused"}
+            className="rounded-md border border-border px-3 py-1.5 text-[12px] uppercase tracking-[0.16em] hover:bg-muted disabled:opacity-40">Pause</button>
+          <button onClick={runProof}
+            className="rounded-md border border-primary bg-primary/10 px-3 py-1.5 text-[12px] uppercase tracking-[0.16em] text-primary hover:bg-primary/20">Run SAM proof mission</button>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder='Type "STOP" to arm emergency stop'
+          className="w-64 rounded-md border border-border bg-background px-2 py-1.5 text-[12px]" />
+        <button
+          onClick={() => confirm === "STOP" ? change("emergency_stopped") : toast.error('Type STOP first')}
+          className="rounded-md border border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10 px-3 py-1.5 text-[12px] uppercase tracking-[0.16em] text-[oklch(0.78_0.18_27)] hover:bg-[oklch(0.55_0.18_27)]/20">
+          Emergency stop
+        </button>
+      </div>
+      {lastReceipt && (
+        <div className="mt-3 rounded border border-border/60 bg-muted/30 p-3 text-[12.5px]">
+          <div className="uppercase tracking-[0.14em] text-muted-foreground text-[10.5px]">Last receipt - {lastReceipt.status}</div>
+          <div className="mt-1">{lastReceipt.explanation}</div>
+          {lastReceipt.ids.missionId && (
+            <Link to="/sam/missions/$id" params={{ id: lastReceipt.ids.missionId }} className="mt-2 inline-block text-primary hover:underline">
+              Open mission -&gt;
+            </Link>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

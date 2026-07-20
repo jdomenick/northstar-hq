@@ -1,119 +1,62 @@
-# Platform Restructure: NorthStar Labs + SAM
 
-Reorganize the app so NorthStar Labs (the company/product/admin shell) and SAM (the autonomous intelligence product) live side-by-side in this repo with clean boundaries and a future extraction path for SAM.
+## Ground truth from the repo (must resolve before I write code)
 
-## Product boundaries
+The brief references "existing sam_objectives / work-item architecture", "existing autonomy/kill-switch architecture", and directives. Actual state:
 
-**NorthStar Labs** - `/` and `/labs/*` (public + authenticated company shell)
-- Marketing/home at `/`
-- Company admin: ventures, projects, goals, decisions, knowledge, documents, accountability, commitments, revenue, mission-control, operator
-- Founder settings, profile, org, billing
-- Owns branding, navigation shell, auth, org context
+- **No `sam_objectives` table. No work-items table. No `sam_directives` table.** Verified via `\dt public.sam*`. The 20 sam_* tables cover invocations, memory, workflows, digests, health, recommendations, feedback, MCP - none of them are objectives or missions.
+- **`content_ops_autonomy` and `content_ops_kill_switches` exist but are scoped to Content Operations only.** There is no org-wide "Pause SAM / Emergency Stop" primitive.
+- **`automation_definitions` is empty** (0 rows), so there is no seeded proof automation to run.
+- `sam.functions.ts` / `askSam` is analysis-only. `operations/dispatch.server.ts` exists and can propose typed ops, but `askSam` never calls it.
+- `automation_jobs` + worker + `runWorkerTick` + `pg_cron` tick are real and working.
 
-**SAM** - `/sam/*` (autonomous operating system, feels like a distinct product)
-- `/sam` - conversation/ask
-- `/sam/control` - Mega Control Panel
-- `/sam/memory` - memory & constitution
-- `/sam/objectives` - goals SAM is driving
-- `/sam/approvals` - approval queue
-- `/sam/work` - execution timeline / automation jobs
-- `/sam/automations` - schedules, workers, triggers
-- `/sam/integrations` - SAM's own connectors (Meta, Beehiiv, MCP, etc.)
-- `/sam/content` - content-ops (calendar, editor, library) - SAM's publishing surface
-- `/sam/reports` - executive intelligence, health, digests
+So the acceptance tests cannot be met by "wiring existing systems". Roughly 60% of what the brief calls "existing" has to be built. I want to confirm the scope with you before I write a large multi-migration + multi-file change and then discover we disagree on shape.
 
-## Route moves
+## Proposed proof slice (one turn of code, then verify)
 
-```text
-_authenticated/
-  index.tsx                    -> labs.tsx           (Labs home / dashboard)
-  ventures.*, projects.*,
-  goals.*, decisions.*,
-  knowledge.*, documents.*,
-  accountability.tsx,
-  commitments.$id.tsx,
-  revenue.tsx,
-  mission-control.tsx,
-  operator.tsx                 -> labs.<same>.tsx    (all under /labs/*)
-  settings.*                   -> labs.settings.*    (org/founder settings)
+Build the smallest end-to-end honest slice that satisfies acceptance tests 1-8 for one real path. No fake data, no fake completion.
 
-  sam.tsx                      -> sam.index.tsx
-  sam-control.tsx              -> sam.control.tsx
-  sam.memory.tsx               -> sam.memory.tsx     (unchanged path)
-  content-ops.tsx              -> sam.content.tsx
-  content-ops.calendar.tsx     -> sam.content.calendar.tsx
-  content-ops.library.tsx      -> sam.content.library.tsx
-  content-ops.editor.$id.tsx   -> sam.content.editor.$id.tsx
-  integrations.tsx             -> sam.integrations.tsx
-  (new) sam.approvals.tsx, sam.work.tsx, sam.objectives.tsx,
-        sam.automations.tsx, sam.reports.tsx  (thin shells wiring
-        existing lib data; no new business logic this pass)
-```
+### 1. Migrations (single migration)
+- `sam_directives` (id, organization_id, venture_id nullable, text, scope: permanent|temporary, priority int, status: active|paused|archived, starts_at, expires_at nullable, created_by, timestamps). RLS: members read/write own org. Audited via activity_events.
+- `sam_missions` (id, organization_id, venture_id nullable, title, description, status: draft|active|blocked|completed|cancelled, priority, source: chat|directive|manual, created_by, timestamps).
+- `sam_mission_work_items` (id, mission_id, organization_id, title, description, status: pending|running|blocked|completed|failed, automation_job_id nullable FK, artifact jsonb, timestamps).
+- `sam_org_autonomy` (organization_id PK, state: active|paused|emergency_stopped, reason, changed_by, changed_at). One row per org, upsert semantics.
+- Register one `automation_definition` row per org on demand: `sam_proof_mission`.
+- All tables: GRANT to authenticated + service_role, RLS scoped to org membership.
 
-`src/routes/index.tsx` becomes the public NorthStar Labs landing page (keeps the current placeholder-replacement rule).
+### 2. Server layer
+- `src/lib/sam/directives/directives.functions.ts` - list/create/update/deactivate. Enforces org membership + `manage_sam` permission (owner/admin).
+- `src/lib/sam/missions/missions.functions.ts` - list/get/create mission + work items.
+- `src/lib/sam/autonomy/org-autonomy.functions.ts` - readState / pause / resume / emergencyStop / runProofMission. Emergency stop cancels queued jobs for org and requires a typed confirmation payload.
+- `src/lib/sam/context-builder.server.ts` extended to include active directives in SAM system prompt (constitution first, then company constitution, then active directives ordered by priority).
+- `sam.functions.ts::askSam` extended: after conversational answer, run `proposeOperationFromText`. If `status=ready` and operation is a mission-creating intent (createMission / runProofMission / setDirective), execute through a new `executeSamOperation()` that returns a structured `ActionReceipt { status, kind, ids, explanation, blockers }`. Attach receipt to the assistant message metadata as `action_receipt`. If autonomy = paused, receipt.status = blocked with reason.
+- Register `sam_proof_mission` handler in `src/lib/automation/jobs/`. It:
+  - Loads org + venture context, active directives.
+  - Calls Lovable AI Gateway to produce a **qualified-prospect research brief** grounded in org data (name, ventures, goals). If key missing, produces a deterministic templated brief from real org data. Either way, real artifact.
+  - Writes artifact to `sam_mission_work_items.artifact` (jsonb) and marks work item completed.
+  - Idempotent via `idempotency_key = 'proof:<mission_id>'`.
+  - Emits activity_events and sam_invocations rows for audit.
 
-## Module reorg (extraction-ready)
+### 3. UI
+- `/sam` masthead copy: remove "Read only" + false EmptyState line. Replace with: "SAM executes within your authority. When it lacks authority or information, it reports the blocker."
+- Directives drawer on `/sam` (mobile-first slide-over, desktop right rail): list active directives with priority chips, add/edit/deactivate for owners/admins. Every mutation confirms + audits.
+- Chat: when assistant message has `action_receipt`, render an inline receipt card under the message: status pill (Completed / Blocked / Failed / Ambiguous), created IDs as deep links, human explanation, "next step" if any. Truthful queued -> running -> completed transitions via 5-second poll on referenced mission id.
+- `/sam/control`: add a Founder Controls card with Start/Resume, Pause, Emergency Stop (typed confirmation "STOP"), Run Proof Mission. Shows current operating state + active mission summary. Deep-links to mission page, work-item job page, activity feed.
+- New route `/sam/missions/$id` showing mission, work items, linked jobs, artifact, audit trail.
 
-```text
-src/lib/
-  labs/            <- ventures, projects, goals, decisions, accountability,
-                      mission-control, revenue, founder-activation, coo
-  sam/             <- existing sam/, sam-control/, sam-mcp/, content-ops/,
-                      automation/, social/, signals/, activity   (all SAM)
-  shared/          <- auth-context, org-context, permissions, errors,
-                      ai-gateway.server, storage, utils, constants,
-                      data-hooks, actor-names, integrations (shared connector
-                      framework used by both)
-```
+### 4. Tests (vitest + node)
+- Directive persistence + org isolation.
+- Autonomy state transitions + emergency-stop cancels queued jobs.
+- `parseOperationProposal` + `executeSamOperation` for mission-creating intent returns structured receipt (ready / needs_fields / blocked).
+- Proof mission job handler: idempotent, produces artifact, transitions statuses, emits activity.
+- Truthful "blocked" when autonomy paused.
 
-Move files with `git mv`-equivalent shell `mv`, then update imports. Public API of each domain is a single `index.ts` barrel so a future SAM extraction is a folder copy + swap of `shared/` for a thin package.
+### 5. Verification
+- typecheck (tsgo) + vite build.
+- Run new tests via existing `bunx vitest` path.
+- Live smoke: create a directive, ask SAM "focus on getting NorthStar its first 3 customers", verify mission row + linked work item + activity event; then "run SAM proof mission" and observe job queued -> running -> completed with artifact.
 
-```text
-src/components/
-  labs/            <- page-header (Labs variant), editorial (Labs docs)
-  sam/             <- sam-mcp-connection-panel, executive-intelligence-panel,
-                      content-ops/*
-  shared/          <- app-shell, ui/*
-```
+## Decision I need from you
 
-## Navigation & shell
+Reply **"go"** and I execute this slice in one code pass (single migration + code + tests + build). Or say **"trim"** with what to drop. I will not proceed until you confirm, because if I invent a schema you disagree with, we throw away a lot of work.
 
-`app-shell.tsx` gets a two-section sidebar:
-- **NorthStar Labs** group: Home, Ventures, Projects, Goals, Decisions, Knowledge, Accountability, Revenue, Mission Control, Settings
-- **SAM** group (visually distinct - product-within-product): Ask SAM, Control, Approvals, Work, Automations, Integrations, Content, Memory, Reports
-
-Header shows current product context (Labs vs SAM) so SAM reads as its own product.
-
-## Redirects (no broken links)
-
-Add a small redirect map so legacy URLs keep working:
-- `/mission-control` -> `/labs/mission-control`
-- `/ventures`, `/projects`, `/goals`, `/decisions`, `/knowledge`, `/documents`, `/accountability`, `/revenue`, `/operator`, `/settings/*` -> `/labs/*`
-- `/sam-control` -> `/sam/control`
-- `/content-ops*` -> `/sam/content*`
-- `/integrations` -> `/sam/integrations`
-
-Implemented as tiny route files that `throw redirect(...)` in `beforeLoad`.
-
-## Out of scope this pass
-
-- No new SAM features. Approvals/Work/Objectives/Automations/Reports pages wire existing data only; deep functionality lands in follow-ups.
-- No visual redesign beyond adding the Labs/SAM split in the shell.
-- No repo split; SAM stays in this repo. Boundaries make extraction a mechanical move later.
-- Marketing/public `/labs/*` pages (case studies, portfolio) are stubbed - content lands in a separate pass.
-
-## Verification
-
-- `bun run build` green, `tsgo` green.
-- Playwright: `/`, `/labs`, `/labs/ventures`, `/sam`, `/sam/control`, `/sam/content`, `/sam/integrations` all render; legacy `/mission-control`, `/sam-control`, `/integrations` redirect.
-- Sidebar shows both product groups; SAM group visually distinct.
-
-## Delivery order
-
-1. **Shape** - create `src/lib/{labs,sam,shared}` and `src/components/{labs,sam,shared}` folders, move files, update imports. Build must stay green after this step.
-2. **Routes** - rename route files to the `labs.*` / `sam.*` layout, add redirects for legacy paths, update `<Link to>` call sites.
-3. **Shell** - split sidebar into Labs + SAM groups, add product-context header.
-4. **Stubs** - add empty `sam.approvals`, `sam.work`, `sam.objectives`, `sam.automations`, `sam.reports` route shells reading existing data.
-5. **Verify** - build, typecheck, Playwright smoke on the routes above.
-
-Confirm this shape (especially the Labs vs SAM ownership of Mission Control, Revenue, Operator, and Founder Activation) and I'll execute.
+Explicit non-goals for this pass (call out if you want any of them in): full CRM/pipeline integration, real prospect research from external sources, LinkedIn/X/Meta live posting, richer digest UI, permission editor, per-user directive scoping.

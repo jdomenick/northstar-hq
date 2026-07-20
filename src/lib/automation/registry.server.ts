@@ -129,6 +129,27 @@ registerJob({
   inputSchema: permissiveSchema,
   outputSchema: permissiveSchema,
 });
+
+// SAM proof mission: end-to-end deterministic proof workflow. Requires no
+// external connectors. Idempotent via caller-supplied key.
+registerJob({
+  key: "sam.proof_mission",
+  displayName: "SAM Proof Mission",
+  family: "sam",
+  supportedScopes: ["organization", "venture"],
+  defaultPriority: "high",
+  defaultTimeoutSeconds: 180,
+  defaultMaxAttempts: 2,
+  retryPolicy: { kind: "exponential", maxAttempts: 2, baseDelaySeconds: 30 },
+  idempotencyStrategy: "org_type_key",
+  dependencyBehavior: "independent",
+  createsExternalSideEffects: false,
+  mayRequireApproval: false,
+  handlerVersion: "v1",
+  implementationStatus: "implemented",
+  inputSchema: permissiveSchema,
+  outputSchema: permissiveSchema,
+});
 notYet({ key: "content_classification", displayName: "Content Classification", family: "intelligence",
   supportedScopes: ["organization","venture"], defaultPriority: "normal", defaultTimeoutSeconds: 180,
   defaultMaxAttempts: 3, retryPolicy: { kind: "exponential", maxAttempts: 3, baseDelaySeconds: 30 },
