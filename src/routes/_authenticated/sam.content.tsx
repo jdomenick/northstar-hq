@@ -22,7 +22,7 @@ import { listStrategies } from "@/lib/content-ops/strategy.functions";
 import { listLearnings } from "@/lib/content-ops/learnings.functions";
 import { validateBeehiivConnection } from "@/lib/content-ops/beehiiv-validate.functions";
 
-export const Route = createFileRoute("/_authenticated/content-ops")({
+export const Route = createFileRoute("/_authenticated/sam/content")({
   component: ContentOpsWorkspace,
   head: () => ({
     meta: [

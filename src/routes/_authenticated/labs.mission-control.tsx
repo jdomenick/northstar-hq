@@ -29,7 +29,7 @@ import {
 } from "@/lib/mission-control/hooks";
 import { OPERATOR_LABELS, OPERATOR_SUBTITLES, OPERATOR_PURPOSE } from "@/lib/mission-control/labels";
 
-export const Route = createFileRoute("/_authenticated/mission-control")({
+export const Route = createFileRoute("/_authenticated/labs/mission-control")({
   component: MissionControl,
 });
 

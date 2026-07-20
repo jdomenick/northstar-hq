@@ -25,7 +25,7 @@ import {
   useAdvanceStage, useDealTimeline, useDealTasks,
 } from "@/lib/mission-control/revenue-machine";
 
-export const Route = createFileRoute("/_authenticated/revenue")({
+export const Route = createFileRoute("/_authenticated/labs/revenue")({
   component: RevenuePage,
 });
 

@@ -28,7 +28,7 @@ import {
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/commitments/$id")({
+export const Route = createFileRoute("/_authenticated/labs/commitments/$id")({
   component: CommitmentDetail,
   head: () => ({ meta: [{ title: "Commitment - NorthStar Labs" }] }),
 });

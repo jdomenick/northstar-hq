@@ -16,7 +16,7 @@ import { can } from "@/lib/permissions";
 import { formatFileSize } from "@/lib/storage";
 import { MAX_DOCUMENT_BYTES } from "@/lib/constants";
 
-export const Route = createFileRoute("/_authenticated/documents")({
+export const Route = createFileRoute("/_authenticated/labs/documents")({
   component: DocumentsLayout,
   head: () => ({
     meta: [

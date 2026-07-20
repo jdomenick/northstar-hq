@@ -34,7 +34,7 @@ import {
   isProjectStalled,
 } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/ventures/$id")({
+export const Route = createFileRoute("/_authenticated/labs/ventures/$id")({
   component: VentureDetail,
   head: () => ({ meta: [{ title: "Venture  -  NorthStar Labs" }] }),
 });

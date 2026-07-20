@@ -11,7 +11,7 @@ import {
 import { can } from "@/lib/permissions";
 import { goalProgressPct } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/goals/$id")({
+export const Route = createFileRoute("/_authenticated/labs/goals/$id")({
   component: GoalDetail,
   head: () => ({ meta: [{ title: "Goal  -  NorthStar Labs" }] }),
 });

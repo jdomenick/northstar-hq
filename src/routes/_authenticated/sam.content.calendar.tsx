@@ -16,7 +16,7 @@ import {
   manualRetryPublication,
 } from "@/lib/content-ops/scheduling.functions";
 
-export const Route = createFileRoute("/_authenticated/content-ops/calendar")({
+export const Route = createFileRoute("/_authenticated/sam/content/calendar")({
   component: CalendarPage,
   head: () => ({
     meta: [

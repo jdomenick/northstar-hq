@@ -27,7 +27,7 @@ import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import { isCommitmentOverdue } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/projects/$id")({
+export const Route = createFileRoute("/_authenticated/labs/projects/$id")({
   component: ProjectDetail,
   head: () => ({ meta: [{ title: "Project  -  NorthStar Labs" }] }),
 });

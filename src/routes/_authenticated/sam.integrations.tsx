@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMetaConnectorHealth } from "@/lib/social/providers/meta/health.functions";
 import { SamMcpConnectionPanel } from "@/components/sam-mcp-connection-panel";
 
-export const Route = createFileRoute("/_authenticated/integrations")({
+export const Route = createFileRoute("/_authenticated/sam/integrations")({
   component: IntegrationsPage,
   head: () => ({
     meta: [

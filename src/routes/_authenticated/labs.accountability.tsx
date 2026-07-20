@@ -26,7 +26,7 @@ import {
 import { can } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/accountability")({
+export const Route = createFileRoute("/_authenticated/labs/accountability")({
   component: AccountabilityIndex,
   head: () => ({
     meta: [

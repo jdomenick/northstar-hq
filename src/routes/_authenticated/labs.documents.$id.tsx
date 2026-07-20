@@ -18,7 +18,7 @@ import { actorName } from "@/lib/actor-names";
 import { createSignedDocumentUrl, formatFileSize } from "@/lib/storage";
 import { DOC_STATUS_LABEL } from "./documents";
 
-export const Route = createFileRoute("/_authenticated/documents/$id")({
+export const Route = createFileRoute("/_authenticated/labs/documents/$id")({
   component: DocumentDetail,
   head: () => ({ meta: [{ title: "Document  -  NorthStar Labs" }] }),
 });

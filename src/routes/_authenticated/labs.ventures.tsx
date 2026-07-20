@@ -23,7 +23,7 @@ function toneForStatus(status: string): StatusTone {
   return "neutral";
 }
 
-export const Route = createFileRoute("/_authenticated/ventures")({
+export const Route = createFileRoute("/_authenticated/labs/ventures")({
   component: VenturesLayout,
   head: () => ({
     meta: [

@@ -28,7 +28,7 @@ import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 
-export const Route = createFileRoute("/_authenticated/sam")({
+export const Route = createFileRoute("/_authenticated/sam/")({
   component: SamPage,
   head: () => ({
     meta: [

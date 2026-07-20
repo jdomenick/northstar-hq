@@ -21,7 +21,7 @@ import {
   scorePriority,
 } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/labs/")({
   component: Command,
 });
 

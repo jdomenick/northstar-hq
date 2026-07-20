@@ -8,7 +8,7 @@ import { useCreateGoal, useGoals, useVentures, type Goal, type GoalStatus, type 
 import { can } from "@/lib/permissions";
 import { goalProgressPct, isGoalAtRisk } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/goals")({
+export const Route = createFileRoute("/_authenticated/labs/goals")({
   component: GoalsLayout,
   head: () => ({
     meta: [

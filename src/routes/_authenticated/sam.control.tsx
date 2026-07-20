@@ -22,7 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/sam-control")({
+export const Route = createFileRoute("/_authenticated/sam/control")({
   head: () => ({
     meta: [
       { title: "SAM Mega Control Panel - NorthStar Labs" },

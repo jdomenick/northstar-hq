@@ -39,7 +39,7 @@ import {
   type RiskItem,
 } from "@/lib/decision-structured";
 
-export const Route = createFileRoute("/_authenticated/decisions/$id")({
+export const Route = createFileRoute("/_authenticated/labs/decisions/$id")({
   component: DecisionDetail,
   head: () => ({ meta: [{ title: "Decision - NorthStar Labs" }] }),
 });

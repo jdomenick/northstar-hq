@@ -31,7 +31,7 @@ import { can } from "@/lib/permissions";
 import { parseEvidence } from "@/lib/decision-structured";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/decisions")({
+export const Route = createFileRoute("/_authenticated/labs/decisions")({
   component: DecisionsLayout,
   head: () => ({
     meta: [

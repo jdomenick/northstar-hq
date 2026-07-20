@@ -4,7 +4,7 @@
 // enum value `operator` remains unchanged.
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_authenticated/operator")({
+export const Route = createFileRoute("/_authenticated/labs/operator")({
   beforeLoad: () => {
     throw redirect({ to: "/sam", replace: true });
   },

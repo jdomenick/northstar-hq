@@ -15,7 +15,7 @@ import {
 } from "@/lib/data-hooks";
 import { can } from "@/lib/permissions";
 
-export const Route = createFileRoute("/_authenticated/knowledge")({
+export const Route = createFileRoute("/_authenticated/labs/knowledge")({
   component: KnowledgeLayout,
   head: () => ({
     meta: [
