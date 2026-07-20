@@ -28,6 +28,40 @@ import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 
+type ActionReceipt =
+  | { status: "executed"; kind: string; missionId?: string; missionTitle?: string; directiveId?: string; summary: string }
+  | { status: "requires_approval"; kind: string; reason: string; summary: string }
+  | { status: "blocked"; kind: string; reason: string; summary: string }
+  | { status: "failed"; kind: string; error: string; summary: string };
+
+function ActionReceiptCard({ receipt }: { receipt: ActionReceipt }) {
+  const tone =
+    receipt.status === "executed"
+      ? "border-[oklch(0.72_0.14_155)] bg-[oklch(0.72_0.14_155)]/10"
+      : receipt.status === "requires_approval"
+        ? "border-[oklch(0.78_0.14_85)] bg-[oklch(0.78_0.14_85)]/10"
+        : receipt.status === "blocked"
+          ? "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10"
+          : "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10";
+  return (
+    <div className={cn("mt-6 rounded-md border-l-2 px-4 py-3", tone)}>
+      <div className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/70">
+        SAM action - {receipt.status.replace("_", " ")}
+      </div>
+      <div className="mt-1.5 text-[13.5px] text-foreground">{receipt.summary}</div>
+      {receipt.status === "executed" && receipt.missionId && (
+        <Link
+          to="/sam/missions/$id"
+          params={{ id: receipt.missionId }}
+          className="mt-2 inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.2em] text-primary hover:underline"
+        >
+          Open mission <ArrowRight className="h-3 w-3" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/sam/")({
   component: SamPage,
   head: () => ({
