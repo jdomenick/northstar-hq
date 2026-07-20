@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 
 type ActionReceipt = {
-  status: "success" | "blocked" | "failed" | "ambiguous" | "none";
+  status: "success" | "queued" | "blocked" | "failed" | "ambiguous" | "none";
   kind: string;
   explanation: string;
   ids: Record<string, string>;
@@ -41,16 +41,20 @@ type ActionReceipt = {
 function ActionReceiptCard({ receipt }: { receipt: ActionReceipt }) {
   if (receipt.status === "none") return null;
   const tone =
-    receipt.status === "success"
+    receipt.status === "success" || receipt.status === "queued"
       ? "border-[oklch(0.72_0.14_155)] bg-[oklch(0.72_0.14_155)]/10"
       : receipt.status === "ambiguous"
         ? "border-[oklch(0.78_0.14_85)] bg-[oklch(0.78_0.14_85)]/10"
         : "border-[oklch(0.55_0.18_27)] bg-[oklch(0.55_0.18_27)]/10";
   const missionId = receipt.ids.missionId;
+  const label =
+    receipt.status === "queued"
+      ? "queued (waiting for worker)"
+      : receipt.status;
   return (
     <div className={cn("mt-6 rounded-md border-l-2 px-4 py-3", tone)}>
       <div className="text-[10.5px] uppercase tracking-[0.22em] text-foreground/70">
-        SAM action - {receipt.kind.replace(/_/g, " ")} - {receipt.status}
+        SAM action - {receipt.kind.replace(/_/g, " ")} - {label}
       </div>
       <div className="mt-1.5 text-[13.5px] text-foreground">{receipt.explanation}</div>
       {receipt.blockers.length > 0 && (
