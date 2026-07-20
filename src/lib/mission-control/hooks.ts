@@ -151,7 +151,7 @@ async function writeAudit(
   orgId: string,
   kind: OperatorKind,
   event: string,
-  payload: Database["public"]["Tables"]["operator_audit"]["Insert"]["payload"] = {} as never,
+  payload: Record<string, unknown> = {},
   taskId?: string | null,
 ) {
   const actor = await currentUserId();
@@ -159,7 +159,7 @@ async function writeAudit(
     organization_id: orgId,
     kind,
     event,
-    payload,
+    payload: payload as never,
     task_id: taskId ?? null,
     actor_user_id: actor,
   });
