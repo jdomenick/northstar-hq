@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import northstarLogo from "@/assets/northstar-logo.png";
+import northstarLogo from "@/assets/northstar-logo-mark.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -170,9 +170,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border/70 px-4">
           <img
-            src={northstarLogo}
+            src={northstarLogo.url}
             alt="NorthStar Labs"
-            className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_12px_oklch(0.72_0.16_235/0.35)]"
+            className="h-8 w-8 shrink-0 object-contain"
           />
           <div
             className={cn(
@@ -268,7 +268,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <aside className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto border-r border-sidebar-border bg-sidebar p-4">
             <div className="flex h-14 items-center gap-3 px-1">
-              <img src={northstarLogo} alt="NorthStar Labs" className="h-9 w-9 shrink-0 object-contain" />
+              <img src={northstarLogo.url} alt="NorthStar Labs" className="h-9 w-9 shrink-0 object-contain" />
               <div className="font-display text-[22px] tracking-tight">NorthStar Labs</div>
             </div>
             <nav className="mt-4">
