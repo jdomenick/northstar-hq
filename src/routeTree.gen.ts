@@ -18,6 +18,7 @@ import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as AuthenticatedVenturesRouteImport } from './routes/_authenticated/ventures'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSamControlRouteImport } from './routes/_authenticated/sam-control'
 import { Route as AuthenticatedSamRouteImport } from './routes/_authenticated/sam'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
@@ -95,6 +96,11 @@ const AuthenticatedVenturesRoute = AuthenticatedVenturesRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSamControlRoute = AuthenticatedSamControlRouteImport.update({
+  id: '/sam-control',
+  path: '/sam-control',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSamRoute = AuthenticatedSamRouteImport.update({
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/revenue': typeof AuthenticatedRevenueRoute
   '/sam': typeof AuthenticatedSamRouteWithChildren
+  '/sam-control': typeof AuthenticatedSamControlRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/revenue': typeof AuthenticatedRevenueRoute
   '/sam': typeof AuthenticatedSamRouteWithChildren
+  '/sam-control': typeof AuthenticatedSamControlRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -393,6 +401,7 @@ export interface FileRoutesById {
   '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
   '/_authenticated/sam': typeof AuthenticatedSamRouteWithChildren
+  '/_authenticated/sam-control': typeof AuthenticatedSamControlRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/ventures': typeof AuthenticatedVenturesRouteWithChildren
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -440,6 +449,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/revenue'
     | '/sam'
+    | '/sam-control'
     | '/settings'
     | '/ventures'
     | '/api/generate-image'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/revenue'
     | '/sam'
+    | '/sam-control'
     | '/settings'
     | '/ventures'
     | '/api/generate-image'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects'
     | '/_authenticated/revenue'
     | '/_authenticated/sam'
+    | '/_authenticated/sam-control'
     | '/_authenticated/settings'
     | '/_authenticated/ventures'
     | '/api/generate-image'
@@ -635,6 +647,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sam-control': {
+      id: '/_authenticated/sam-control'
+      path: '/sam-control'
+      fullPath: '/sam-control'
+      preLoaderRoute: typeof AuthenticatedSamControlRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sam': {
@@ -1034,6 +1053,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSamRoute: typeof AuthenticatedSamRouteWithChildren
+  AuthenticatedSamControlRoute: typeof AuthenticatedSamControlRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -1053,6 +1073,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSamRoute: AuthenticatedSamRouteWithChildren,
+  AuthenticatedSamControlRoute: AuthenticatedSamControlRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
