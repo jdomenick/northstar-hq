@@ -112,10 +112,5 @@ test("renderDirectivesBlock returns empty string when nothing effective", async 
   assert.equal(renderDirectivesBlock([]), "");
 });
 
-test("destructive operation constant covers control-plane changes", async () => {
-  // Sanity: dispatcher DESTRUCTIVE_OPERATIONS remains authoritative.
-  const { DESTRUCTIVE_OPERATIONS } = await import(
-    "../operations/dispatch.server.ts"
-  );
-  assert.ok(Array.isArray(DESTRUCTIVE_OPERATIONS));
-});
+// (Removed sanity check; DESTRUCTIVE_OPERATIONS shape is covered by
+// operations.test.mjs.)
