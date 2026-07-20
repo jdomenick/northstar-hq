@@ -18,11 +18,9 @@ import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as AuthenticatedVenturesRouteImport } from './routes/_authenticated/ventures'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedSamControlRouteImport } from './routes/_authenticated/sam-control'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedOperatorRouteImport } from './routes/_authenticated/operator'
-import { Route as AuthenticatedMissionControlRouteImport } from './routes/_authenticated/mission-control'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
@@ -112,11 +110,6 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSamControlRoute = AuthenticatedSamControlRouteImport.update({
-  id: '/sam-control',
-  path: '/sam-control',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedRevenueRoute = AuthenticatedRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -132,12 +125,6 @@ const AuthenticatedOperatorRoute = AuthenticatedOperatorRouteImport.update({
   path: '/operator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMissionControlRoute =
-  AuthenticatedMissionControlRouteImport.update({
-    id: '/mission-control',
-    path: '/mission-control',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -402,11 +389,9 @@ export interface FileRoutesByFullPath {
   '/goals': typeof AuthenticatedGoalsRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/mission-control': typeof AuthenticatedMissionControlRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
-  '/sam-control': typeof AuthenticatedSamControlRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -461,11 +446,9 @@ export interface FileRoutesByTo {
   '/goals': typeof AuthenticatedGoalsRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/mission-control': typeof AuthenticatedMissionControlRoute
   '/operator': typeof AuthenticatedOperatorRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
-  '/sam-control': typeof AuthenticatedSamControlRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/ventures': typeof AuthenticatedVenturesRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -522,11 +505,9 @@ export interface FileRoutesById {
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/_authenticated/mission-control': typeof AuthenticatedMissionControlRoute
   '/_authenticated/operator': typeof AuthenticatedOperatorRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
-  '/_authenticated/sam-control': typeof AuthenticatedSamControlRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/ventures': typeof AuthenticatedVenturesRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
@@ -583,11 +564,9 @@ export interface FileRouteTypes {
     | '/goals'
     | '/integrations'
     | '/knowledge'
-    | '/mission-control'
     | '/operator'
     | '/projects'
     | '/revenue'
-    | '/sam-control'
     | '/settings'
     | '/ventures'
     | '/api/generate-image'
@@ -642,11 +621,9 @@ export interface FileRouteTypes {
     | '/goals'
     | '/integrations'
     | '/knowledge'
-    | '/mission-control'
     | '/operator'
     | '/projects'
     | '/revenue'
-    | '/sam-control'
     | '/settings'
     | '/ventures'
     | '/api/generate-image'
@@ -702,11 +679,9 @@ export interface FileRouteTypes {
     | '/_authenticated/goals'
     | '/_authenticated/integrations'
     | '/_authenticated/knowledge'
-    | '/_authenticated/mission-control'
     | '/_authenticated/operator'
     | '/_authenticated/projects'
     | '/_authenticated/revenue'
-    | '/_authenticated/sam-control'
     | '/_authenticated/settings'
     | '/_authenticated/ventures'
     | '/api/generate-image'
@@ -831,13 +806,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/sam-control': {
-      id: '/_authenticated/sam-control'
-      path: '/sam-control'
-      fullPath: '/sam-control'
-      preLoaderRoute: typeof AuthenticatedSamControlRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/revenue': {
       id: '/_authenticated/revenue'
       path: '/revenue'
@@ -857,13 +825,6 @@ declare module '@tanstack/react-router' {
       path: '/operator'
       fullPath: '/operator'
       preLoaderRoute: typeof AuthenticatedOperatorRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/mission-control': {
-      id: '/_authenticated/mission-control'
-      path: '/mission-control'
-      fullPath: '/mission-control'
-      preLoaderRoute: typeof AuthenticatedMissionControlRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/knowledge': {
@@ -1322,11 +1283,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
-  AuthenticatedMissionControlRoute: typeof AuthenticatedMissionControlRoute
   AuthenticatedOperatorRoute: typeof AuthenticatedOperatorRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
-  AuthenticatedSamControlRoute: typeof AuthenticatedSamControlRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
@@ -1356,11 +1315,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
-  AuthenticatedMissionControlRoute: AuthenticatedMissionControlRoute,
   AuthenticatedOperatorRoute: AuthenticatedOperatorRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
-  AuthenticatedSamControlRoute: AuthenticatedSamControlRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
