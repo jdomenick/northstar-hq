@@ -20,6 +20,7 @@ import {
   Loader2,
   Rocket,
   DollarSign,
+  Gauge,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
