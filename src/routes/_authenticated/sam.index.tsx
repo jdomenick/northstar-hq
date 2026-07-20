@@ -248,7 +248,7 @@ function SamPage() {
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center justify-between gap-4">
               <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
-                SAM - Executive Intelligence - Read only
+                SAM - Executive Intelligence
               </div>
               <button
                 className="lg:hidden text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
@@ -491,9 +491,10 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
         What do you want to understand?
       </h2>
       <p className="mt-5 max-w-xl text-[14.5px] leading-[1.75] text-foreground/70">
-        SAM reads your organization&apos;s live record. Every answer cites the projects,
-        decisions, and commitments it relies on. SAM analyzes and advises;
-        it does not take actions on your behalf.
+        SAM reads your organization&apos;s live record. It executes work within
+        the authority you grant it, requests approval when required, and reports
+        blockers truthfully. Every answer cites the projects, decisions, and
+        commitments it relies on.
       </p>
       <div className="mt-10 border-t border-foreground/80">
         <div className="border-b border-foreground/10 py-3">
