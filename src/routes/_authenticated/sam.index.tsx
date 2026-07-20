@@ -603,6 +603,10 @@ function MessageView({ msg, index }: { msg: Msg; index: number }) {
         <SourcesDrawer citations={meta.citations!} hrefs={meta.hrefs ?? {}} />
       )}
 
+      {meta.action_receipt && (
+        <ActionReceiptCard receipt={meta.action_receipt as ActionReceipt} />
+      )}
+
       {meta.confidence?.reasons && meta.confidence.reasons.length > 0 && (
         <ConfidenceDrawer confidence={meta.confidence} />
       )}
