@@ -50,6 +50,7 @@ import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
 import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
+import { Route as AuthenticatedSamMissionsIdRouteImport } from './routes/_authenticated/sam.missions.$id'
 import { Route as AuthenticatedSamContentLibraryRouteImport } from './routes/_authenticated/sam.content.library'
 import { Route as AuthenticatedSamContentCalendarRouteImport } from './routes/_authenticated/sam.content.calendar'
 import { Route as AuthenticatedLabsVenturesIdRouteImport } from './routes/_authenticated/labs.ventures.$id'
@@ -287,6 +288,12 @@ const AuthenticatedSettingsIntegrationsConnectionIdRoute =
     path: '/$connectionId',
     getParentRoute: () => AuthenticatedSettingsIntegrationsRoute,
   } as any)
+const AuthenticatedSamMissionsIdRoute =
+  AuthenticatedSamMissionsIdRouteImport.update({
+    id: '/sam/missions/$id',
+    path: '/sam/missions/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSamContentLibraryRoute =
   AuthenticatedSamContentLibraryRouteImport.update({
     id: '/library',
@@ -424,6 +431,7 @@ export interface FileRoutesByFullPath {
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -481,6 +489,7 @@ export interface FileRoutesByTo {
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -540,6 +549,7 @@ export interface FileRoutesById {
   '/_authenticated/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/_authenticated/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/_authenticated/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/_authenticated/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
@@ -599,6 +609,7 @@ export interface FileRouteTypes {
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
+    | '/sam/missions/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -656,6 +667,7 @@ export interface FileRouteTypes {
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
+    | '/sam/missions/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -714,6 +726,7 @@ export interface FileRouteTypes {
     | '/_authenticated/labs/ventures/$id'
     | '/_authenticated/sam/content/calendar'
     | '/_authenticated/sam/content/library'
+    | '/_authenticated/sam/missions/$id'
     | '/_authenticated/settings/integrations/$connectionId'
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
@@ -1030,6 +1043,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIntegrationsConnectionIdRouteImport
       parentRoute: typeof AuthenticatedSettingsIntegrationsRoute
     }
+    '/_authenticated/sam/missions/$id': {
+      id: '/_authenticated/sam/missions/$id'
+      path: '/sam/missions/$id'
+      fullPath: '/sam/missions/$id'
+      preLoaderRoute: typeof AuthenticatedSamMissionsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sam/content/library': {
       id: '/_authenticated/sam/content/library'
       path: '/library'
@@ -1305,6 +1325,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsCommitmentsIdRoute: typeof AuthenticatedLabsCommitmentsIdRoute
+  AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1337,6 +1358,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsCommitmentsIdRoute: AuthenticatedLabsCommitmentsIdRoute,
+  AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
