@@ -4732,6 +4732,66 @@ export type Database = {
           },
         ]
       }
+      sam_directives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          organization_id: string
+          priority: number
+          scope: string
+          starts_at: string
+          status: string
+          text: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id: string
+          priority?: number
+          scope: string
+          starts_at?: string
+          status?: string
+          text: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id?: string
+          priority?: number
+          scope?: string
+          starts_at?: string
+          status?: string
+          text?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_directives_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_directives_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sam_executive_digests: {
         Row: {
           created_at: string
@@ -5536,6 +5596,180 @@ export type Database = {
             foreignKeyName: "sam_memory_versions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_mission_work_items: {
+        Row: {
+          artifact: Json
+          automation_job_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          mission_id: string
+          organization_id: string
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artifact?: Json
+          automation_job_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          mission_id: string
+          organization_id: string
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artifact?: Json
+          automation_job_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          mission_id?: string
+          organization_id?: string
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_mission_work_items_automation_job_id_fkey"
+            columns: ["automation_job_id"]
+            isOneToOne: false
+            referencedRelation: "automation_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_mission_work_items_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "sam_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_mission_work_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          organization_id: string
+          priority: number
+          source: string
+          source_ref: string | null
+          status: string
+          title: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          organization_id: string
+          priority?: number
+          source?: string
+          source_ref?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          organization_id?: string
+          priority?: number
+          source?: string
+          source_ref?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_missions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_missions_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_org_autonomy: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          organization_id: string
+          reason: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          organization_id: string
+          reason?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          organization_id?: string
+          reason?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_org_autonomy_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
