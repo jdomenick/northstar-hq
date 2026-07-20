@@ -20,13 +20,21 @@ export interface DetectedAction {
   reason: string;
 }
 
+// Order of evaluation matters: proof > emergency > pause/resume > directive > mission.
+// Directive covers both natural-language standing orders ("from now on ...")
+// AND the explicit founder command form ("set standing directive: ...").
 const RE_PROOF = /\b(run|start|kick off|execute)\b.*\b(proof|sam proof|proof mission)\b/i;
 const RE_PROOF2 = /\bsam[,:]?\s+prove\b/i;
 const RE_EMERGENCY = /\b(emergency\s*stop|kill\s*switch|halt everything|stop everything|shut sam down)\b/i;
 const RE_PAUSE = /\b(pause sam|pause yourself|pause automation|pause all sam)\b/i;
 const RE_RESUME = /\b(resume sam|resume yourself|unpause sam|resume automation|start sam back up)\b/i;
-const RE_DIRECTIVE = /^(sam[,:]?\s*)?(from now on|always|never|going forward|standing order|permanent(ly)?)\b/i;
-const RE_MISSION = /^(sam[,:]?\s*)?(focus on|make .* the priority|work on|prioritize|create (a )?mission|start (a )?mission|get me (customers|clients|leads)|land (our|the) first|our next mission is|new mission)/i;
+// Explicit founder-command form.
+const RE_DIRECTIVE_CMD = /^(sam[,:]?\s*)?(set|add|record|save|create|make)\s+(a\s+|an\s+|the\s+)?(new\s+|permanent\s+)?(standing\s+)?directive\b\s*[:\-\u2013]?\s*/i;
+// Bare label form: "directive: text"
+const RE_DIRECTIVE_LABEL = /^(sam[,:]?\s*)?directive\s*[:\-\u2013]\s*/i;
+// Natural-language standing-order form.
+const RE_DIRECTIVE_NL = /^(sam[,:]?\s*)?(from now on|always|never|going forward|standing order|permanent(ly)?)\b/i;
+const RE_MISSION = /^(sam[,:]?\s*)?(focus on|make .* the priority|work on|create (a )?mission|start (a )?mission|get me (customers|clients|leads)|land (our|the) first|our next mission is|new mission)/i;
 const RE_MISSION2 = /\b(get|land|acquire) .*(customers|clients|leads|deals|users)\b/i;
 
 function cleanTitle(s: string, kind: SamActionKind): string {
@@ -34,11 +42,15 @@ function cleanTitle(s: string, kind: SamActionKind): string {
   // strip common prefixes so the mission title reads naturally
   t = t.replace(/^(sam[,:]?\s*)/i, "");
   if (kind === "create_mission") {
-    t = t.replace(/^(focus on|work on|prioritize|create (a )?mission( to)?|start (a )?mission( to)?|new mission( to)?|our next mission is)\s*[:\-]?\s*/i, "");
+    t = t.replace(/^(focus on|work on|create (a )?mission( to)?|start (a )?mission( to)?|new mission( to)?|our next mission is)\s*[:\-]?\s*/i, "");
     t = t.replace(/^please\s+/i, "");
   }
   if (kind === "set_directive") {
-    t = t.replace(/^(from now on|always|never|going forward|standing order|permanent(ly)?)[,:\s]*/i, (m) => m);
+    // Strip the explicit command prefix so the stored directive is the actual
+    // rule, not the command envelope.
+    t = t.replace(RE_DIRECTIVE_CMD, "");
+    t = t.replace(RE_DIRECTIVE_LABEL, "");
+    // Keep natural-language prefixes; they read as part of the standing order.
   }
   return t.slice(0, 200);
 }
@@ -58,8 +70,13 @@ export function detectSamAction(message: string): DetectedAction {
   if (RE_RESUME.test(m)) {
     return { kind: "resume_sam", confidence: 0.9, title: null, reason: "matched resume phrase" };
   }
-  if (RE_DIRECTIVE.test(m)) {
-    return { kind: "set_directive", confidence: 0.75, title: cleanTitle(m, "set_directive"), reason: "matched directive phrase" };
+  if (RE_DIRECTIVE_CMD.test(m) || RE_DIRECTIVE_LABEL.test(m) || RE_DIRECTIVE_NL.test(m)) {
+    const title = cleanTitle(m, "set_directive");
+    // Reject a "set directive:" command with no body.
+    if (!title.trim()) {
+      return { kind: "none", confidence: 0, title: null, reason: "empty directive body" };
+    }
+    return { kind: "set_directive", confidence: 0.9, title, reason: "matched directive phrase" };
   }
   if (RE_MISSION.test(m) || RE_MISSION2.test(m)) {
     return { kind: "create_mission", confidence: 0.8, title: cleanTitle(m, "create_mission"), reason: "matched mission phrase" };

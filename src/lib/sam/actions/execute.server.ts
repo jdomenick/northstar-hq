@@ -10,7 +10,7 @@ import { detectSamAction, type DetectedAction } from "./detect";
 
 type SB = SupabaseClient<Database>;
 
-export type ActionStatus = "success" | "blocked" | "failed" | "ambiguous" | "none";
+export type ActionStatus = "success" | "queued" | "blocked" | "failed" | "ambiguous" | "none";
 
 export interface ActionReceipt {
   status: ActionStatus;
@@ -143,6 +143,41 @@ export async function executeSamAction(input: ExecuteInput): Promise<ActionRecei
       case "create_mission":
       case "run_proof_mission": {
         const isProof = detection.kind === "run_proof_mission";
+        // Idempotency for proof: reuse an active/recent proof mission for this
+        // org rather than spawning duplicates on repeated commands.
+        if (isProof) {
+          const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+          const { data: existing } = await input.supabase
+            .from("sam_missions" as never)
+            .select("id, status" as never)
+            .eq("organization_id", input.organizationId)
+            .eq("source", "proof")
+            .in("status", ["active", "draft"])
+            .gte("created_at", cutoff)
+            .order("created_at", { ascending: false })
+            .limit(1) as unknown as { data: Array<{ id: string; status: string }> | null };
+          if (existing && existing.length > 0) {
+            const priorMissionId = existing[0].id;
+            const { data: wi } = await input.supabase
+              .from("sam_mission_work_items" as never)
+              .select("id, automation_job_id" as never)
+              .eq("mission_id", priorMissionId)
+              .order("created_at", { ascending: true })
+              .limit(1) as unknown as { data: Array<{ id: string; automation_job_id: string | null }> | null };
+            const wiRow = wi?.[0];
+            return receipt({
+              status: "queued", kind: detection.kind,
+              ids: {
+                missionId: priorMissionId,
+                ...(wiRow?.id ? { workItemId: wiRow.id } : {}),
+                ...(wiRow?.automation_job_id ? { jobId: wiRow.automation_job_id } : {}),
+              },
+              hrefs: { mission: `/sam/missions/${priorMissionId}`, control: `/sam/control` },
+              explanation: "An active proof mission already exists for this organization. Reusing it instead of creating a duplicate.",
+              detection,
+            });
+          }
+        }
         const title = isProof
           ? "SAM Proof Mission"
           : (detection.title ?? "New mission").slice(0, 200);
@@ -217,13 +252,13 @@ export async function executeSamAction(input: ExecuteInput): Promise<ActionRecei
               .update({ status: "queued", automation_job_id: job.id } as never)
               .eq("id", workItemId);
             return receipt({
-              status: "success", kind: detection.kind,
+              status: "queued", kind: detection.kind,
               ids: { missionId, workItemId, jobId: job.id },
               hrefs: {
                 mission: `/sam/missions/${missionId}`,
                 control: `/sam/control`,
               },
-              explanation: "Proof mission created and queued. Watch the mission page as the worker transitions the job through queued to running to completed.",
+              explanation: "Proof mission queued. Watch the mission page as the worker transitions the job from queued to running to completed.",
               detection,
             });
           } catch (e) {
