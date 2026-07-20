@@ -356,7 +356,7 @@ function DecisionRow({
   return (
     <li className="group hover:bg-foreground/[0.02]">
       <Link
-        to="/decisions/$id"
+        to="/labs/decisions/$id"
         params={{ id: d.id }}
         className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-start gap-4 py-4 focus:outline-none focus-visible:bg-foreground/[0.04] md:grid-cols-[2.25rem_minmax(0,1fr)_11rem_auto] md:gap-6"
       >
@@ -479,7 +479,7 @@ function NewDecisionDialog({
       });
       toast.success("Decision recorded");
       onClose();
-      nav({ to: "/decisions/$id", params: { id: d.id } });
+      nav({ to: "/labs/decisions/$id", params: { id: d.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
     }

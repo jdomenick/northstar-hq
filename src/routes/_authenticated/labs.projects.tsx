@@ -353,7 +353,7 @@ function ProjectRow({
   return (
     <li className="group border-b border-foreground/10 last:border-b-0 hover:bg-foreground/[0.02]">
       <Link
-        to="/projects/$id"
+        to="/labs/projects/$id"
         params={{ id: p.id }}
         className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-4 focus:outline-none focus-visible:bg-foreground/[0.04] md:grid-cols-[minmax(0,1fr)_10rem_auto] md:gap-6"
       >
@@ -460,7 +460,7 @@ function NewProjectDialog({
       });
       toast.success("Project created");
       onClose();
-      navigate({ to: "/projects/$id", params: { id: p.id } });
+      navigate({ to: "/labs/projects/$id", params: { id: p.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not create project");
     }

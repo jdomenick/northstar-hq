@@ -85,7 +85,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "overdue-mine",
       text: `${myOverdue.length} overdue commitment${myOverdue.length === 1 ? "" : "s"} belong${myOverdue.length === 1 ? "s" : ""} to you.`,
-      link: { to: "/accountability" },
+      link: { to: "/labs/accountability" },
       weight: 100,
     });
   }
@@ -97,7 +97,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "due-soon",
       text: `${dueSoon.length} commitment${dueSoon.length === 1 ? "" : "s"} due within seven days.`,
-      link: { to: "/accountability" },
+      link: { to: "/labs/accountability" },
       weight: 60,
     });
   }
@@ -112,7 +112,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "repeated",
       text: `${repeated.length} commitment${repeated.length === 1 ? " has" : "s have"} been postponed multiple times.`,
-      link: { to: "/accountability" },
+      link: { to: "/labs/accountability" },
       weight: 80,
     });
   }
@@ -122,7 +122,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "decisions-waiting",
       text: `${decisionsWaiting.length} decision${decisionsWaiting.length === 1 ? " is" : "s are"} waiting for your response.`,
-      link: { to: "/decisions" },
+      link: { to: "/labs/decisions" },
       weight: 90,
     });
   }
@@ -138,7 +138,7 @@ export function buildAccountabilityStatements(input: {
         days === 0
           ? `"${d.title}" is scheduled for review today.`
           : `"${d.title}" was scheduled for review ${days} day${days === 1 ? "" : "s"} ago.`,
-      link: { to: "/decisions/$id", params: { id: d.id } },
+      link: { to: "/labs/decisions/$id", params: { id: d.id } },
       weight: 55,
     });
   });
@@ -149,7 +149,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: `stalled-${p.id}`,
       text: `"${p.name}" hasn't moved in ${days} days.`,
-      link: { to: "/projects/$id", params: { id: p.id } },
+      link: { to: "/labs/projects/$id", params: { id: p.id } },
       weight: 40,
     });
   });
@@ -162,7 +162,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "blocked-mine",
       text: `You own ${myBlocked.length} ${myBlocked.length === 1 ? "project" : "projects"} that ${myBlocked.length === 1 ? "is" : "are"} blocked or at risk.`,
-      link: { to: "/projects" },
+      link: { to: "/labs/projects" },
       weight: 70,
     });
   }
@@ -172,7 +172,7 @@ export function buildAccountabilityStatements(input: {
     out.push({
       id: "goals-at-risk",
       text: `${goalsAtRisk.length} goal${goalsAtRisk.length === 1 ? "" : "s"} at risk of missing target.`,
-      link: { to: "/goals" },
+      link: { to: "/labs/goals" },
       weight: 65,
     });
   }

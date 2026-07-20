@@ -92,7 +92,7 @@ function GoalCard({ g, venture }: { g: Goal; venture?: string }) {
   const pct = goalProgressPct(g);
   const risk = isGoalAtRisk(g);
   return (
-    <Link to="/goals/$id" params={{ id: g.id }} className="group relative overflow-hidden rounded-2xl bg-card/40 p-6 transition-all hover:-translate-y-0.5 hover:bg-card/70">
+    <Link to="/labs/goals/$id" params={{ id: g.id }} className="group relative overflow-hidden rounded-2xl bg-card/40 p-6 transition-all hover:-translate-y-0.5 hover:bg-card/70">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
@@ -146,7 +146,7 @@ function NewGoalDialog({ orgId, ventures, onClose }: { orgId: string | null; ven
       });
       toast.success("Goal created");
       onClose();
-      nav({ to: "/goals/$id", params: { id: g.id } });
+      nav({ to: "/labs/goals/$id", params: { id: g.id } });
     } catch (err) { toast.error(err instanceof Error ? err.message : "Failed"); }
   }
 

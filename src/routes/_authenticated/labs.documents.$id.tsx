@@ -89,7 +89,7 @@ function DocumentDetail() {
     <div>
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-4xl">
-          <Link to="/documents" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+          <Link to="/labs/documents" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-3.5 w-3.5" /> Documents
           </Link>
         </div>
@@ -151,7 +151,7 @@ function DocumentDetail() {
                 </Section>
                 {relatedKnowledge && (
                   <Section title="Related knowledge">
-                    <Link to="/knowledge/$id" params={{ id: relatedKnowledge.id }} className="text-[14px] hover:underline">{relatedKnowledge.title}</Link>
+                    <Link to="/labs/knowledge/$id" params={{ id: relatedKnowledge.id }} className="text-[14px] hover:underline">{relatedKnowledge.title}</Link>
                   </Section>
                 )}
               </>

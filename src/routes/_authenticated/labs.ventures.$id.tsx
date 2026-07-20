@@ -78,7 +78,7 @@ function VentureDetail() {
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
           <Link
-            to="/ventures"
+            to="/labs/ventures"
             className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Ventures
@@ -159,19 +159,19 @@ function VentureDetail() {
               </TabsContent>
 
               <TabsContent value="projects">
-                <SimpleList items={projects.map((p) => ({ id: p.id, title: p.name, sub: p.status.replaceAll("_", " "), to: "/projects/$id" as const }))} empty="No projects yet." />
+                <SimpleList items={projects.map((p) => ({ id: p.id, title: p.name, sub: p.status.replaceAll("_", " "), to: "/labs/projects/$id" as const }))} empty="No projects yet." />
               </TabsContent>
               <TabsContent value="goals">
                 <SimpleList items={goals.map((g) => {
                   const pct = goalProgressPct(g);
-                  return { id: g.id, title: g.title, sub: `${g.status.replaceAll("_"," ")}${pct != null ? ` · ${pct}%` : ""}`, to: "/goals/$id" as const };
+                  return { id: g.id, title: g.title, sub: `${g.status.replaceAll("_"," ")}${pct != null ? ` · ${pct}%` : ""}`, to: "/labs/goals/$id" as const };
                 })} empty="No goals yet." />
               </TabsContent>
               <TabsContent value="decisions">
-                <SimpleList items={decisions.map((d) => ({ id: d.id, title: d.title, sub: d.status.replaceAll("_"," "), to: "/decisions/$id" as const }))} empty="No decisions yet." />
+                <SimpleList items={decisions.map((d) => ({ id: d.id, title: d.title, sub: d.status.replaceAll("_"," "), to: "/labs/decisions/$id" as const }))} empty="No decisions yet." />
               </TabsContent>
               <TabsContent value="commitments">
-                <SimpleList items={commitments.map((c) => ({ id: c.id, title: c.title, sub: (isCommitmentOverdue(c) ? "Overdue" : c.status.replaceAll("_"," ")) + (c.due_date ? ` · due ${c.due_date}` : ""), to: "/commitments/$id" as const }))} empty="No commitments yet." />
+                <SimpleList items={commitments.map((c) => ({ id: c.id, title: c.title, sub: (isCommitmentOverdue(c) ? "Overdue" : c.status.replaceAll("_"," ")) + (c.due_date ? ` · due ${c.due_date}` : ""), to: "/labs/commitments/$id" as const }))} empty="No commitments yet." />
               </TabsContent>
               <TabsContent value="knowledge" className="space-y-4">
                 {canWrite && (
@@ -185,7 +185,7 @@ function VentureDetail() {
                   <ul className="divide-y divide-border/60">
                     {knowledge.map((k) => (
                       <li key={k.id} className="py-4">
-                        <Link to="/knowledge/$id" params={{ id: k.id }} className="text-[14px] hover:underline">{k.title}</Link>
+                        <Link to="/labs/knowledge/$id" params={{ id: k.id }} className="text-[14px] hover:underline">{k.title}</Link>
                         <div className="text-[11.5px] text-muted-foreground">
                           {TYPE_LABEL[k.knowledge_type]} · {VERIFY_LABEL[k.verification_status]}
                           {(k.tags ?? []).length ? " · " + (k.tags ?? []).map((t) => `#${t}`).join(" ") : ""}
@@ -208,7 +208,7 @@ function VentureDetail() {
                   <ul className="divide-y divide-border/60">
                     {docs.map((d) => (
                       <li key={d.id} className="py-4">
-                        <Link to="/documents/$id" params={{ id: d.id }} className="text-[14px] hover:underline">{d.title}</Link>
+                        <Link to="/labs/documents/$id" params={{ id: d.id }} className="text-[14px] hover:underline">{d.title}</Link>
                         <div className="text-[11.5px] text-muted-foreground">
                           {d.file_name} · {formatFileSize(d.file_size)} · {DOC_STATUS_LABEL[d.processing_status]} · {d.created_at.slice(0,10)}
                         </div>

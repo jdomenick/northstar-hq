@@ -376,7 +376,7 @@ function CommitmentRow({
   return (
     <li className="group hover:bg-foreground/[0.02]">
       <Link
-        to="/commitments/$id"
+        to="/labs/commitments/$id"
         params={{ id: c.id }}
         className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-start gap-4 py-4 focus:outline-none focus-visible:bg-foreground/[0.04] md:grid-cols-[2.25rem_minmax(0,1fr)_11rem_auto] md:gap-6"
       >
@@ -497,7 +497,7 @@ function NewCommitmentDialog({
       });
       toast.success("Commitment recorded");
       onClose();
-      nav({ to: "/commitments/$id", params: { id: c.id } });
+      nav({ to: "/labs/commitments/$id", params: { id: c.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
     }

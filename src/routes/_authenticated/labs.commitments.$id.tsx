@@ -105,7 +105,7 @@ function CommitmentDetail() {
     try {
       await archive.mutateAsync(c!.id);
       toast.success("Archived");
-      nav({ to: "/accountability" });
+      nav({ to: "/labs/accountability" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
     }
@@ -158,7 +158,7 @@ function CommitmentDetail() {
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
           <Link
-            to="/accountability"
+            to="/labs/accountability"
             className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Accountability
@@ -355,7 +355,7 @@ function CommitmentDetail() {
                   label: "Project",
                   value: (
                     <Link
-                      to="/projects/$id"
+                      to="/labs/projects/$id"
                       params={{ id: project.id }}
                       className="underline-offset-4 hover:underline"
                     >

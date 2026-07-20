@@ -244,7 +244,7 @@ function Command() {
             {waiting.slice(0, 4).map((d) => (
               <ColumnRow
                 key={d.id}
-                to="/decisions/$id"
+                to="/labs/decisions/$id"
                 id={d.id}
                 title={d.title}
                 meta={d.status.replaceAll("_", " ")}
@@ -263,7 +263,7 @@ function Command() {
               return (
                 <ColumnRow
                   key={c.id}
-                  to="/commitments/$id"
+                  to="/labs/commitments/$id"
                   id={c.id}
                   title={c.title}
                   meta={`${overdue ? "Overdue" : "Due"} ${c.due_date ?? ""}`}
@@ -282,7 +282,7 @@ function Command() {
             {goalsAtRisk.slice(0, 4).map((g) => (
               <ColumnRow
                 key={g.id}
-                to="/goals/$id"
+                to="/labs/goals/$id"
                 id={g.id}
                 title={g.title}
                 meta={`Target ${g.target_date ?? "unset"}`}
@@ -299,7 +299,7 @@ function Command() {
             {atRisk.slice(0, 4).map((p) => (
               <div key={p.id}>
                 <ColumnRow
-                  to="/projects/$id"
+                  to="/labs/projects/$id"
                   id={p.id}
                   title={p.name}
                   meta={`${p.status.replaceAll("_", " ")}${p.deadline ? ` , due ${p.deadline}` : ""}`}
@@ -399,7 +399,7 @@ function ColumnRow({
   meta,
   emphasis = "muted",
 }: {
-  to: "/decisions/$id" | "/commitments/$id" | "/goals/$id" | "/projects/$id";
+  to: "/labs/decisions/$id" | "/commitments/$id" | "/goals/$id" | "/projects/$id";
   id: string;
   title: string;
   meta: string;

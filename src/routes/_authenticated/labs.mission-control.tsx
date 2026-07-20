@@ -98,7 +98,7 @@ function MissionControl() {
                 { label: "Goals at risk", value: goalsAtRisk.length, tone: goalsAtRisk.length > 0 ? "warn" : undefined },
               ]}
               detail={(insights.data ?? []).find((i) => i.severity === "opportunity")?.title ?? "No fresh opportunities flagged."}
-              link={{ to: "/ventures", label: "Ventures" }}
+              link={{ to: "/labs/ventures", label: "Ventures" }}
             />
             <ExecCard title="COO" subtitle="Delivery & operations" icon={Building2}
               stats={[
@@ -107,7 +107,7 @@ function MissionControl() {
                 { label: "Overdue commitments", value: overdueCommitments.length, tone: overdueCommitments.length > 0 ? "warn" : undefined },
               ]}
               detail={atRiskProjects[0] ? `Top risk: ${atRiskProjects[0].name}` : "Delivery is clean this week."}
-              link={{ to: "/projects", label: "Projects" }}
+              link={{ to: "/labs/projects", label: "Projects" }}
             />
             <ExecCard title="CRO" subtitle="Revenue & pipeline" icon={DollarSign}
               stats={[
@@ -118,7 +118,7 @@ function MissionControl() {
               detail={rev.mrrCents === 0 && rev.pipelineValueCents === 0
                 ? "No revenue data yet. Add clients and deals to activate this module."
                 : `${rev.openProposals} open proposals worth ${formatMoney(rev.proposalValueCents, { compact: true })}.`}
-              link={{ to: "/revenue", label: "Revenue" }}
+              link={{ to: "/labs/revenue", label: "Revenue" }}
             />
             <ExecCard title="CMO" subtitle="Content & audience" icon={Sparkles}
               stats={[
@@ -127,7 +127,7 @@ function MissionControl() {
                 { label: "Autonomy", value: "Approval-required" },
               ]}
               detail="Content Operations engine wired. Connect social accounts under Integrations to publish live."
-              link={{ to: "/integrations", label: "Integrations" }}
+              link={{ to: "/sam/integrations", label: "Integrations" }}
             />
             <ExecCard title="CTO" subtitle="Systems & automation" icon={GitBranch}
               stats={[
@@ -136,7 +136,7 @@ function MissionControl() {
                 { label: "SAM MCP", value: "Ready" },
               ]}
               detail="Scheduler on 1-minute tick. SAM MCP client vertical slice deployed."
-              link={{ to: "/integrations", label: "Integrations" }}
+              link={{ to: "/sam/integrations", label: "Integrations" }}
             />
             <ExecCard title="CFO" subtitle="Cash & runway" icon={ShieldCheck}
               stats={[
@@ -147,7 +147,7 @@ function MissionControl() {
               detail={cash.data && cash.data.length === 0
                 ? "No cashflow entries yet. Add inflows and outflows in Revenue."
                 : `${cash.data?.length ?? 0} entries in the last 90 days.`}
-              link={{ to: "/revenue", label: "Revenue" }}
+              link={{ to: "/labs/revenue", label: "Revenue" }}
             />
           </div>
         </section>
@@ -210,7 +210,7 @@ function ExecCard({
   icon: typeof Rocket;
   stats: { label: string; value: string | number; tone?: "warn" }[];
   detail: string;
-  link: { to: "/ventures" | "/projects" | "/revenue" | "/integrations"; label: string };
+  link: { to: "/labs/ventures" | "/projects" | "/revenue" | "/integrations"; label: string };
 }) {
   return (
     <div className="flex flex-col rounded-md border border-border bg-card shadow-[0_16px_42px_-38px_oklch(0.22_0.02_255/0.55)]">

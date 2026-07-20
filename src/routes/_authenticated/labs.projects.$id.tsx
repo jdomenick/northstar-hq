@@ -99,7 +99,7 @@ function ProjectDetail() {
     try {
       await archive.mutateAsync(p!.id);
       toast.success("Project archived");
-      navigate({ to: "/projects" });
+      navigate({ to: "/labs/projects" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Archive failed");
     }
@@ -110,7 +110,7 @@ function ProjectDetail() {
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
           <Link
-            to="/projects"
+            to="/labs/projects"
             className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Projects
@@ -229,7 +229,7 @@ function ProjectDetail() {
             <RelatedSimple
               empty="No decisions linked to this project yet."
               items={(decisionsQ.data ?? []).filter((d) => d.project_id === p.id).map((d) => ({
-                id: d.id, title: d.title, sub: d.status.replaceAll("_", " "), to: "/decisions/$id" as const,
+                id: d.id, title: d.title, sub: d.status.replaceAll("_", " "), to: "/labs/decisions/$id" as const,
               }))}
             />
           </TabsContent>
@@ -240,7 +240,7 @@ function ProjectDetail() {
               items={(commitmentsQ.data ?? []).filter((c) => c.project_id === p.id).map((c) => ({
                 id: c.id, title: c.title,
                 sub: (isCommitmentOverdue(c) ? "Overdue" : c.status.replaceAll("_", " ")) + (c.due_date ? ` · due ${c.due_date}` : ""),
-                to: "/commitments/$id" as const,
+                to: "/labs/commitments/$id" as const,
               }))}
             />
           </TabsContent>
@@ -263,7 +263,7 @@ function ProjectDetail() {
                 </select>
               </label>
               {p.goal_id && (
-                <Link to="/goals/$id" params={{ id: p.goal_id }} className="text-[13.5px] text-foreground hover:underline">
+                <Link to="/labs/goals/$id" params={{ id: p.goal_id }} className="text-[13.5px] text-foreground hover:underline">
                   Open linked goal →
                 </Link>
               )}

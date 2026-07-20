@@ -124,7 +124,7 @@ function CalendarPage() {
             emergencyPause={q.data.emergencyPause}
             publishingEnabled={q.data.publishingEnabled}
             items={q.data.items}
-            onItemClick={(id) => nav({ to: "/content-ops/editor/$id", params: { id } })}
+            onItemClick={(id) => nav({ to: "/sam/content/editor/$id", params: { id } })}
           />
         ) : null}
       </PageBody>

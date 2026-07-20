@@ -93,7 +93,7 @@ function VenturesIndex() {
                 eyebrow={<span className="text-foreground/55">Venture</span>}
                 title={
                   <Link
-                    to="/ventures/$id"
+                    to="/labs/ventures/$id"
                     params={{ id: v.id }}
                     className="font-display text-[22px] leading-[1.15] text-foreground hover:italic md:text-[26px]"
                   >
@@ -144,7 +144,7 @@ function NewVentureModal({
       });
       toast.success("Venture created");
       onClose();
-      navigate({ to: "/ventures/$id", params: { id: v.id } });
+      navigate({ to: "/labs/ventures/$id", params: { id: v.id } });
     } catch (err: any) {
       toast.error(err.message ?? "Could not create venture");
     }

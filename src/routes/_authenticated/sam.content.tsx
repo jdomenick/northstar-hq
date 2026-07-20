@@ -216,7 +216,7 @@ function ContentOpsWorkspace() {
                   status={<StatusLine tone="attention">{it.platform}</StatusLine>}
                   title={
                     <Link
-                      to="/content-ops/editor/$id"
+                      to="/sam/content/editor/$id"
                       params={{ id: it.parent_content_item_id ?? it.id }}
                       className="underline-offset-4 hover:underline"
                     >
@@ -244,7 +244,7 @@ function ContentOpsWorkspace() {
                   status={<StatusLine tone="neutral">{it.platform}</StatusLine>}
                   title={
                     <Link
-                      to="/content-ops/editor/$id"
+                      to="/sam/content/editor/$id"
                       params={{ id: it.parent_content_item_id ?? it.id }}
                       className="underline-offset-4 hover:underline"
                     >

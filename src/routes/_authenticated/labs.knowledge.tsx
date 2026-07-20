@@ -219,7 +219,7 @@ function KnowledgeRow({ r, venture }: { r: KnowledgeRecord; venture?: string }) 
   const archived = !!r.deleted_at;
   return (
     <Link
-      to="/knowledge/$id"
+      to="/labs/knowledge/$id"
       params={{ id: r.id }}
       className="group flex items-start gap-6 rounded-xl px-4 py-6 border-b border-border/60 last:border-0 hover:bg-secondary/30"
     >
@@ -297,7 +297,7 @@ function NewKnowledgeDialog({ orgId, ventures, onClose, defaultVentureId }: { or
       });
       toast.success("Knowledge created");
       onClose();
-      nav({ to: "/knowledge/$id", params: { id: r.id } });
+      nav({ to: "/labs/knowledge/$id", params: { id: r.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
     }

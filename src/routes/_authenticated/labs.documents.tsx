@@ -135,7 +135,7 @@ function DocumentsIndex() {
 function DocumentRowUI({ d, venture }: { d: DocumentRow; venture?: string }) {
   const archived = !!d.deleted_at;
   return (
-    <Link to="/documents/$id" params={{ id: d.id }} className="group flex items-start gap-6 rounded-xl px-4 py-6 border-b border-border/60 last:border-0 hover:bg-secondary/30">
+    <Link to="/labs/documents/$id" params={{ id: d.id }} className="group flex items-start gap-6 rounded-xl px-4 py-6 border-b border-border/60 last:border-0 hover:bg-secondary/30">
       <div className="min-w-0 flex-1">
         <div className="text-[10.5px] uppercase tracking-[0.22em] text-muted-foreground/80">
           {venture ?? "Organization"} · {STATUS_LABEL[d.processing_status]}{archived && " · Archived"}
@@ -187,7 +187,7 @@ export function UploadDialog({ orgId, ventures, onClose, defaultVentureId, defau
       });
       toast.success("Uploaded");
       onClose();
-      nav({ to: "/documents/$id", params: { id: d.id } });
+      nav({ to: "/labs/documents/$id", params: { id: d.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     }

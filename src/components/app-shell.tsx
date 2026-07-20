@@ -63,35 +63,35 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Today",
     items: [
-      { to: "/mission-control", label: "Mission Control", icon: Rocket },
+      { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
       { to: "/", label: "The Brief", icon: CommandIcon, exact: true },
-      { to: "/sam", label: "Ask SAM", icon: Sparkles },
-      { to: "/sam-control", label: "SAM Control", icon: Gauge },
+      { to: "/sam/", label: "Ask SAM", icon: Sparkles },
+      { to: "/sam/control", label: "SAM Control", icon: Gauge },
     ],
   },
   {
     heading: "Operate",
     items: [
-      { to: "/revenue", label: "Revenue", icon: DollarSign },
-      { to: "/ventures", label: "Ventures", icon: Building2 },
-      { to: "/projects", label: "Projects", icon: FolderKanban },
-      { to: "/accountability", label: "Accountability", icon: ShieldCheck },
+      { to: "/labs/revenue", label: "Revenue", icon: DollarSign },
+      { to: "/labs/ventures", label: "Ventures", icon: Building2 },
+      { to: "/labs/projects", label: "Projects", icon: FolderKanban },
+      { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
     ],
   },
   {
     heading: "Think",
     items: [
-      { to: "/decisions", label: "Decisions", icon: GitBranch },
-      { to: "/goals", label: "Goals", icon: Target },
-      { to: "/knowledge", label: "Knowledge", icon: BookOpen },
-      { to: "/documents", label: "Documents", icon: FileText },
+      { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
+      { to: "/labs/goals", label: "Goals", icon: Target },
+      { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
+      { to: "/labs/documents", label: "Documents", icon: FileText },
     ],
   },
   {
     heading: "System",
     items: [
       { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
-      { to: "/integrations", label: "Integrations", icon: Plug },
+      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
@@ -316,7 +316,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
 
           <Link
-            to="/mission-control"
+            to="/labs/mission-control"
             aria-label="NorthStar Labs Mission Control"
             className="flex min-w-0 items-center gap-2 md:hidden"
           >
@@ -431,25 +431,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {canWrite && (
             <CommandGroup heading="Create">
-              <CommandItem value="create-venture" onSelect={() => goto({ to: "/ventures" })}>
+              <CommandItem value="create-venture" onSelect={() => goto({ to: "/labs/ventures" })}>
                 <Building2 className="mr-2 h-4 w-4" /> New venture
               </CommandItem>
-              <CommandItem value="create-project" onSelect={() => goto({ to: "/projects" })}>
+              <CommandItem value="create-project" onSelect={() => goto({ to: "/labs/projects" })}>
                 <FolderKanban className="mr-2 h-4 w-4" /> New project
               </CommandItem>
-              <CommandItem value="create-goal" onSelect={() => goto({ to: "/goals" })}>
+              <CommandItem value="create-goal" onSelect={() => goto({ to: "/labs/goals" })}>
                 <Target className="mr-2 h-4 w-4" /> New goal
               </CommandItem>
-              <CommandItem value="create-decision" onSelect={() => goto({ to: "/decisions" })}>
+              <CommandItem value="create-decision" onSelect={() => goto({ to: "/labs/decisions" })}>
                 <GitBranch className="mr-2 h-4 w-4" /> New decision
               </CommandItem>
-              <CommandItem value="create-commitment" onSelect={() => goto({ to: "/accountability" })}>
+              <CommandItem value="create-commitment" onSelect={() => goto({ to: "/labs/accountability" })}>
                 <ClipboardList className="mr-2 h-4 w-4" /> New commitment
               </CommandItem>
-              <CommandItem value="create-knowledge" onSelect={() => goto({ to: "/knowledge" })}>
+              <CommandItem value="create-knowledge" onSelect={() => goto({ to: "/labs/knowledge" })}>
                 <BookOpen className="mr-2 h-4 w-4" /> New knowledge record
               </CommandItem>
-              <CommandItem value="upload-document" onSelect={() => goto({ to: "/documents" })}>
+              <CommandItem value="upload-document" onSelect={() => goto({ to: "/labs/documents" })}>
                 <FileText className="mr-2 h-4 w-4" /> Upload document
               </CommandItem>
             </CommandGroup>
