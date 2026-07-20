@@ -16,7 +16,7 @@ import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
 import { createSignedDocumentUrl, formatFileSize } from "@/lib/storage";
-import { DOC_STATUS_LABEL } from "./documents";
+import { DOC_STATUS_LABEL } from "./labs.documents";
 
 export const Route = createFileRoute("/_authenticated/labs/documents/$id")({
   component: DocumentDetail,

@@ -184,7 +184,7 @@ function Command() {
                 {priorityItems.map((it, i) => (
                   <li key={`${it.kind}-${it.id}`}>
                     <Link
-                      to={it.kind === "decision" ? "/decisions/$id" : it.kind === "commitment" ? "/commitments/$id" : "/projects/$id"}
+                      to={it.kind === "decision" ? "/labs/decisions/$id" : it.kind === "commitment" ? "/labs/commitments/$id" : "/labs/projects/$id"}
                       params={{ id: it.id }}
                       className="group grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-5 md:grid-cols-[3rem_minmax(0,1fr)_auto] md:gap-6"
                     >
@@ -292,7 +292,7 @@ function Command() {
 
           <Column
             title="Projects at risk"
-            allHref="/projects"
+            allHref="/labs/projects"
             allLabel="All projects"
             empty="Everything is on track."
           >
@@ -368,7 +368,7 @@ function Column({
   children,
 }: {
   title: string;
-  allHref: "/decisions" | "/accountability" | "/goals" | "/projects";
+  allHref: "/decisions" | "/accountability" | "/goals" | "/labs/projects";
   allLabel: string;
   empty: string;
   children: React.ReactNode;
@@ -399,7 +399,7 @@ function ColumnRow({
   meta,
   emphasis = "muted",
 }: {
-  to: "/labs/decisions/$id" | "/commitments/$id" | "/goals/$id" | "/projects/$id";
+  to: "/labs/decisions/$id" | "/labs/commitments/$id" | "/labs/goals/$id" | "/labs/projects/$id";
   id: string;
   title: string;
   meta: string;

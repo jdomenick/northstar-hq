@@ -621,7 +621,7 @@ function TaskList({
     </div>
   );
 }
-type RelatedTo = "/decisions/$id" | "/commitments/$id" | "/goals/$id";
+type RelatedTo = "/labs/decisions/$id" | "/labs/commitments/$id" | "/labs/goals/$id";
 function RelatedSimple({ items, empty }: { items: { id: string; title: string; sub: string; to: RelatedTo }[]; empty: string }) {
   if (items.length === 0) return <p className="text-[13.5px] text-muted-foreground">{empty}</p>;
   return (

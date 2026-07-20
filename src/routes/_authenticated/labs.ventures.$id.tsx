@@ -24,8 +24,8 @@ import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
 import { formatFileSize } from "@/lib/storage";
-import { NewKnowledgeDialog, TYPE_LABEL, VERIFY_LABEL } from "./knowledge";
-import { UploadDialog, DOC_STATUS_LABEL } from "./documents";
+import { NewKnowledgeDialog, TYPE_LABEL, VERIFY_LABEL } from "./labs.knowledge";
+import { UploadDialog, DOC_STATUS_LABEL } from "./labs.documents";
 import {
   goalProgressPct,
   isCommitmentOverdue,
@@ -246,7 +246,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-type LinkTo = "/projects/$id" | "/goals/$id" | "/decisions/$id" | "/commitments/$id";
+type LinkTo = "/labs/projects/$id" | "/labs/goals/$id" | "/labs/decisions/$id" | "/labs/commitments/$id";
 function SimpleList({ items, empty }: { items: { id: string; title: string; sub: string; to: LinkTo }[]; empty: string }) {
   if (items.length === 0) return <p className="text-[13.5px] text-muted-foreground">{empty}</p>;
   return (

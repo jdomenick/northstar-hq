@@ -19,7 +19,7 @@ import {
 import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
-import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./knowledge";
+import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./labs.knowledge";
 
 export const Route = createFileRoute("/_authenticated/labs/knowledge/$id")({
   component: KnowledgeDetail,
