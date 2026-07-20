@@ -191,6 +191,29 @@ export const askSam = createServerFn({ method: "POST" })
       truncations: result.context.truncations,
     }));
 
+    // 7b. Action routing: attempt to execute an operational intent BEFORE
+    // we persist the assistant message so its receipt goes into metadata.
+    // Detection is a deterministic heuristic; execution enforces autonomy,
+    // membership, and role gates and always returns a structured receipt.
+    let actionReceipt: unknown = null;
+    try {
+      const { executeSamAction } = await import("./actions/execute.server");
+      const rec = await executeSamAction({
+        supabase,
+        organizationId: data.organizationId,
+        userId,
+        ventureId: data.ventureId ?? null,
+        message: data.message,
+        conversationId: conversationId!,
+      });
+      if (rec.status !== "none") actionReceipt = rec;
+    } catch {
+      // Action failures never block the conversational answer.
+    }
+    if (actionReceipt) {
+      (metadata as Record<string, unknown>).action_receipt = actionReceipt;
+    }
+
     const { data: samMsg, error: samMsgErr } = await supabase
       .from("conversation_messages")
       .insert({
