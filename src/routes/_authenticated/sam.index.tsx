@@ -396,9 +396,6 @@ function SamPage() {
         />
       </div>
 
-      {sidebarOpen && (
-        <></>
-      )}
       <DirectivesDrawer
         open={directivesOpen}
         onClose={() => setDirectivesOpen(false)}
