@@ -1,8 +1,7 @@
-// Editorial page primitives for the Paper & Ink experience system.
-// Every signed-in route composes with PageHeader / PageBody / Section
-// so a change here cascades through the whole product. Preserve the
-// component API (eyebrow / title / description / actions on PageHeader,
-// title / hint / action on Section) so existing routes keep working.
+// Command-console page primitives. Every signed-in route composes with
+// PageHeader / PageBody / Section, so a change here cascades product-wide.
+// Preserve the component API (eyebrow / title / description / actions on
+// PageHeader, title / hint / action on Section) so existing routes keep working.
 
 import type { ReactNode } from "react";
 
@@ -18,20 +17,21 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="animate-in fade-in duration-500 border-b border-foreground/15 px-6 pt-10 md:px-14 md:pt-14">
-      <div className="mx-auto max-w-6xl">
-        {eyebrow && (
-          <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
-            {eyebrow}
-          </div>
-        )}
-        <div className="mt-5 flex flex-col gap-8 border-t border-foreground/80 pt-4 md:flex-row md:items-end md:justify-between md:gap-10">
+    <header className="animate-in fade-in duration-300 border-b border-border/60 bg-gradient-to-b from-card/30 to-transparent px-4 pt-6 md:px-10 md:pt-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="min-w-0">
-            <h1 className="font-display text-[40px] leading-[0.98] tracking-tight text-foreground md:text-[64px]">
+            {eyebrow && (
+              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                <span className="h-1 w-1 rounded-full bg-primary shadow-[0_0_6px_var(--color-primary)]" />
+                <span className="truncate">{eyebrow}</span>
+              </div>
+            )}
+            <h1 className="mt-2 font-display text-[26px] leading-[1.05] tracking-tight text-foreground md:text-[32px]">
               {title}
             </h1>
             {description && (
-              <p className="mt-5 max-w-2xl text-[14.5px] leading-[1.75] text-foreground/70">
+              <p className="mt-2 max-w-2xl text-[13px] leading-[1.6] text-muted-foreground">
                 {description}
               </p>
             )}
@@ -42,7 +42,7 @@ export function PageHeader({
             </div>
           )}
         </div>
-        <div className="pb-8" />
+        <div className="pb-5" />
       </div>
     </header>
   );
@@ -50,14 +50,14 @@ export function PageHeader({
 
 export function PageBody({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto max-w-6xl px-6 pb-24 pt-10 md:px-14 md:pt-14 animate-in fade-in duration-500">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 md:px-10 md:pt-8 animate-in fade-in duration-300">
       {children}
     </div>
   );
 }
 
-// Section: heavy hairline masthead under the label, italic hint,
-// right-aligned ledger action. Consistent across every screen.
+// Section: thin uppercase label with signal dot, subtle hint, right-aligned
+// action. Consistent across every screen.
 export function Section({
   title,
   hint,
@@ -70,17 +70,30 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="mb-14">
-      <div className="flex items-baseline justify-between gap-4 border-b border-foreground/80 pb-2">
-        <h2 className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-foreground/75">
-          {title}
-        </h2>
-        {action && <div className="shrink-0 text-[11px] uppercase tracking-[0.2em] text-foreground/55">{action}</div>}
+    <section className="mb-10">
+      <div className="flex items-baseline justify-between gap-4 border-b border-border/50 pb-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="h-1 w-1 shrink-0 rounded-full bg-primary/80" />
+          <h2 className="truncate text-[10.5px] font-medium uppercase tracking-[0.22em] text-foreground/80">
+            {title}
+          </h2>
+          {hint && (
+            <span className="hidden truncate text-[11.5px] text-muted-foreground md:inline">
+              <span className="mx-2 text-muted-foreground/40">·</span>
+              {hint}
+            </span>
+          )}
+        </div>
+        {action && (
+          <div className="shrink-0 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            {action}
+          </div>
+        )}
       </div>
       {hint && (
-        <p className="mt-3 text-[12.5px] italic text-foreground/60">{hint}</p>
+        <p className="mt-2 text-[12px] text-muted-foreground md:hidden">{hint}</p>
       )}
-      <div className="mt-6">{children}</div>
+      <div className="mt-5">{children}</div>
     </section>
   );
 }
