@@ -184,7 +184,7 @@ export async function mcpInitialize(ctx: SamMcpCallContext) {
     {
       protocolVersion: SAM_MCP_PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: "northstar", version: "0.1.0" },
+      clientInfo: { name: "northstar-labs", version: "0.1.0" },
     },
     ctx,
   );
