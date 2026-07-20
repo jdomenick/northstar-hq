@@ -305,7 +305,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:px-8">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-background/75 px-4 backdrop-blur-xl md:px-8">
           <button
             className="md:hidden -ml-1 rounded-md p-2 text-muted-foreground hover:bg-accent"
             onClick={() => setMobileOpen(true)}
@@ -316,13 +316,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <button
             onClick={() => setCmdOpen(true)}
-            className="group flex h-10 w-full max-w-xl items-center gap-3 rounded-full border border-border/70 bg-card/60 px-4 text-left text-[13px] text-muted-foreground shadow-[0_1px_0_oklch(0.14_0_0/0.03)] transition hover:border-foreground/25 hover:bg-card"
+            className="group flex h-9 w-full max-w-xl items-center gap-2.5 rounded-md border border-border/60 bg-card/50 px-3 text-left text-[12.5px] text-muted-foreground transition hover:border-primary/40 hover:bg-card hover:text-foreground/80"
           >
-            <Search className="h-3.5 w-3.5 text-foreground/60" strokeWidth={2} />
+            <Search className="h-3.5 w-3.5" strokeWidth={2} />
             <span className="flex-1 truncate">
-              Ask SAM, or find anything across the operation
+              Ask SAM or jump to anything
             </span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/70 bg-background px-1.5 font-mono text-[10px] text-muted-foreground/80">
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/60 bg-background/60 px-1.5 font-mono text-[10px] text-muted-foreground/80">
               ⌘K
             </kbd>
           </button>
