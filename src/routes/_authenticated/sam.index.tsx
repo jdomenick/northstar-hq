@@ -64,6 +64,7 @@ type SamMessageMetadata = {
     relevance: string | null;
   }>;
   hrefs?: Record<string, string | null>;
+  action_receipt?: ActionReceipt;
   response?: {
     executive_summary: string | null;
     observations: string[];
