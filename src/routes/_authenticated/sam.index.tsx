@@ -397,6 +397,14 @@ function SamPage() {
       </div>
 
       {sidebarOpen && (
+        <></>
+      )}
+      <DirectivesDrawer
+        open={directivesOpen}
+        onClose={() => setDirectivesOpen(false)}
+        organizationId={activeOrgId}
+      />
+      {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
             className="absolute inset-0 bg-foreground/40"
