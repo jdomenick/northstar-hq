@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
 
 export type MissionRow = {
   id: string; title: string;
@@ -17,7 +18,7 @@ export type WorkItemRow = {
   title: string; description: string | null;
   status: "pending" | "queued" | "running" | "blocked" | "completed" | "failed" | "cancelled";
   automation_job_id: string | null;
-  artifact: Record<string, unknown>;
+  artifact: Json;
   error_code: string | null; error_message: string | null;
   started_at: string | null; completed_at: string | null;
   created_at: string; updated_at: string;
@@ -26,12 +27,12 @@ export type JobRow = {
   id: string; job_type: string; status: string;
   error_code: string | null;
   started_at: string | null; completed_at: string | null;
-  output_summary: Record<string, unknown>;
+  output_summary: Json;
   attempt_number: number;
 };
 export type ActivityRow = {
   id: string; action: string; summary: string | null;
-  metadata: Record<string, unknown> | null; created_at: string;
+  metadata: Json | null; created_at: string;
 };
 export type MissionDetail = {
   mission: MissionRow | null;
