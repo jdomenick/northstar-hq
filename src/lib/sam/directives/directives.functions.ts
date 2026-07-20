@@ -26,7 +26,8 @@ export const listDirectives = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId)
       .order("priority", { ascending: false })
       .order("created_at", { ascending: false });
-    return (rows ?? []) as unknown as Array<Record<string, unknown>>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (rows ?? []) as any;
   });
 
 const CreateInput = z.object({

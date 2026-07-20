@@ -14,7 +14,8 @@ export const listMissions = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId)
       .order("updated_at", { ascending: false })
       .limit(50);
-    return (rows ?? []) as unknown as Array<Record<string, unknown>>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (rows ?? []) as any;
   });
 
 const GetInput = z.object({ organizationId: z.string().uuid(), missionId: z.string().uuid() });
@@ -36,13 +37,14 @@ export const getMission = createServerFn({ method: "POST" })
       .order("created_at", { ascending: true });
     const workItems = (items ?? []) as unknown as Array<{ automation_job_id: string | null }>;
     const jobIds = workItems.map((w) => w.automation_job_id).filter((x): x is string => !!x);
-    let jobs: Array<Record<string, unknown>> = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let jobs: any[] = [];
     if (jobIds.length) {
       const { data: jobRows } = await context.supabase
         .from("automation_jobs")
         .select("id, job_type, status, error_code, started_at, completed_at, output_summary, attempt_number")
         .in("id", jobIds);
-      jobs = (jobRows ?? []) as Array<Record<string, unknown>>;
+      jobs = (jobRows ?? []) as unknown as any[];
     }
     const { data: activity } = await context.supabase
       .from("activity_events")
@@ -52,5 +54,6 @@ export const getMission = createServerFn({ method: "POST" })
       .eq("entity_id", data.missionId)
       .order("created_at", { ascending: false })
       .limit(20);
-    return { mission, workItems, jobs, activity: activity ?? [] };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { mission, workItems, jobs, activity: activity ?? [] } as any;
   });
