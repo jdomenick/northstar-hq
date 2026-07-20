@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Users, FileText, Share2 } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Users, FileText, Share2, ArrowRight, Clock, ShieldAlert } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +15,21 @@ import {
   useRevenueClients, usePipeline, useCashflow, useProposals, useReferrals,
   useCreateClient, useCreatePipelineDeal, useCreateCashflowEntry, useCreateProposal, useCreateReferral,
   summarizeRevenue, formatMoney,
+  type PipelineDeal,
 } from "@/lib/mission-control/hooks";
+import {
+  LIFECYCLE_STAGES, STAGE_LABELS, STAGE_OWNER, OPERATOR_LABELS, allowedNextStages,
+  type PipelineStage,
+} from "@/lib/mission-control/labels";
+import {
+  useAdvanceStage, useDealTimeline, useDealTasks,
+} from "@/lib/mission-control/revenue-machine";
 
 export const Route = createFileRoute("/_authenticated/revenue")({
   component: RevenuePage,
 });
 
-const STAGES = ["lead", "qualified", "proposal", "negotiation", "won", "lost"] as const;
+const NEW_DEAL_STAGES: PipelineStage[] = ["prospect", "researched", "contacted", "engaged"];
 
 function RevenuePage() {
   const { activeOrgId } = useOrg();
@@ -101,8 +109,9 @@ function SectionCard({ title, action, children, empty }: { title: string; action
 function PipelineBoard({ orgId, deals }: { orgId: string | null; deals: ReturnType<typeof usePipeline>["data"] extends infer T ? NonNullable<T> : never }) {
   const create = useCreatePipelineDeal(orgId);
   const [open, setOpen] = useState(false);
+  const [activeDeal, setActiveDeal] = useState<PipelineDeal | null>(null);
   return (
-    <SectionCard title="Pipeline"
+    <SectionCard title="Revenue Machine"
       action={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button size="sm" variant="outline"><Plus className="mr-1 h-3.5 w-3.5" />Deal</Button></DialogTrigger>
@@ -111,22 +120,26 @@ function PipelineBoard({ orgId, deals }: { orgId: string | null; deals: ReturnTy
       }
     >
       {deals.length === 0 ? (
-        <div className="py-8 text-center text-[13px] italic text-foreground/55">No deals yet. Add your first opportunity to see the board light up.</div>
+        <div className="py-8 text-center text-[13px] italic text-foreground/55">No deals yet. Add your first opportunity to enter the Prospect stage.</div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {STAGES.map((stage) => {
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {LIFECYCLE_STAGES.map((stage) => {
             const stageDeals = deals.filter((d) => d.stage === stage);
+            if (stageDeals.length === 0) return null;
             const total = stageDeals.reduce((s, d) => s + (d.value_cents ?? 0), 0);
+            const owner = STAGE_OWNER[stage];
             return (
               <div key={stage} className="rounded-md border border-border/70 bg-background p-3">
                 <div className="flex items-baseline justify-between">
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-foreground/55">{stage}</div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-foreground/55">{STAGE_LABELS[stage]}</div>
                   <div className="text-[10.5px] tabular-nums text-foreground/60">{stageDeals.length}</div>
                 </div>
+                <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.18em] text-foreground/40">{OPERATOR_LABELS[owner]}</div>
                 <div className="mt-1 font-display text-[16px] tabular-nums">{formatMoney(total, { compact: true })}</div>
                 <ul className="mt-2 space-y-2">
                   {stageDeals.map((d) => (
-                    <li key={d.id} className="rounded border border-border/60 bg-card p-2">
+                    <li key={d.id} className="rounded border border-border/60 bg-card p-2 cursor-pointer hover:border-foreground/30"
+                        onClick={() => setActiveDeal(d)}>
                       <div className="text-[12.5px] leading-tight">{d.name}</div>
                       <div className="mt-1 flex items-center justify-between text-[10.5px] text-foreground/60">
                         <span className="tabular-nums">{formatMoney(d.value_cents ?? 0, { compact: true })}</span>
@@ -141,7 +154,108 @@ function PipelineBoard({ orgId, deals }: { orgId: string | null; deals: ReturnTy
           })}
         </div>
       )}
+      <DealDrawer orgId={orgId} deal={activeDeal} onClose={() => setActiveDeal(null)} />
     </SectionCard>
+  );
+}
+
+function DealDrawer({ orgId, deal, onClose }: { orgId: string | null; deal: PipelineDeal | null; onClose: () => void }) {
+  const timeline = useDealTimeline(deal?.id ?? null);
+  const tasks = useDealTasks(deal?.id ?? null);
+  const advance = useAdvanceStage(orgId);
+  const [target, setTarget] = useState<PipelineStage | "">("");
+  const [reason, setReason] = useState("");
+  const stage = (deal?.stage as PipelineStage | undefined) ?? "prospect";
+  const allowed = deal ? allowedNextStages(stage) : [];
+  const blockingTasks = (tasks.data ?? []).filter((t) => t.blocks_stage_advance && t.status !== "done" && t.status !== "cancelled");
+  return (
+    <Dialog open={!!deal} onOpenChange={(o) => { if (!o) { onClose(); setTarget(""); setReason(""); } }}>
+      <DialogContent className="max-w-2xl">
+        {deal && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <span>{deal.name}</span>
+                <Badge variant="outline" className="text-[10px] uppercase tracking-[0.18em]">{STAGE_LABELS[stage]}</Badge>
+                <Badge variant="secondary" className="text-[10px] uppercase tracking-[0.18em]">{OPERATOR_LABELS[STAGE_OWNER[stage]]}</Badge>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-5">
+              <div className="rounded-md border border-border/70 p-3">
+                <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-foreground/55"><ArrowRight className="h-3 w-3" /> Advance stage</div>
+                {allowed.length === 0 ? (
+                  <div className="text-[12.5px] italic text-foreground/55">This deal is at a terminal stage.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {blockingTasks.length > 0 && (
+                      <div className="flex items-start gap-2 rounded border border-amber-500/40 bg-amber-500/10 p-2 text-[11.5px] text-amber-800">
+                        <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <div>Blocked by {blockingTasks.length} required task{blockingTasks.length === 1 ? "" : "s"}: {blockingTasks.map((t) => t.title).join(", ")}</div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-[1fr_auto] gap-2">
+                      <Select value={target} onValueChange={(v) => setTarget(v as PipelineStage)}>
+                        <SelectTrigger><SelectValue placeholder="Select next stage" /></SelectTrigger>
+                        <SelectContent>
+                          {allowed.map((s) => <SelectItem key={s} value={s}>{STAGE_LABELS[s]}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" disabled={!target || advance.isPending}
+                        onClick={() => target && advance.mutate({ dealId: deal.id, toStage: target as PipelineStage, reason: reason.trim() || undefined }, {
+                          onSuccess: (r) => { toast.success(`Moved to ${STAGE_LABELS[r.to]}`); setTarget(""); setReason(""); },
+                          onError: (e) => toast.error((e as Error).message),
+                        })}
+                      >Advance</Button>
+                    </div>
+                    <Input placeholder="Reason or note (optional)" value={reason} onChange={(e) => setReason(e.target.value)} />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-foreground/55">Playbook tasks</div>
+                {(tasks.data ?? []).length === 0 ? (
+                  <div className="text-[12.5px] italic text-foreground/55">No tasks queued for this deal yet.</div>
+                ) : (
+                  <ul className="divide-y divide-border/60">
+                    {(tasks.data ?? []).map((t) => (
+                      <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 text-[12.5px]">
+                        <div className="min-w-0">
+                          <div className="truncate">{t.title}</div>
+                          <div className="text-[10px] uppercase tracking-[0.18em] text-foreground/50">{OPERATOR_LABELS[t.kind]} · {t.deal_stage ? STAGE_LABELS[t.deal_stage] : ""}</div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {t.blocks_stage_advance && <Badge variant="outline" className="text-[9px] uppercase tracking-[0.16em]">Blocks</Badge>}
+                          <Badge variant="secondary" className="text-[9px] uppercase tracking-[0.16em]">{t.status.replace("_", " ")}</Badge>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-foreground/55"><Clock className="h-3 w-3" /> Timeline</div>
+                {(timeline.data ?? []).length === 0 ? (
+                  <div className="text-[12.5px] italic text-foreground/55">No stage transitions logged yet.</div>
+                ) : (
+                  <ol className="space-y-1.5 text-[12px]">
+                    {(timeline.data ?? []).map((e) => (
+                      <li key={e.id} className="flex items-baseline gap-2">
+                        <span className="tabular-nums text-foreground/45">{new Date(e.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>{e.from_stage ? `${STAGE_LABELS[e.from_stage]} → ` : ""}<span className="font-medium">{STAGE_LABELS[e.to_stage]}</span></span>
+                        {e.reason && <span className="italic text-foreground/60 truncate">— {e.reason}</span>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -272,10 +386,10 @@ function ReferralList({ orgId, referrals }: { orgId: string | null; referrals: R
 }
 
 // ───── Dialogs
-function NewDealDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (v: { name: string; contact?: string; stage?: typeof STAGES[number]; value_cents?: number; probability?: number; expected_close?: string; next_action?: string; source?: string }) => void }) {
+function NewDealDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (v: { name: string; contact?: string; stage?: PipelineStage; value_cents?: number; probability?: number; expected_close?: string; next_action?: string; source?: string }) => void }) {
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
-  const [stage, setStage] = useState<typeof STAGES[number]>("lead");
+  const [stage, setStage] = useState<PipelineStage>("prospect");
   const [value, setValue] = useState("");
   const [prob, setProb] = useState("25");
   const [nextAction, setNextAction] = useState("");
@@ -286,9 +400,9 @@ function NewDealDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
         <Input placeholder="Deal name" value={name} onChange={(e) => setName(e.target.value)} />
         <Input placeholder="Contact (optional)" value={contact} onChange={(e) => setContact(e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
-          <Select value={stage} onValueChange={(v) => setStage(v as typeof STAGES[number])}>
+          <Select value={stage} onValueChange={(v) => setStage(v as PipelineStage)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{STAGES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            <SelectContent>{NEW_DEAL_STAGES.map((s) => <SelectItem key={s} value={s}>{STAGE_LABELS[s]}</SelectItem>)}</SelectContent>
           </Select>
           <Input type="number" placeholder="Value ($)" value={value} onChange={(e) => setValue(e.target.value)} />
         </div>
