@@ -27,6 +27,7 @@ import {
   summarizeRevenue, formatMoney,
   type OperatorKind, type OperatorTask,
 } from "@/lib/mission-control/hooks";
+import { OPERATOR_LABELS, OPERATOR_SUBTITLES, OPERATOR_PURPOSE } from "@/lib/mission-control/labels";
 
 export const Route = createFileRoute("/_authenticated/mission-control")({
   component: MissionControl,
@@ -154,18 +155,18 @@ function MissionControl() {
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <OperatorPanel
               kind="hunter"
-              title="Hunter"
-              subtitle="Business development"
-              purpose="Finds, qualifies, and moves new revenue opportunities."
+              title={OPERATOR_LABELS.hunter}
+              subtitle={OPERATOR_SUBTITLES.hunter}
+              purpose={OPERATOR_PURPOSE.hunter}
               orgId={activeOrgId}
               canAdmin={canAdmin}
               states={operators.data ?? []}
             />
             <OperatorPanel
               kind="builder"
-              title="Builder"
-              subtitle="Client delivery"
-              purpose="Moves committed work forward: projects, deliverables, sign-off."
+              title={OPERATOR_LABELS.builder}
+              subtitle={OPERATOR_SUBTITLES.builder}
+              purpose={OPERATOR_PURPOSE.builder}
               orgId={activeOrgId}
               canAdmin={canAdmin}
               states={operators.data ?? []}
@@ -408,7 +409,7 @@ function NewTaskDialog({ kind, onClose, onSubmit }: {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Queue task for {kind === "hunter" ? "Hunter" : "Builder"}</DialogTitle>
+        <DialogTitle>Queue task for {OPERATOR_LABELS[kind]}</DialogTitle>
       </DialogHeader>
       <div className="space-y-3">
         <Input placeholder="Task title" value={title} onChange={(e) => setTitle(e.target.value)} />
