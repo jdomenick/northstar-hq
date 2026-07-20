@@ -2,6 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type DirectiveRow = {
+  id: string; text: string;
+  scope: "permanent" | "temporary";
+  priority: number;
+  status: "active" | "paused" | "archived";
+  starts_at: string; expires_at: string | null;
+  venture_id: string | null;
+  created_by: string | null;
+  created_at: string; updated_at: string;
+};
+
 const OrgOnly = z.object({ organizationId: z.string().uuid() });
 
 async function assertMember(supabase: unknown, orgId: string, userId: string) {
@@ -26,8 +37,7 @@ export const listDirectives = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId)
       .order("priority", { ascending: false })
       .order("created_at", { ascending: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (rows ?? []) as any;
+    return (rows ?? []) as unknown as DirectiveRow[];
   });
 
 const CreateInput = z.object({

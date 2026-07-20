@@ -2,6 +2,44 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type MissionRow = {
+  id: string; title: string;
+  status: "draft" | "active" | "blocked" | "completed" | "cancelled";
+  priority: number;
+  source: "chat" | "directive" | "manual" | "proof";
+  venture_id: string | null;
+  created_by: string | null;
+  created_at: string; updated_at: string;
+  completed_at: string | null;
+};
+export type WorkItemRow = {
+  id: string; mission_id: string;
+  title: string; description: string | null;
+  status: "pending" | "queued" | "running" | "blocked" | "completed" | "failed" | "cancelled";
+  automation_job_id: string | null;
+  artifact: Record<string, unknown>;
+  error_code: string | null; error_message: string | null;
+  started_at: string | null; completed_at: string | null;
+  created_at: string; updated_at: string;
+};
+export type JobRow = {
+  id: string; job_type: string; status: string;
+  error_code: string | null;
+  started_at: string | null; completed_at: string | null;
+  output_summary: Record<string, unknown>;
+  attempt_number: number;
+};
+export type ActivityRow = {
+  id: string; action: string; summary: string | null;
+  metadata: Record<string, unknown> | null; created_at: string;
+};
+export type MissionDetail = {
+  mission: MissionRow | null;
+  workItems: WorkItemRow[];
+  jobs: JobRow[];
+  activity: ActivityRow[];
+};
+
 const OrgOnly = z.object({ organizationId: z.string().uuid() });
 
 export const listMissions = createServerFn({ method: "POST" })
@@ -14,8 +52,7 @@ export const listMissions = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId)
       .order("updated_at", { ascending: false })
       .limit(50);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (rows ?? []) as any;
+    return (rows ?? []) as unknown as MissionRow[];
   });
 
 const GetInput = z.object({ organizationId: z.string().uuid(), missionId: z.string().uuid() });
@@ -37,14 +74,13 @@ export const getMission = createServerFn({ method: "POST" })
       .order("created_at", { ascending: true });
     const workItems = (items ?? []) as unknown as Array<{ automation_job_id: string | null }>;
     const jobIds = workItems.map((w) => w.automation_job_id).filter((x): x is string => !!x);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let jobs: any[] = [];
+    let jobs: JobRow[] = [];
     if (jobIds.length) {
       const { data: jobRows } = await context.supabase
         .from("automation_jobs")
         .select("id, job_type, status, error_code, started_at, completed_at, output_summary, attempt_number")
         .in("id", jobIds);
-      jobs = (jobRows ?? []) as unknown as any[];
+      jobs = (jobRows ?? []) as unknown as JobRow[];
     }
     const { data: activity } = await context.supabase
       .from("activity_events")
@@ -54,6 +90,11 @@ export const getMission = createServerFn({ method: "POST" })
       .eq("entity_id", data.missionId)
       .order("created_at", { ascending: false })
       .limit(20);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { mission, workItems, jobs, activity: activity ?? [] } as any;
+    const detail: MissionDetail = {
+      mission: (mission ?? null) as unknown as MissionRow | null,
+      workItems: workItems as unknown as WorkItemRow[],
+      jobs,
+      activity: (activity ?? []) as unknown as ActivityRow[],
+    };
+    return detail;
   });
