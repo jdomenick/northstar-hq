@@ -243,10 +243,11 @@ export function useAdvanceStage(orgId: string | null) {
       if (input.toStage === "won" || input.toStage === "launched" || input.toStage === "lost") {
         await supabase.from("sam_learning_events").insert({
           organization_id: orgId,
-          event_type: "revenue_outcome",
-          payload: {
+          event_type: input.toStage === "lost" ? "outcome_failed" : "outcome_completed",
+          revised_payload: {
+            source: "revenue_machine",
             deal_id: input.dealId,
-            outcome: input.toStage,
+            stage: input.toStage,
             reason: input.reason ?? null,
           } as never,
         });
