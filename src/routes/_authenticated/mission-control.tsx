@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, TrendingUp, TrendingDown, DollarSign, Users, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight,
+  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
