@@ -102,10 +102,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "NorthStar Labs Mission Control. The operating room where every venture is run, measured, and moved." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e0a0b3c-4e32-406f-a3f5-e5a497a1055e/id-preview-6f619393--0d729d9b-ddb9-49fb-9d95-0093c085d057.lovable.app-1784249565320.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5e0a0b3c-4e32-406f-a3f5-e5a497a1055e/id-preview-6f619393--0d729d9b-ddb9-49fb-9d95-0093c085d057.lovable.app-1784249565320.png" },
-      { name: "theme-color", content: "#0b0b0b" },
+      { name: "theme-color", content: "#f7f9fc" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "NorthStar Labs" },
     ],
     links: [
