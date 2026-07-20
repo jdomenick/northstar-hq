@@ -51,7 +51,23 @@ import { can } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
-  to: "/" | "/mission-control" | "/sam-control" | "/revenue" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
+  to:
+    | "/labs/"
+    | "/labs/mission-control"
+    | "/labs/revenue"
+    | "/labs/ventures"
+    | "/labs/projects"
+    | "/labs/decisions"
+    | "/labs/goals"
+    | "/labs/knowledge"
+    | "/labs/documents"
+    | "/labs/accountability"
+    | "/sam/"
+    | "/sam/control"
+    | "/sam/memory"
+    | "/sam/content"
+    | "/sam/integrations"
+    | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -61,26 +77,14 @@ type NavGroup = { heading: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    heading: "Today",
+    heading: "NorthStar Labs",
     items: [
+      { to: "/labs/", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-      { to: "/", label: "The Brief", icon: CommandIcon, exact: true },
-      { to: "/sam/", label: "Ask SAM", icon: Sparkles },
-      { to: "/sam/control", label: "SAM Control", icon: Gauge },
-    ],
-  },
-  {
-    heading: "Operate",
-    items: [
       { to: "/labs/revenue", label: "Revenue", icon: DollarSign },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
       { to: "/labs/projects", label: "Projects", icon: FolderKanban },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
-    ],
-  },
-  {
-    heading: "Think",
-    items: [
       { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
       { to: "/labs/goals", label: "Goals", icon: Target },
       { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
@@ -88,10 +92,18 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "System",
+    heading: "SAM",
     items: [
+      { to: "/sam/", label: "Ask SAM", icon: Sparkles },
+      { to: "/sam/control", label: "Control", icon: Gauge },
+      { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
       { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/sam/integrations", label: "Integrations", icon: Plug },
+    ],
+  },
+  {
+    heading: "System",
+    items: [
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
