@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/labs/goals")({
 
 function GoalsLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path !== "/goals") return <Outlet />;
+  if (path !== "/labs/goals") return <Outlet />;
   return <GoalsIndex />;
 }
 

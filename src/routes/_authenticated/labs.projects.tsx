@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/labs/projects")({
 
 function ProjectsLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname !== "/projects") return <Outlet />;
+  if (pathname !== "/labs/projects") return <Outlet />;
   return <ProjectsIndex />;
 }
 

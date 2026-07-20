@@ -159,7 +159,7 @@ export const listContentOpsBriefItems = createServerFn({ method: "POST" })
         id: r.venture_id, ventureId: r.venture_id,
         title: "Social publishing paused",
         detail: r.paused ? "Emergency pause active" : "Publishing disabled",
-        href: "/content-ops",
+        href: "/sam/content",
         priority: 90, timestamp: r.updated_at,
       });
     }
@@ -169,7 +169,7 @@ export const listContentOpsBriefItems = createServerFn({ method: "POST" })
         id: r.id, ventureId: r.venture_id,
         title: r.recommendation ?? `Learning: ${r.observed_metric}`,
         detail: `confidence ${(r.confidence ?? 0).toFixed(2)}, n=${r.sample_size}`,
-        href: "/content-ops",
+        href: "/sam/content",
         priority: 40, timestamp: r.valid_from,
       });
     }

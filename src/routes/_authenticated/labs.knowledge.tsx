@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/labs/knowledge")({
 
 function KnowledgeLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path !== "/knowledge") return <Outlet />;
+  if (path !== "/labs/knowledge") return <Outlet />;
   return <KnowledgeIndex />;
 }
 

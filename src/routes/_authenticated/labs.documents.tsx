@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/labs/documents")({
 
 function DocumentsLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path !== "/documents") return <Outlet />;
+  if (path !== "/labs/documents") return <Outlet />;
   return <DocumentsIndex />;
 }
 

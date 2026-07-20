@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/labs/ventures")({
 
 function VenturesLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname !== "/ventures") return <Outlet />;
+  if (pathname !== "/labs/ventures") return <Outlet />;
   return <VenturesIndex />;
 }
 

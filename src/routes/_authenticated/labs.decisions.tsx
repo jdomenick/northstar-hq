@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/labs/decisions")({
 
 function DecisionsLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path !== "/decisions") return <Outlet />;
+  if (path !== "/labs/decisions") return <Outlet />;
   return <DecisionsIndex />;
 }
 

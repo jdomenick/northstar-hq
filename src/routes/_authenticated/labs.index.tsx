@@ -237,7 +237,7 @@ function Command() {
         <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-x-14">
           <Column
             title="Waiting on a call"
-            allHref="/decisions"
+            allHref="/labs/decisions"
             allLabel="All decisions"
             empty="No decisions waiting on you."
           >
@@ -254,7 +254,7 @@ function Command() {
 
           <Column
             title="On your plate"
-            allHref="/accountability"
+            allHref="/labs/accountability"
             allLabel="All commitments"
             empty="Nothing on your plate this week."
           >
@@ -275,7 +275,7 @@ function Command() {
 
           <Column
             title="Goals at risk"
-            allHref="/goals"
+            allHref="/labs/goals"
             allLabel="All goals"
             empty="No goals at risk."
           >
@@ -368,7 +368,7 @@ function Column({
   children,
 }: {
   title: string;
-  allHref: "/decisions" | "/accountability" | "/goals" | "/labs/projects";
+  allHref: "/labs/decisions" | "/labs/accountability" | "/labs/goals" | "/labs/projects";
   allLabel: string;
   empty: string;
   children: React.ReactNode;
