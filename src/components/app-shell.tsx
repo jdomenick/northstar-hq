@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       >
         <div className="flex h-20 items-center gap-3 px-5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-foreground font-display text-[20px] leading-none text-background">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary font-display text-[20px] leading-none text-primary-foreground">
             N
           </div>
           <div
@@ -214,7 +214,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       )}
                     >
                       {active && !collapsed && (
-                        <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 bg-foreground" />
+                        <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 bg-primary shadow-[0_0_8px_var(--color-primary)]" />
                       )}
                       <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.75} />
                       <span
@@ -263,7 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <aside className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto border-r border-sidebar-border bg-sidebar p-4">
             <div className="flex h-14 items-center gap-3 px-1">
-              <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-foreground font-display text-[20px] leading-none text-background">
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary font-display text-[20px] leading-none text-primary-foreground">
                 N
               </div>
               <div className="font-display text-[22px] tracking-tight">NorthStar Labs</div>
