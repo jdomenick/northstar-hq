@@ -17,7 +17,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="animate-in fade-in duration-300 border-b border-border/60 bg-gradient-to-b from-card/30 to-transparent px-4 pt-6 md:px-10 md:pt-8">
+    <header className="animate-in fade-in duration-300 border-b border-border bg-card/55 px-4 pt-6 md:px-10 md:pt-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="min-w-0">
@@ -27,7 +27,7 @@ export function PageHeader({
                 <span className="truncate">{eyebrow}</span>
               </div>
             )}
-            <h1 className="mt-2 font-display text-[26px] leading-[1.05] tracking-tight text-foreground md:text-[32px]">
+            <h1 className="mt-2 font-display text-[27px] font-semibold leading-[1.1] text-foreground md:text-[34px]">
               {title}
             </h1>
             {description && (
