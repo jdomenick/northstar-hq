@@ -1,175 +1,86 @@
-## Phase 3C - SAM Executive Intelligence
+## Strategic renames (UI only, internal names preserved)
 
-Deliver an Executive Operating System layer on top of existing SAM: deterministic pattern detectors → insights → recommendations → daily digest → executive health score → action center, all fully typed, audited, RLS-scoped, and integrated with the existing `sam_invocations` / audit stack.
+- Rename Command Center references to **Mission Control** in nav/headers where they still exist.
+- Rename Hunter to **Growth Operator** in every user-facing label, description, empty state, badge, dialog, and audit note.
+- Rename Builder to **Delivery Operator** the same way.
+- Keep the DB enum values `hunter` and `builder` untouched. All renames live in a single `src/lib/mission-control/labels.ts` (`OPERATOR_LABELS[kind]`, `OPERATOR_DESCRIPTIONS[kind]`) so future changes are one edit. No migration.
 
-There is already an `executive_insights` table in the schema. Phase 3C will build on that instead of creating a parallel `sam_insights` table (avoids duplicating logic - explicit "no duplicated logic" constraint). The user's proposed `sam_insights` shape is a strict subset and will map cleanly.
+## The Revenue Machine as a real state machine
 
----
+Introduce a shared canonical lifecycle both operators drive together, replacing the loose "task queue" with stages that carry ownership, gates, and KPIs.
 
-### 1. Data model (one migration)
-
-**Extend existing `executive_insights`** with the fields the phase requires:
-- `priority` (`low|normal|high|critical`)
-- `confidence` numeric 0..1
-- `evidence` jsonb (structured, typed)
-- `dismissed_at`, `dismissed_by`, `dismissed_reason`
-- `acted_on_at`, `acted_on_by`, `acted_on_action`
-- `pattern_key` text (stable detector id, for idempotency)
-- `pattern_version` text
-- Unique `(organization_id, pattern_key, entity_ref)` where not dismissed
-
-**New tables (all RLS-scoped, GRANTed, audited):**
-
-- `sam_recommendations` - id, org_id, venture_id?, insight_id?, kind, title, rationale, evidence jsonb, expected_impact, confidence, priority, status (`pending|accepted|dismissed|snoozed|converted`), snooze_until, converted_to_ref jsonb, created_at, resolved_at, resolved_by
-- `sam_recommendation_events` - append-only audit (accept/dismiss/snooze/assign/convert/open)
-- `sam_health_snapshots` - org_id, venture_id?, computed_at, overall numeric, categories jsonb (execution, decision_velocity, project_health, knowledge_freshness, commitment_completion, goal_progress, consistency), inputs jsonb, method_version
-- `sam_executive_digests` - org_id, digest_date, sections jsonb, insight_ids uuid[], recommendation_ids uuid[], health_snapshot_id, generated_at, method_version
-
-All tables: `GRANT` block, RLS `is_org_member`, service_role full.
-
----
-
-### 2. Pattern detectors (`src/lib/sam/intelligence/patterns/`)
-
-One file per detector, all pure over rows fetched by a shared `loadIntelligenceDataset.server.ts`. Each exports:
-
-```
-detect(dataset, context) -> DetectorFinding[]
+```text
+Prospect -> Researched -> Contacted -> Engaged -> Discovery Scheduled
+   -> Discovery Held -> Proposal Sent -> Won | Lost
+   -> Project Kickoff -> In Delivery -> Launched -> Case Study
+   -> Referral -> back into Prospect
 ```
 
-Detectors (deterministic, no LLM):
-- `stalled-projects` - no task update / status change in N days
-- `inactive-ventures` - no activity events in N days
-- `postponed-commitments` - due_date pushed >= 3 times
-- `missing-owners` - project/task/commitment with null owner
-- `duplicate-work` - fuzzy title match across open projects
-- `repeated-decisions` - >= 3 decisions in same category / window
-- `decision-reversals` - decision superseded by opposing outcome
-- `goal-drift` - active goal with no linked project progress in window
-- `long-running-projects` - open > 90 days, low completion delta
-- `declining-completion-rate` - rolling 30d completion trend negative
-- `meeting-overload` - future: gated on meetings table (skip cleanly)
-- `knowledge-conflicts` - already surfaced via `sam_memory_conflicts` -> lift as insights
+Growth Operator owns Prospect through Won. Delivery Operator owns Project Kickoff through Referral. Won -> Project Kickoff is the handoff gate.
 
-Central registry `patterns/registry.ts` with `PATTERN_VERSION` constants per detector; findings carry stable `pattern_key`.
+### Database (one migration)
 
----
+- `revenue_stage` enum (12 values above) + `operator_kind` reuse.
+- Add to `revenue_pipeline`: `stage revenue_stage` (backfilled from existing `stage` text), `owner_operator operator_kind`, `next_action text`, `next_action_due timestamptz`, `discovery_brief_id uuid`, `proposal_id uuid`, `close_reason text`, `lost_reason text`. Keep the old `stage` column for one release and mirror on write.
+- New tables (all org-scoped, RLS on, GRANTs for authenticated + service_role, updated_at triggers):
+  - `revenue_playbook_steps` (per stage: `stage`, `operator_kind`, `title`, `description`, `default_due_offset_hours`, `requires_approval bool`, `automation_key text`, `order_index`). Seeded, editable per org.
+  - `revenue_stage_events` (append-only audit: `deal_id`, `from_stage`, `to_stage`, `actor_user_id`, `operator_kind`, `reason`, `payload jsonb`, `created_at`). This is the auditability spine.
+  - `revenue_discovery_briefs` (`deal_id`, `client_id`, `pain_points jsonb`, `goals jsonb`, `budget_range`, `decision_makers jsonb`, `questions jsonb`, `research_summary`, `prepared_by`, `status`).
+  - `revenue_launch_docs` (`deal_id`, `project_id`, `summary`, `deliverables jsonb`, `handover_url`, `status`).
+  - `revenue_case_studies` (`deal_id`, `client_id`, `headline`, `metrics jsonb`, `quote`, `status`, `published_url`).
+  - `revenue_kpi_snapshots` (nightly rollup: `period`, `mrr`, `pipeline_value`, `won_count`, `lost_count`, `avg_cycle_days`, `win_rate`, `by_stage jsonb`, `by_operator jsonb`).
+- Extend `operator_tasks` with `deal_id uuid`, `stage revenue_stage`, `playbook_step_id uuid`, `blocks_stage_advance bool default false`, `approval_state text` (`not_required` | `pending` | `approved` | `rejected`).
 
-### 3. Insights engine (`src/lib/sam/intelligence/insights.server.ts`)
+### Server layer (`src/lib/mission-control/revenue-machine.server.ts`)
 
-- `generateInsights({ orgId })` - runs all detectors, upserts into `executive_insights` keyed by `(org, pattern_key, entity_ref)`, resurrects on new evidence, leaves user-dismissed rows dismissed unless evidence materially changes.
-- Idempotent, safe to run repeatedly.
-- Writes provenance to `sam_invocations` with `intent=executive_insights`.
+- `advanceStage({ dealId, toStage, reason })` - validates the transition, checks any `blocks_stage_advance` tasks are done, writes `revenue_stage_events`, updates the deal, and fans out playbook tasks for the new stage to the correct operator.
+- `spawnStagePlaybook({ dealId, stage })` - inserts one `operator_tasks` row per active playbook step, respecting `requires_approval`.
+- `transitionGuards` - won requires a proposal; project kickoff requires a signed close reason; launched requires a launch doc; case study requires a testimonial.
+- `getDealTimeline(dealId)` - returns the ordered `revenue_stage_events` + tasks for the deal detail drawer.
+- `computeRevenueKpis({ orgId, window })` - MRR from clients, pipeline value by stage, win rate, avg cycle time, per-operator throughput. Writes into `revenue_kpi_snapshots`.
 
----
+### Growth Operator playbooks (seeded)
 
-### 4. Recommendation engine (`src/lib/sam/intelligence/recommendations.server.ts`)
+Prospect: qualify fit, enrich account. Researched: identify decision makers, capture website audit notes. Contacted: send personalized outreach draft (requires approval). Engaged: schedule discovery. Discovery Scheduled: prepare discovery brief (blocks stage advance). Discovery Held: log notes, decide go/no-go. Proposal Sent: track response, follow-up sequence. Won: trigger handoff. Lost: capture reason, feed learning.
 
-Maps insights -> recommended actions via typed handlers:
+### Delivery Operator playbooks (seeded)
 
-```
-InsightKind -> RecommendationBuilder
-```
+Project Kickoff: create `projects` row linked to the deal, generate implementation checklist. In Delivery: weekly status check, unblock. Launched: publish launch doc (blocks stage advance). Case Study: request testimonial + metrics (requires approval to publish). Referral: send referral ask, log outcome; a successful referral seeds a new `revenue_pipeline` row in Prospect, closing the loop.
 
-Kinds: `archive_project`, `reassign_owner`, `merge_knowledge`, `review_goal`, `followup_commitment`, `schedule_review`, `close_stalled_decision`, `delegate_task`, `update_documentation`.
+### SAM feedback loop
 
-Each recommendation stores: reason, evidence refs, confidence, expected_impact, priority. Never fabricates targets - every rec cites an existing entity id.
+- On Won and on Launched, write a `sam_learning_events` row (`event_type='revenue_outcome'`) with the deal's stage timeline and any close/lost reason. No new SAM UI in this pass; the data is there for the next SAM run.
 
----
+## Mission Control UI
 
-### 5. Executive Health Score (`src/lib/sam/intelligence/health.server.ts`)
+- **Revenue Machine board** (`/mission-control` gets a new top block, and `/revenue` gets a Pipeline view rebuilt as a Kanban): one column per stage, cards showing client, owner operator, next action, days-in-stage, blocking task count. Drag or use the stage dropdown to advance; the transition goes through `advanceStage` so guards fire.
+- **Deal detail drawer**: timeline (stage events + tasks), discovery brief, proposal link, launch doc, case study, referral outcomes. Approve/reject buttons on `requires_approval` tasks.
+- **Operator panels** on Mission Control: labels become "Growth Operator" and "Delivery Operator", each shows queue by stage plus KPI tiles (Growth: new prospects/week, meetings booked, win rate; Delivery: active projects, on-time launches, testimonials collected).
+- **KPI header** on Mission Control: MRR (current + delta), pipeline value, weighted pipeline, win rate, avg cycle days, sourced from `computeRevenueKpis`.
+- **Empty states stay truthful**: when a stage has no playbook steps yet, show "No playbook defined - add steps in Settings" (Settings editor deferred to a follow-up; steps are editable via SQL in this pass).
 
-Pure deterministic scoring. Each category returns `{score:0..1, inputs, method}`:
+## Automation and approvals
 
-- Execution: task completion rate 30d
-- Decision Velocity: median days open -> inverse
-- Project Health: share not stalled / at-risk
-- Knowledge Freshness: share verified & updated <90d
-- Commitment Completion: on-time rate
-- Goal Progress: share of goals with positive delta
-- Consistency: variance of daily activity
+- Every playbook step declares `automation_key`. This pass ships with all keys set to `manual` so no external calls fire. The registry in `src/lib/mission-control/automation-registry.ts` maps keys to future handlers (`outreach.draft`, `proposal.generate`, `checklist.generate`, `testimonial.request`). The UI renders "Automated" vs "Manual" per step and, for manual steps, shows the task in the operator queue.
+- `requires_approval` tasks route through the existing operator approval flow. Nothing marked "requires approval" auto-advances the stage.
+- Every advance, approve, reject, complete, and cancel writes `operator_audit` and, for stage moves, `revenue_stage_events`. Full auditability with actor, timestamp, and reason.
 
-Overall = weighted mean (versioned weights in `HEALTH_WEIGHTS_V1`). Snapshot persisted; trend = last N snapshots.
+## KPIs and dashboards
 
----
+- Mission Control top strip: MRR, MRR delta, pipeline value, weighted pipeline, win rate, avg cycle days.
+- Revenue page tabs: Pipeline (Kanban), Clients, Proposals, Cashflow, Referrals, plus a new **KPIs** tab reading `revenue_kpi_snapshots` with a 30/90/365 day toggle.
+- A nightly `pg_cron` job hits an existing `/api/public/automation/tick` handler that calls `computeRevenueKpis` for every org with any deal.
 
-### 6. Executive Digest (`src/lib/sam/intelligence/digest.server.ts`)
+## What ships this pass vs what stays truthful-blocked
 
-Assembles sections from already-computed insights, recommendations, health, existing brief data:
-- Today's Priorities (from priority queue + due-today commitments)
-- Critical Risks (priority=critical insights)
-- Projects Needing Attention (stalled/long-running)
-- Upcoming Commitments (next 7d)
-- Decisions Waiting (open decisions past review_date)
-- Recently Learned (memory items confirmed last 24h)
-- Recommended Actions (top 5 pending)
-- Recent Wins (goals hit / projects completed last 7d)
+Ships: rename, migration, playbook seed, state machine + guards + audit, deal drawer, Kanban, KPI computation, SAM learning writes, nightly KPI snapshot job, operator labels everywhere.
 
-Idempotent per `(org, digest_date)`.
+Truthful-blocked (visible in UI as "Manual" until armed): outreach drafting, proposal generation, testimonial requests, referral asks. These are wired as `automation_key` slots so a future pass turns them on without UI changes.
 
----
+Not in this pass: playbook editor UI, per-org KPI targets, external lead sources (email/LinkedIn ingestion), Delivery calendar sync.
 
-### 7. Server functions (`src/lib/sam/intelligence/intelligence.functions.ts`)
+## Verification
 
-All `requireSupabaseAuth`:
-- `runIntelligenceSweep({orgId})` - detectors + recs + health + digest
-- `listInsights({orgId, filters})`
-- `dismissInsight({id, reason})`
-- `listRecommendations({orgId})`
-- `actOnRecommendation({id, action: accept|dismiss|snooze|assign|convert_task|convert_goal|open, payload})`
-- `getHealthSnapshot({orgId, ventureId?})`
-- `getHealthTrend({orgId, days})`
-- `getTodayDigest({orgId})`
-
-Every mutation appends to `sam_recommendation_events` / audit.
-
----
-
-### 8. Scheduling
-
-Register `intelligence.sweep` handler in the automation registry; cron via existing `pg_cron` tick calls it hourly per org. Digest generated once per org per local day (uses venture/org timezone helper).
-
----
-
-### 9. UI
-
-**Command Dashboard** at `/` (or `/command` - use existing `_authenticated/index.tsx` which is the current landing) - refactor to executive brief layout:
-- Executive Brief header (today's date, org name)
-- Top Insights (cards, priority-sorted)
-- Recommendations (with action buttons)
-- Business Health (overall + category radar/bars + trend sparkline)
-- Priority Queue (from brief.functions)
-- Recent Decisions
-- Learning Feed (recent memory confirmations)
-
-**Action Center** shared component:
-- Accept / Dismiss / Remind Later / Assign / Convert to Task / Convert to Goal / Open Related Record
-
-Style: dark, minimal, executive - reuse existing shadcn tokens; no new palette; no emoji; no flashy motion.
-
-New route `/command/insights` for full list + filters.
-
-Live updates via `queryClient.invalidateQueries` after mutations; realtime subscription on `executive_insights` for the current org.
-
----
-
-### 10. Tests
-
-`*.test.mjs` for each detector (fixture rows -> expected findings), health calc (known inputs -> known score), recommendation mapping, and digest assembly. Existing `bun test` runner.
-
----
-
-### 11. Constraints reinforced
-
-- No `any`, no mock rows, no placeholder text.
-- Every insight/recommendation cites real entity ids via `evidence.refs[]`.
-- All server logic behind `requireSupabaseAuth`; admin client only in scheduled sweep handler (loaded inside handler).
-- RLS on every new table; GRANTs in same migration; no anon.
-- Versioned method strings (`PATTERN_VERSION`, `RECOMMENDATION_VERSION`, `HEALTH_METHOD_V1`, `DIGEST_METHOD_V1`) stamped on every write.
-- Typecheck + build must be green; targeted test suite green.
-
----
-
-### Deliverable
-
-Completion report matching prior phases: files created, tables added, detectors shipped, tests passing, typecheck + build status, and screenshots of the new Command Dashboard.
+- Typecheck clean.
+- Manual walkthrough: create client -> create deal in Prospect -> advance through every stage -> confirm playbook tasks appear on the right operator, approval gates block advance, audit rows land, and Won triggers Delivery Operator's project kickoff tasks.
+- SQL check that `revenue_stage_events` has one row per transition and `sam_learning_events` gets a `revenue_outcome` row on Won and Launched.
