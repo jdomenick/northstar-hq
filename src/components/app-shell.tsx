@@ -167,8 +167,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           collapsed ? "w-[72px]" : "w-[236px]",
         )}
       >
-        <div className="flex h-20 items-center gap-3 px-5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary font-display text-[20px] leading-none text-primary-foreground">
+        <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border/70 px-4">
+          <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/60 font-display text-[15px] font-semibold leading-none text-primary-foreground shadow-[0_0_16px_-4px_var(--color-primary)]">
             N
           </div>
           <div
@@ -177,10 +177,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               collapsed ? "pointer-events-none opacity-0" : "opacity-100",
             )}
           >
-            <div className="font-display text-[22px] tracking-tight text-foreground">
+            <div className="font-display text-[15px] font-semibold tracking-tight text-foreground">
               NorthStar Labs
             </div>
-            <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.24em] text-muted-foreground">
+            <div className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
               Mission Control
             </div>
           </div>
