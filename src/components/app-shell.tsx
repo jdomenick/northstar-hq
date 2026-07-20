@@ -18,6 +18,8 @@ import {
   ClipboardList,
   Users,
   Loader2,
+  Rocket,
+  DollarSign,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -47,7 +49,7 @@ import { can } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
-  to: "/" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
+  to: "/" | "/mission-control" | "/revenue" | "/ventures" | "/projects" | "/decisions" | "/goals" | "/knowledge" | "/documents" | "/accountability" | "/sam" | "/sam/memory" | "/integrations" | "/settings";
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -59,6 +61,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Today",
     items: [
+      { to: "/mission-control", label: "Mission Control", icon: Rocket },
       { to: "/", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/sam", label: "Ask SAM", icon: Sparkles },
     ],
@@ -66,6 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Operate",
     items: [
+      { to: "/revenue", label: "Revenue", icon: DollarSign },
       { to: "/ventures", label: "Ventures", icon: Building2 },
       { to: "/projects", label: "Projects", icon: FolderKanban },
       { to: "/accountability", label: "Accountability", icon: ShieldCheck },
@@ -172,10 +176,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           >
             <div className="font-display text-[22px] tracking-tight text-foreground">
-              Northstar
+              NorthStar Labs
             </div>
             <div className="mt-0.5 text-[9.5px] uppercase tracking-[0.24em] text-muted-foreground">
-              Executive OS
+              Mission Control
             </div>
           </div>
         </div>
@@ -262,7 +266,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-foreground font-display text-[20px] leading-none text-background">
                 N
               </div>
-              <div className="font-display text-[22px] tracking-tight">Northstar</div>
+              <div className="font-display text-[22px] tracking-tight">NorthStar Labs</div>
             </div>
             <nav className="mt-4">
               {NAV_GROUPS.map((group, gi) => (

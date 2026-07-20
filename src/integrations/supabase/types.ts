@@ -3416,6 +3416,172 @@ export type Database = {
           },
         ]
       }
+      operator_audit: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          event: string
+          id: string
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          payload: Json
+          task_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          event: string
+          id?: string
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          payload?: Json
+          task_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          event?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["operator_kind"]
+          organization_id?: string
+          payload?: Json
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_audit_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operator_audit_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "operator_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_state: {
+        Row: {
+          auto_enabled: boolean
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          paused: boolean
+          paused_at: string | null
+          paused_by: string | null
+          paused_reason: string | null
+          resumed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_enabled?: boolean
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          paused_reason?: string | null
+          resumed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_enabled?: boolean
+          kind?: Database["public"]["Enums"]["operator_kind"]
+          organization_id?: string
+          paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          paused_reason?: string | null
+          resumed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_state_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_tasks: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          assigned_to_user_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          priority: Database["public"]["Enums"]["operator_task_priority"]
+          related_entity_id: string | null
+          related_entity_type: string | null
+          requires_approval: boolean
+          source: string
+          status: Database["public"]["Enums"]["operator_task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_to_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["operator_kind"]
+          organization_id: string
+          priority?: Database["public"]["Enums"]["operator_task_priority"]
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          requires_approval?: boolean
+          source?: string
+          status?: Database["public"]["Enums"]["operator_task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          assigned_to_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["operator_kind"]
+          organization_id?: string
+          priority?: Database["public"]["Enums"]["operator_task_priority"]
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          requires_approval?: boolean
+          source?: string
+          status?: Database["public"]["Enums"]["operator_task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -3881,6 +4047,342 @@ export type Database = {
             columns: ["venture_id"]
             isOneToOne: false
             referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_cashflow_entries: {
+        Row: {
+          amount_cents: number
+          category: string
+          created_at: string
+          created_by: string | null
+          direction: Database["public"]["Enums"]["cashflow_direction"]
+          id: string
+          note: string | null
+          occurred_on: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          direction: Database["public"]["Enums"]["cashflow_direction"]
+          id?: string
+          note?: string | null
+          occurred_on: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          direction?: Database["public"]["Enums"]["cashflow_direction"]
+          id?: string
+          note?: string | null
+          occurred_on?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_cashflow_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_clients: {
+        Row: {
+          churned_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          mrr_cents: number
+          name: string
+          notes: string | null
+          organization_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          churned_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mrr_cents?: number
+          name: string
+          notes?: string | null
+          organization_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          churned_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mrr_cents?: number
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_clients_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_mrr_snapshots: {
+        Row: {
+          active_clients: number
+          churned_mrr_cents: number
+          created_at: string
+          id: string
+          mrr_cents: number
+          new_mrr_cents: number
+          organization_id: string
+          snapshot_date: string
+        }
+        Insert: {
+          active_clients?: number
+          churned_mrr_cents?: number
+          created_at?: string
+          id?: string
+          mrr_cents?: number
+          new_mrr_cents?: number
+          organization_id: string
+          snapshot_date: string
+        }
+        Update: {
+          active_clients?: number
+          churned_mrr_cents?: number
+          created_at?: string
+          id?: string
+          mrr_cents?: number
+          new_mrr_cents?: number
+          organization_id?: string
+          snapshot_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_mrr_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_pipeline: {
+        Row: {
+          closed_at: string | null
+          contact: string | null
+          created_at: string
+          created_by: string | null
+          expected_close: string | null
+          id: string
+          name: string
+          next_action: string | null
+          next_action_at: string | null
+          notes: string | null
+          organization_id: string
+          owner_user_id: string | null
+          probability: number
+          source: string | null
+          stage: Database["public"]["Enums"]["pipeline_stage"]
+          updated_at: string
+          value_cents: number
+          venture_id: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_close?: string | null
+          id?: string
+          name: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          organization_id: string
+          owner_user_id?: string | null
+          probability?: number
+          source?: string | null
+          stage?: Database["public"]["Enums"]["pipeline_stage"]
+          updated_at?: string
+          value_cents?: number
+          venture_id?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_close?: string | null
+          id?: string
+          name?: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          organization_id?: string
+          owner_user_id?: string | null
+          probability?: number
+          source?: string | null
+          stage?: Database["public"]["Enums"]["pipeline_stage"]
+          updated_at?: string
+          value_cents?: number
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_pipeline_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_pipeline_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_proposals: {
+        Row: {
+          amount_cents: number
+          client_name: string
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pipeline_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["proposal_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          client_name: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pipeline_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          client_name?: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pipeline_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_proposals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_proposals_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_referrals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          occurred_on: string
+          organization_id: string
+          referred_name: string
+          referrer_name: string
+          status: Database["public"]["Enums"]["referral_status"]
+          updated_at: string
+          value_cents: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          occurred_on?: string
+          organization_id: string
+          referred_name: string
+          referrer_name: string
+          status?: Database["public"]["Enums"]["referral_status"]
+          updated_at?: string
+          value_cents?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          occurred_on?: string
+          organization_id?: string
+          referred_name?: string
+          referrer_name?: string
+          status?: Database["public"]["Enums"]["referral_status"]
+          updated_at?: string
+          value_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -7125,6 +7627,8 @@ export type Database = {
       shares_org_with: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
+      cashflow_direction: "inflow" | "outflow"
+      client_status: "active" | "paused" | "churned" | "onboarding"
       commitment_status:
         | "open"
         | "in_progress"
@@ -7264,7 +7768,23 @@ export type Database = {
         | "operating_procedure"
         | "general"
       member_status: "invited" | "active" | "suspended" | "removed"
+      operator_kind: "hunter" | "builder"
+      operator_task_priority: "low" | "normal" | "high" | "urgent"
+      operator_task_status:
+        | "queued"
+        | "in_progress"
+        | "needs_approval"
+        | "blocked"
+        | "done"
+        | "cancelled"
       org_role: "owner" | "admin" | "executive" | "member" | "viewer"
+      pipeline_stage:
+        | "lead"
+        | "qualified"
+        | "proposal"
+        | "negotiation"
+        | "won"
+        | "lost"
       priority_level: "low" | "normal" | "high" | "critical"
       project_status:
         | "proposed"
@@ -7274,6 +7794,8 @@ export type Database = {
         | "blocked"
         | "completed"
         | "archived"
+      proposal_status: "draft" | "sent" | "accepted" | "declined" | "expired"
+      referral_status: "new" | "introduced" | "in_progress" | "won" | "lost"
       sam_learning_event_type:
         | "recommendation_accepted"
         | "recommendation_rejected"
@@ -7523,6 +8045,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      cashflow_direction: ["inflow", "outflow"],
+      client_status: ["active", "paused", "churned", "onboarding"],
       commitment_status: [
         "open",
         "in_progress",
@@ -7678,7 +8202,25 @@ export const Constants = {
         "general",
       ],
       member_status: ["invited", "active", "suspended", "removed"],
+      operator_kind: ["hunter", "builder"],
+      operator_task_priority: ["low", "normal", "high", "urgent"],
+      operator_task_status: [
+        "queued",
+        "in_progress",
+        "needs_approval",
+        "blocked",
+        "done",
+        "cancelled",
+      ],
       org_role: ["owner", "admin", "executive", "member", "viewer"],
+      pipeline_stage: [
+        "lead",
+        "qualified",
+        "proposal",
+        "negotiation",
+        "won",
+        "lost",
+      ],
       priority_level: ["low", "normal", "high", "critical"],
       project_status: [
         "proposed",
@@ -7689,6 +8231,8 @@ export const Constants = {
         "completed",
         "archived",
       ],
+      proposal_status: ["draft", "sent", "accepted", "declined", "expired"],
+      referral_status: ["new", "introduced", "in_progress", "won", "lost"],
       sam_learning_event_type: [
         "recommendation_accepted",
         "recommendation_rejected",
