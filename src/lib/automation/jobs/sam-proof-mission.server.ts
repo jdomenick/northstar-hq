@@ -115,52 +115,67 @@ const handler: HandlerFn = async ({ supabase, job }) => {
     .update({ status: "running", started_at: new Date().toISOString() } as never)
     .eq("id", workItemId);
 
-  // Load org + venture + directives.
-  const orgQ = await supabase.from("organizations").select("id, name").eq("id", job.organization_id).maybeSingle();
-  if (orgQ.error || !orgQ.data) throw new AutomationError("record_unavailable", "org not found");
-  const org = { id: orgQ.data.id, name: orgQ.data.name };
+  try {
+    const orgQ = await supabase.from("organizations").select("id, name").eq("id", job.organization_id).maybeSingle();
+    if (orgQ.error || !orgQ.data) throw new AutomationError("record_unavailable", "org not found");
+    const org = { id: orgQ.data.id, name: orgQ.data.name };
 
-  let venture: { id: string; name: string } | null = null;
-  if (job.venture_id) {
-    const vQ = await supabase.from("ventures").select("id, name").eq("id", job.venture_id).maybeSingle();
-    if (vQ.data) venture = { id: vQ.data.id, name: vQ.data.name };
+    let venture: { id: string; name: string } | null = null;
+    if (job.venture_id) {
+      const vQ = await supabase.from("ventures").select("id, name").eq("id", job.venture_id).maybeSingle();
+      if (vQ.data) venture = { id: vQ.data.id, name: vQ.data.name };
+    }
+
+    const dQ = await supabase.from("sam_directives" as never)
+      .select("text, priority" as never)
+      .eq("organization_id", org.id).eq("status", "active")
+      .order("priority", { ascending: false }).limit(10);
+    const directives = ((dQ.data ?? []) as unknown as Array<{ text: string }>).map((d) => d.text);
+
+    const brief = (await aiBrief(org, venture, directives)) ?? templateBrief(org, venture, directives);
+
+    const now = new Date().toISOString();
+    await supabase.from("sam_mission_work_items" as never)
+      .update({
+        status: "completed", completed_at: now,
+        artifact: brief as unknown as Record<string, unknown>,
+      } as never)
+      .eq("id", workItemId);
+
+    await supabase.from("sam_missions" as never)
+      .update({ status: "completed", completed_at: now } as never)
+      .eq("id", missionId).eq("organization_id", org.id);
+
+    await supabase.from("activity_events").insert({
+      organization_id: org.id, actor_user_id: null,
+      action: "sam_proof_mission_completed", entity_type: "sam_mission", entity_id: missionId,
+      summary: `Proof mission completed`, metadata: {
+        workItemId, jobId: job.id, source: brief.source,
+      } as never,
+    });
+
+    return {
+      outputSummary: {
+        missionId, workItemId, source: brief.source, briefTitle: brief.title,
+      },
+      signals: [],
+    };
+  } catch (err) {
+    // Never leave the work item stuck in `running`. Mark it failed with a
+    // truthful error code so the mission page and audit reflect reality.
+    const msg = (err as Error)?.message ?? "handler error";
+    await supabase.from("sam_mission_work_items" as never)
+      .update({
+        status: "failed",
+        completed_at: new Date().toISOString(),
+        artifact: { error: msg } as unknown as Record<string, unknown>,
+      } as never)
+      .eq("id", workItemId);
+    await supabase.from("sam_missions" as never)
+      .update({ status: "failed", completed_at: new Date().toISOString() } as never)
+      .eq("id", missionId).eq("organization_id", job.organization_id);
+    throw err;
   }
-
-  const dQ = await supabase.from("sam_directives" as never)
-    .select("text, priority" as never)
-    .eq("organization_id", org.id).eq("status", "active")
-    .order("priority", { ascending: false }).limit(10);
-  const directives = ((dQ.data ?? []) as unknown as Array<{ text: string }>).map((d) => d.text);
-
-  const brief = (await aiBrief(org, venture, directives)) ?? templateBrief(org, venture, directives);
-
-  // Mark mission active + work item completed with artifact.
-  const now = new Date().toISOString();
-  await supabase.from("sam_mission_work_items" as never)
-    .update({
-      status: "completed", completed_at: now,
-      artifact: brief as unknown as Record<string, unknown>,
-    } as never)
-    .eq("id", workItemId);
-
-  await supabase.from("sam_missions" as never)
-    .update({ status: "completed", completed_at: now } as never)
-    .eq("id", missionId).eq("organization_id", org.id);
-
-  await supabase.from("activity_events").insert({
-    organization_id: org.id, actor_user_id: null,
-    action: "sam_proof_mission_completed", entity_type: "sam_mission", entity_id: missionId,
-    summary: `Proof mission completed`, metadata: {
-      workItemId, jobId: job.id, source: brief.source,
-    } as never,
-  });
-
-  return {
-    outputSummary: {
-      missionId, workItemId, source: brief.source, briefTitle: brief.title,
-    },
-    signals: [],
-  };
 };
 
 registerHandler("sam.proof_mission", handler);
