@@ -21,7 +21,7 @@ import {
   scorePriority,
 } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/labs/")({
   component: Command,
 });
 
@@ -184,7 +184,7 @@ function Command() {
                 {priorityItems.map((it, i) => (
                   <li key={`${it.kind}-${it.id}`}>
                     <Link
-                      to={it.kind === "decision" ? "/decisions/$id" : it.kind === "commitment" ? "/commitments/$id" : "/projects/$id"}
+                      to={it.kind === "decision" ? "/labs/decisions/$id" : it.kind === "commitment" ? "/labs/commitments/$id" : "/labs/projects/$id"}
                       params={{ id: it.id }}
                       className="group grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-5 md:grid-cols-[3rem_minmax(0,1fr)_auto] md:gap-6"
                     >
@@ -237,14 +237,14 @@ function Command() {
         <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-x-14">
           <Column
             title="Waiting on a call"
-            allHref="/decisions"
+            allHref="/labs/decisions"
             allLabel="All decisions"
             empty="No decisions waiting on you."
           >
             {waiting.slice(0, 4).map((d) => (
               <ColumnRow
                 key={d.id}
-                to="/decisions/$id"
+                to="/labs/decisions/$id"
                 id={d.id}
                 title={d.title}
                 meta={d.status.replaceAll("_", " ")}
@@ -254,7 +254,7 @@ function Command() {
 
           <Column
             title="On your plate"
-            allHref="/accountability"
+            allHref="/labs/accountability"
             allLabel="All commitments"
             empty="Nothing on your plate this week."
           >
@@ -263,7 +263,7 @@ function Command() {
               return (
                 <ColumnRow
                   key={c.id}
-                  to="/commitments/$id"
+                  to="/labs/commitments/$id"
                   id={c.id}
                   title={c.title}
                   meta={`${overdue ? "Overdue" : "Due"} ${c.due_date ?? ""}`}
@@ -275,14 +275,14 @@ function Command() {
 
           <Column
             title="Goals at risk"
-            allHref="/goals"
+            allHref="/labs/goals"
             allLabel="All goals"
             empty="No goals at risk."
           >
             {goalsAtRisk.slice(0, 4).map((g) => (
               <ColumnRow
                 key={g.id}
-                to="/goals/$id"
+                to="/labs/goals/$id"
                 id={g.id}
                 title={g.title}
                 meta={`Target ${g.target_date ?? "unset"}`}
@@ -292,14 +292,14 @@ function Command() {
 
           <Column
             title="Projects at risk"
-            allHref="/projects"
+            allHref="/labs/projects"
             allLabel="All projects"
             empty="Everything is on track."
           >
             {atRisk.slice(0, 4).map((p) => (
               <div key={p.id}>
                 <ColumnRow
-                  to="/projects/$id"
+                  to="/labs/projects/$id"
                   id={p.id}
                   title={p.name}
                   meta={`${p.status.replaceAll("_", " ")}${p.deadline ? ` , due ${p.deadline}` : ""}`}
@@ -368,7 +368,7 @@ function Column({
   children,
 }: {
   title: string;
-  allHref: "/decisions" | "/accountability" | "/goals" | "/projects";
+  allHref: "/labs/decisions" | "/labs/accountability" | "/labs/goals" | "/labs/projects";
   allLabel: string;
   empty: string;
   children: React.ReactNode;
@@ -399,7 +399,7 @@ function ColumnRow({
   meta,
   emphasis = "muted",
 }: {
-  to: "/decisions/$id" | "/commitments/$id" | "/goals/$id" | "/projects/$id";
+  to: "/labs/decisions/$id" | "/labs/commitments/$id" | "/labs/goals/$id" | "/labs/projects/$id";
   id: string;
   title: string;
   meta: string;

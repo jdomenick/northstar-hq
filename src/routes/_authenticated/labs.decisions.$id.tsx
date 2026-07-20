@@ -39,7 +39,7 @@ import {
   type RiskItem,
 } from "@/lib/decision-structured";
 
-export const Route = createFileRoute("/_authenticated/decisions/$id")({
+export const Route = createFileRoute("/_authenticated/labs/decisions/$id")({
   component: DecisionDetail,
   head: () => ({ meta: [{ title: "Decision - NorthStar Labs" }] }),
 });
@@ -112,7 +112,7 @@ function DecisionDetail() {
     try {
       await archive.mutateAsync(d!.id);
       toast.success("Archived");
-      nav({ to: "/decisions" });
+      nav({ to: "/labs/decisions" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
     }
@@ -154,7 +154,7 @@ function DecisionDetail() {
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
           <Link
-            to="/decisions"
+            to="/labs/decisions"
             className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.22em] text-foreground/60 hover:text-foreground"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> Decisions
@@ -327,7 +327,7 @@ function DecisionDetail() {
                   label: "Project",
                   value: (
                     <Link
-                      to="/projects/$id"
+                      to="/labs/projects/$id"
                       params={{ id: project.id }}
                       className="underline-offset-4 hover:underline"
                     >

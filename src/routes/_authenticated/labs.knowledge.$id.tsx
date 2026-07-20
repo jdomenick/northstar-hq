@@ -19,9 +19,9 @@ import {
 import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
-import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./knowledge";
+import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./labs.knowledge";
 
-export const Route = createFileRoute("/_authenticated/knowledge/$id")({
+export const Route = createFileRoute("/_authenticated/labs/knowledge/$id")({
   component: KnowledgeDetail,
   head: () => ({ meta: [{ title: "Knowledge  -  NorthStar Labs" }] }),
 });
@@ -135,7 +135,7 @@ function KnowledgeDetail() {
     <div>
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-4xl">
-          <Link to="/knowledge" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+          <Link to="/labs/knowledge" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-3.5 w-3.5" /> Knowledge
           </Link>
         </div>
@@ -224,7 +224,7 @@ function KnowledgeDetail() {
                     <ul className="divide-y divide-border/60">
                       {(docsQ.data ?? []).map((d) => (
                         <li key={d.id} className="flex items-center justify-between py-3">
-                          <Link to="/documents/$id" params={{ id: d.id }} className="text-[14px] hover:underline">{d.title}</Link>
+                          <Link to="/labs/documents/$id" params={{ id: d.id }} className="text-[14px] hover:underline">{d.title}</Link>
                           <span className="text-[11.5px] text-muted-foreground">{d.file_type ?? d.file_name}</span>
                         </li>
                       ))}

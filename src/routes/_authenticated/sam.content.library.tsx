@@ -32,7 +32,7 @@ import { summarizeCopyResult } from "@/lib/content-ops/asset-copy";
 
 const PAGE_SIZE = 60;
 
-export const Route = createFileRoute("/_authenticated/content-ops/library")({
+export const Route = createFileRoute("/_authenticated/sam/content/library")({
   component: LibraryPage,
   head: () => ({
     meta: [

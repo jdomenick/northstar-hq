@@ -11,7 +11,7 @@ import {
 import { can } from "@/lib/permissions";
 import { goalProgressPct } from "@/lib/accountability";
 
-export const Route = createFileRoute("/_authenticated/goals/$id")({
+export const Route = createFileRoute("/_authenticated/labs/goals/$id")({
   component: GoalDetail,
   head: () => ({ meta: [{ title: "Goal  -  NorthStar Labs" }] }),
 });
@@ -54,7 +54,7 @@ function GoalDetail() {
     if (!confirm("Archive this goal?")) return;
     await archive.mutateAsync(g!.id);
     toast.success("Archived");
-    nav({ to: "/goals" });
+    nav({ to: "/labs/goals" });
   }
 
   const venture = (ventures.data ?? []).find((v) => v.id === g.venture_id);
@@ -70,7 +70,7 @@ function GoalDetail() {
     <div>
       <div className="px-6 pt-10 md:px-14">
         <div className="mx-auto max-w-6xl">
-          <Link to="/goals" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+          <Link to="/labs/goals" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-3.5 w-3.5" /> Goals
           </Link>
         </div>
@@ -130,7 +130,7 @@ function GoalDetail() {
             <ul className="space-y-2">
               {related.map((p) => (
                 <li key={p.id}>
-                  <Link to="/projects/$id" params={{ id: p.id }} className="text-[13.5px] text-foreground hover:underline">{p.name}</Link>
+                  <Link to="/labs/projects/$id" params={{ id: p.id }} className="text-[13.5px] text-foreground hover:underline">{p.name}</Link>
                   <span className="ml-3 text-[12px] text-muted-foreground">{p.status.replaceAll("_"," ")}</span>
                 </li>
               ))}

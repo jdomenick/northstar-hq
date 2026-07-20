@@ -16,7 +16,7 @@ import {
   manualRetryPublication,
 } from "@/lib/content-ops/scheduling.functions";
 
-export const Route = createFileRoute("/_authenticated/content-ops/calendar")({
+export const Route = createFileRoute("/_authenticated/sam/content/calendar")({
   component: CalendarPage,
   head: () => ({
     meta: [
@@ -124,7 +124,7 @@ function CalendarPage() {
             emergencyPause={q.data.emergencyPause}
             publishingEnabled={q.data.publishingEnabled}
             items={q.data.items}
-            onItemClick={(id) => nav({ to: "/content-ops/editor/$id", params: { id } })}
+            onItemClick={(id) => nav({ to: "/sam/content/editor/$id", params: { id } })}
           />
         ) : null}
       </PageBody>

@@ -2051,42 +2051,42 @@ export function useGlobalSearch(
 
       const ventures: SearchHit[] = (v.data ?? []).map((r: any) => ({
         id: r.id, title: r.name, subtitle: r.current_focus, type: "venture",
-        route: { to: "/ventures/$id", params: { id: r.id } },
+        route: { to: "/labs/ventures/$id", params: { id: r.id } },
         ventureId: r.id, status: r.status,
       }));
       const projects: SearchHit[] = (p.data ?? []).map((r: any) => ({
         id: r.id, title: r.name, type: "project",
-        route: { to: "/projects/$id", params: { id: r.id } },
+        route: { to: "/labs/projects/$id", params: { id: r.id } },
         ventureId: r.venture_id, status: r.status,
       }));
       const tasks: SearchHit[] = (t.data ?? []).map((r: any) => ({
         id: r.id, title: r.title, type: "task",
-        route: { to: "/projects/$id", params: { id: r.project_id } },
+        route: { to: "/labs/projects/$id", params: { id: r.project_id } },
         status: r.status,
       }));
       const goals: SearchHit[] = (g.data ?? []).map((r: any) => ({
         id: r.id, title: r.title, subtitle: r.goal_type, type: "goal",
-        route: { to: "/goals/$id", params: { id: r.id } },
+        route: { to: "/labs/goals/$id", params: { id: r.id } },
         ventureId: r.venture_id, status: r.status,
       }));
       const decisions: SearchHit[] = (d.data ?? []).map((r: any) => ({
         id: r.id, title: r.title, type: "decision",
-        route: { to: "/decisions/$id", params: { id: r.id } },
+        route: { to: "/labs/decisions/$id", params: { id: r.id } },
         ventureId: r.venture_id, status: r.status,
       }));
       const commitments: SearchHit[] = (c.data ?? []).map((r: any) => ({
         id: r.id, title: r.title, type: "commitment",
-        route: { to: "/commitments/$id", params: { id: r.id } },
+        route: { to: "/labs/commitments/$id", params: { id: r.id } },
         ventureId: r.venture_id, status: r.status,
       }));
       const knowledge: SearchHit[] = (k.data ?? []).map((r: any) => ({
         id: r.id, title: r.title, subtitle: r.knowledge_type, type: "knowledge",
-        route: { to: "/knowledge/$id", params: { id: r.id } },
+        route: { to: "/labs/knowledge/$id", params: { id: r.id } },
         ventureId: r.venture_id,
       }));
       const documents: SearchHit[] = (doc.data ?? []).map((r: any) => ({
         id: r.id, title: r.title || r.file_name, subtitle: r.file_name, type: "document",
-        route: { to: "/documents/$id", params: { id: r.id } },
+        route: { to: "/labs/documents/$id", params: { id: r.id } },
         ventureId: r.venture_id,
       }));
 
@@ -2153,49 +2153,49 @@ export function useArchivedRecords(
             let q = supabase.from("ventures").select("id,name,deleted_at").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("name", like);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "venture", archivedAt: r.deleted_at, route: { to: "/ventures/$id", params: { id: r.id } }, ventureId: r.id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "venture", archivedAt: r.deleted_at, route: { to: "/labs/ventures/$id", params: { id: r.id } }, ventureId: r.id }));
         }},
         { t: "project", fn: async () => {
             let q = supabase.from("projects").select("id,name,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("name", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "project", archivedAt: r.deleted_at, route: { to: "/projects/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.name, type: "project", archivedAt: r.deleted_at, route: { to: "/labs/projects/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
         { t: "goal", fn: async () => {
             let q = supabase.from("goals").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("title", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "goal", archivedAt: r.deleted_at, route: { to: "/goals/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "goal", archivedAt: r.deleted_at, route: { to: "/labs/goals/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
         { t: "decision", fn: async () => {
             let q = supabase.from("decisions").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("title", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "decision", archivedAt: r.deleted_at, route: { to: "/decisions/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "decision", archivedAt: r.deleted_at, route: { to: "/labs/decisions/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
         { t: "commitment", fn: async () => {
             let q = supabase.from("commitments").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("title", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "commitment", archivedAt: r.deleted_at, route: { to: "/commitments/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "commitment", archivedAt: r.deleted_at, route: { to: "/labs/commitments/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
         { t: "knowledge", fn: async () => {
             let q = supabase.from("knowledge_records").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("title", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "knowledge", archivedAt: r.deleted_at, route: { to: "/knowledge/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "knowledge", archivedAt: r.deleted_at, route: { to: "/labs/knowledge/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
         { t: "document", fn: async () => {
             let q = supabase.from("documents").select("id,title,deleted_at,venture_id").eq("organization_id", orgId!).not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(limit);
             if (like) q = q.ilike("title", like);
             if (ventureId) q = q.eq("venture_id", ventureId);
             const { data } = await q;
-            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "document", archivedAt: r.deleted_at, route: { to: "/documents/$id", params: { id: r.id } }, ventureId: r.venture_id }));
+            return (data ?? []).map((r: any) => ({ id: r.id, title: r.title, type: "document", archivedAt: r.deleted_at, route: { to: "/labs/documents/$id", params: { id: r.id } }, ventureId: r.venture_id }));
         }},
       ];
 

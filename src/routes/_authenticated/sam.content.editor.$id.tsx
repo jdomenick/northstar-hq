@@ -3,7 +3,7 @@ import { PageBody, PageHeader } from "@/components/page-header";
 import { EditorShell } from "@/components/content-ops/editor-shell";
 import { useOrg } from "@/lib/org-context";
 
-export const Route = createFileRoute("/_authenticated/content-ops/editor/$id")({
+export const Route = createFileRoute("/_authenticated/sam/content/editor/$id")({
   component: ContentEditorRoute,
   head: () => ({
     meta: [
