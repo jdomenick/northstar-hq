@@ -147,7 +147,13 @@ async function currentUserId() {
   return data.user?.id ?? null;
 }
 
-async function writeAudit(orgId: string, kind: OperatorKind, event: string, payload: Record<string, unknown> = {}, taskId?: string | null) {
+async function writeAudit(
+  orgId: string,
+  kind: OperatorKind,
+  event: string,
+  payload: Database["public"]["Tables"]["operator_audit"]["Insert"]["payload"] = {} as never,
+  taskId?: string | null,
+) {
   const actor = await currentUserId();
   await supabase.from("operator_audit").insert({
     organization_id: orgId,
@@ -199,7 +205,7 @@ export function useUpdateOperatorTaskStatus(orgId: string | null) {
   return useMutation({
     mutationFn: async (input: { id: string; kind: OperatorKind; status: Database["public"]["Enums"]["operator_task_status"] }) => {
       if (!orgId) throw new Error("No active organization");
-      const patch: Record<string, unknown> = { status: input.status };
+      const patch: Database["public"]["Tables"]["operator_tasks"]["Update"] = { status: input.status };
       if (input.status === "done") patch.completed_at = new Date().toISOString();
       const { error } = await supabase.from("operator_tasks").update(patch).eq("id", input.id);
       if (error) throw error;
