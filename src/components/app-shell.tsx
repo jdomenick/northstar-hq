@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import northstarLogo from "@/assets/northstar-logo-mark.png.asset.json";
+import northstarLogo from "@/assets/northstar-labs-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
