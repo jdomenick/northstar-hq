@@ -29,10 +29,10 @@ Both hit Meta Graph API v20.0+ and share OAuth via Facebook Login.
    **Instagram Graph API**.
 5. Valid OAuth redirect URIs:
    ```
-   https://northstar-operator-core.lovable.app/api/public/oauth/meta/callback
+   https://northstar-labs.lovable.app/api/public/oauth/meta/callback
    https://project--0d729d9b-ddb9-49fb-9d95-0093c085d057-dev.lovable.app/api/public/oauth/meta/callback
    ```
-6. App Domains: `northstar-operator-core.lovable.app` (+ preview host).
+6. App Domains: `northstar-labs.lovable.app` (+ preview host).
 7. Note the App ID; App settings -> Basic -> generate App Secret.
 
 ## Required permissions (all need app review)
