@@ -2,7 +2,7 @@
 
 If SAM cannot cite it, SAM does not claim it. Every recommendation and
 every non-trivial statement carries `Citation[]`. Citations point to real
-Northstar records and deep-link into the app.
+NorthStar Labs records and deep-link into the app.
 
 ## Citation record
 

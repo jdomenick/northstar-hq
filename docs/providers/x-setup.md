@@ -13,9 +13,9 @@ on v2 endpoints; posting requires Basic+.
 4. App -> User authentication settings:
    - App permissions: **Read and write**.
    - Type of App: **Web App, Automated App or Bot** (yields Client ID + Client Secret with PKCE).
-   - Callback URL: `https://northstar-operator-core.lovable.app/api/public/oauth/x/callback`
-     (also add the preview host if authorizing from preview).
-   - Website URL: `https://northstar-operator-core.lovable.app`
+    - Callback URL: `https://northstar-labs.lovable.app/api/public/oauth/x/callback`
+      (also add the preview host if authorizing from preview).
+    - Website URL: `https://northstar-labs.lovable.app`
 5. Keys and tokens -> OAuth 2.0 Client ID and Secret -> Regenerate and copy both.
 
 ## Required OAuth 2.0 scopes
@@ -38,7 +38,7 @@ Without `offline.access` tokens die in ~2h with no refresh path.
 - X rejects near-duplicate tweets from the same account; our duplicate
   fingerprint gate must catch this first.
 
-## Credentials Northstar will read
+## Credentials NorthStar Labs will read
 
 | Secret name        | Where to find it                          |
 |--------------------|-------------------------------------------|

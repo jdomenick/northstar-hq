@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/integrations")({
   component: IntegrationsPage,
   head: () => ({
     meta: [
-      { title: "Integrations  -  Northstar" },
+      { title: "Integrations  -  NorthStar Labs" },
       { name: "description", content: "Connect the systems SAM reads from." },
     ],
   }),
@@ -135,7 +135,7 @@ function IntegrationsPage() {
       <PageHeader
         eyebrow="Integrations"
         title="What SAM can see."
-        description="Northstar is only as sharp as its inputs. Connect the systems that hold the truth."
+        description="NorthStar Labs is only as sharp as its inputs. Connect the systems that hold the truth."
       />
       <PageBody>
         {connectError ? (

@@ -9,7 +9,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
   head: () => ({
     meta: [
-      { title: "Sign in  -  Northstar" },
+      { title: "Sign in  -  NorthStar Labs" },
       { name: "description", content: "Sign in to your executive operating system." },
     ],
   }),
@@ -70,7 +70,7 @@ function AuthPage() {
             N
           </div>
           <div className="leading-tight">
-            <div className="font-display text-[18px]">Northstar</div>
+            <div className="font-display text-[18px]">NorthStar Labs</div>
             <div className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
               Executive OS
             </div>
@@ -78,7 +78,7 @@ function AuthPage() {
         </div>
 
         <h1 className="font-display text-[36px] leading-tight text-foreground">
-          {mode === "signin" ? "Welcome back." : "Start with Northstar."}
+          {mode === "signin" ? "Welcome back." : "Start with NorthStar Labs."}
         </h1>
         <p className="mt-3 text-[14px] text-muted-foreground">
           {mode === "signin"

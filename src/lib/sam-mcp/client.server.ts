@@ -5,7 +5,7 @@
 //
 // Every request:
 //   - carries the SAM API key ONLY in the server-side Authorization header
-//   - carries organization + actor identity in X-Northstar-* headers so SAM
+//   - carries organization + actor identity in X-NorthStar Labs-* headers so SAM
 //     preserves boundaries
 //   - has a hard AbortController timeout
 //   - passes through a tiny in-process token bucket to prevent hammering SAM
@@ -84,7 +84,7 @@ async function rpc<T>(
   ctx: SamMcpCallContext,
 ): Promise<{ result: T; operationId?: string }> {
   if (!consumeRate(ctx.organizationId)) {
-    throw new SamMcpError("rate_limited", "Northstar rate-limited this SAM connection.");
+    throw new SamMcpError("rate_limited", "NorthStar Labs rate-limited this SAM connection.");
   }
   const apiKey = requireApiKey();
   const abort = new AbortController();
@@ -106,9 +106,9 @@ async function rpc<T>(
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${apiKey}`,
-        "X-Northstar-Organization-Id": ctx.organizationId,
-        "X-Northstar-Actor-User-Id": ctx.actorUserId,
-        "X-Northstar-Client": "northstar-mcp-client/0.1.0",
+        "X-NorthStar Labs-Organization-Id": ctx.organizationId,
+        "X-NorthStar Labs-Actor-User-Id": ctx.actorUserId,
+        "X-NorthStar Labs-Client": "northstar-mcp-client/0.1.0",
         "X-Request-Id": requestId,
         "MCP-Protocol-Version": SAM_MCP_PROTOCOL_VERSION,
       },
@@ -184,7 +184,7 @@ export async function mcpInitialize(ctx: SamMcpCallContext) {
     {
       protocolVersion: SAM_MCP_PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: "northstar", version: "0.1.0" },
+      clientInfo: { name: "northstar-labs", version: "0.1.0" },
     },
     ctx,
   );

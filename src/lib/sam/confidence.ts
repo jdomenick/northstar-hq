@@ -1,5 +1,5 @@
 // Deterministic confidence engine  -  see docs/sam/05-confidence.md.
-// Northstar owns the score; the model's self-reported hint is metadata only.
+// NorthStar Labs owns the score; the model's self-reported hint is metadata only.
 
 import { WEIGHTS_VERSION } from "./constitution";
 import { CONFIDENCE_FRAMEWORK_VERSION } from "@/lib/constants";

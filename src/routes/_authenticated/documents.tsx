@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
   component: DocumentsLayout,
   head: () => ({
     meta: [
-      { title: "Documents  -  Northstar" },
+      { title: "Documents  -  NorthStar Labs" },
       { name: "description", content: "Secure organization documents. Signed access only." },
     ],
   }),

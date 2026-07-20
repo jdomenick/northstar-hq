@@ -1,4 +1,4 @@
-// Reusable operational constants for Northstar.
+// Reusable operational constants for NorthStar Labs.
 export const STALLED_PROJECT_DAYS = 7;
 export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 export const ALLOWED_DOCUMENT_MIME_TYPES = [

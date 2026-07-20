@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings/integrations/$connectionId")({
   component: ConnectionDetail,
-  head: () => ({ meta: [{ title: "Connection - Automation - Northstar" }] }),
+  head: () => ({ meta: [{ title: "Connection - Automation - NorthStar Labs" }] }),
 });
 
 const DISCOVERY_TONE: Record<string, StatusTone> = {

@@ -1,4 +1,4 @@
-// Deterministic workflow confidence. Northstar owns the score; provider
+// Deterministic workflow confidence. NorthStar Labs owns the score; provider
 // self-hints are ignored. Weights are centralized here.
 
 import { WORKFLOW_CONFIDENCE_VERSION } from "@/lib/constants";

@@ -23,7 +23,7 @@ import { TYPE_LABEL, VERIFY_LABEL, IMPORTANCE_LABEL } from "./knowledge";
 
 export const Route = createFileRoute("/_authenticated/knowledge/$id")({
   component: KnowledgeDetail,
-  head: () => ({ meta: [{ title: "Knowledge  -  Northstar" }] }),
+  head: () => ({ meta: [{ title: "Knowledge  -  NorthStar Labs" }] }),
 });
 
 function KnowledgeDetail() {

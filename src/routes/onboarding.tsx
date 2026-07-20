@@ -8,7 +8,7 @@ import { useOrg } from "@/lib/org-context";
 export const Route = createFileRoute("/onboarding")({
   ssr: false,
   component: OnboardingFlow,
-  head: () => ({ meta: [{ title: "Set up Northstar" }] }),
+  head: () => ({ meta: [{ title: "Set up NorthStar Labs" }] }),
 });
 
 type Step = 1 | 2 | 3 | 4;
@@ -29,7 +29,7 @@ function OnboardingFlow() {
   );
 
   // Organization
-  const [orgName, setOrgName] = useState("Northstar HQ");
+  const [orgName, setOrgName] = useState("NorthStar Labs HQ");
   const [orgDescription, setOrgDescription] = useState("");
   const [industry, setIndustry] = useState("");
   const [orgTz, setOrgTz] = useState(tz);
@@ -165,7 +165,7 @@ function OnboardingFlow() {
         <Panel
           eyebrow="Step 1 of 4"
           title="Founder profile"
-          description="Northstar uses this to personalize your executive briefings."
+          description="NorthStar Labs uses this to personalize your executive briefings."
         >
           <TextField label="Full name" value={fullName} onChange={setFullName} required />
           <TextField label="Preferred name" value={preferredName} onChange={setPreferredName} placeholder="What SAM calls you" />
@@ -237,10 +237,10 @@ function OnboardingFlow() {
         <Panel
           eyebrow="Step 4 of 4"
           title="You're ready."
-          description="Northstar is set up. SAM will begin learning from your organization once intelligence is enabled in Phase 3."
+          description="NorthStar Labs is set up. SAM will begin learning from your organization once intelligence is enabled in Phase 3."
         >
           <PrimaryButton onClick={finish} disabled={submitting}>
-            Enter Northstar
+            Enter NorthStar Labs
           </PrimaryButton>
         </Panel>
       )}

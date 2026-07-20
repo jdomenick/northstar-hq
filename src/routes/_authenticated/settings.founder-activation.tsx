@@ -21,8 +21,8 @@ export const Route = createFileRoute("/_authenticated/settings/founder-activatio
   component: FounderActivationPage,
   head: () => ({
     meta: [
-      { title: "Founder Activation - Northstar" },
-      { name: "description", content: "Seed Northstar with real ventures, projects, goals, decisions, and commitments." },
+      { title: "Founder Activation - NorthStar Labs" },
+      { name: "description", content: "Seed NorthStar Labs with real ventures, projects, goals, decisions, and commitments." },
     ],
   }),
 });
@@ -150,7 +150,7 @@ function FounderActivationPage() {
   if (!activeOrgId) {
     return (
       <div>
-        <PageHeader title="Founder Activation" description="Seed Northstar with real operating data." />
+        <PageHeader title="Founder Activation" description="Seed NorthStar Labs with real operating data." />
         <PageBody><p>Select an organization first.</p></PageBody>
       </div>
     );

@@ -2,7 +2,7 @@
 
 Status: Stage 1 of the SAM Content Operations Engine milestone. Audit only; no
 code or schema changes. This document maps every concept in the milestone's
-domain model (spec sections 3-19) to either existing Northstar infrastructure
+domain model (spec sections 3-19) to either existing NorthStar Labs infrastructure
 that will be reused, or a specific additive change that later stages will
 introduce. It is the contract every subsequent stage builds against.
 

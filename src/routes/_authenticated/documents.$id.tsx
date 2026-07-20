@@ -20,7 +20,7 @@ import { DOC_STATUS_LABEL } from "./documents";
 
 export const Route = createFileRoute("/_authenticated/documents/$id")({
   component: DocumentDetail,
-  head: () => ({ meta: [{ title: "Document  -  Northstar" }] }),
+  head: () => ({ meta: [{ title: "Document  -  NorthStar Labs" }] }),
 });
 
 function DocumentDetail() {

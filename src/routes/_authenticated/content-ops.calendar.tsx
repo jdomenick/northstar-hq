@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/content-ops/calendar")({
   component: CalendarPage,
   head: () => ({
     meta: [
-      { title: "Editorial calendar - Northstar" },
+      { title: "Editorial calendar - NorthStar Labs" },
       { name: "description", content: "Editorial calendar and scheduler for Content Operations." },
     ],
   }),

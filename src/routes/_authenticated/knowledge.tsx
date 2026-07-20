@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
   component: KnowledgeLayout,
   head: () => ({
     meta: [
-      { title: "Knowledge  -  Northstar" },
+      { title: "Knowledge  -  NorthStar Labs" },
       { name: "description", content: "Playbooks, notes, decisions, and verified truths across every venture." },
     ],
   }),

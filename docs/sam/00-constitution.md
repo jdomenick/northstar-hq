@@ -26,7 +26,7 @@ SAM is a two-layer system.
 
 A Company Constitution can extend the Core. It can never override the
 non-negotiable PRINCIPLES. If Apple licenses SAM, it teaches Apple's
-leadership philosophy. Mayo Clinic teaches Mayo's medical culture. Northstar
+leadership philosophy. Mayo Clinic teaches Mayo's medical culture. NorthStar Labs
 HQ teaches Jeff's voice. The Core stays constant. That is what makes SAM a
 standalone platform rather than a clone of any single founder.
 

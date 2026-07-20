@@ -1,10 +1,10 @@
 # SAM  -  Executive Intelligence Architecture
 
-SAM is Northstar's proprietary executive intelligence system. It is not a
+SAM is NorthStar Labs' proprietary executive intelligence system. It is not a
 chatbot and not an LLM wrapper. The LLM is one replaceable component inside
 a larger pipeline whose defensibility comes from the Executive Graph, the
 Memory layers, the Reasoning Framework, the Confidence model, the Citation
-system, the Learning loop, and the Audit trail  -  all of which Northstar
+system, the Learning loop, and the Audit trail  -  all of which NorthStar Labs
 owns end to end.
 
 This directory is the blueprint. Nothing here is wired to a provider yet;

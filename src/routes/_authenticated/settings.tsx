@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({
     meta: [
-      { title: "Settings  -  Northstar" },
+      { title: "Settings  -  NorthStar Labs" },
       { name: "description", content: "Founder, organization, and member preferences." },
     ],
   }),
@@ -58,13 +58,13 @@ const SECTIONS = [
 function SettingsPage() {
   return (
     <div>
-      <PageHeader eyebrow="Settings" title="Preferences" description="Tune how Northstar works for you and your team." />
+      <PageHeader eyebrow="Settings" title="Preferences" description="Tune how NorthStar Labs works for you and your team." />
       <PageBody>
         <div className="mb-6 rounded-md border border-border/60 bg-card/40 p-4 text-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="font-medium">Founder Activation</div>
-              <div className="text-muted-foreground">Seed Northstar with your real ventures, projects, goals, decisions, and commitments so SAM has the context it needs.</div>
+              <div className="text-muted-foreground">Seed NorthStar Labs with your real ventures, projects, goals, decisions, and commitments so SAM has the context it needs.</div>
             </div>
             <Link to="/settings/founder-activation" className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-secondary/60">Open</Link>
           </div>

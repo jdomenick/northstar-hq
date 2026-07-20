@@ -41,7 +41,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/decisions/$id")({
   component: DecisionDetail,
-  head: () => ({ meta: [{ title: "Decision - Northstar" }] }),
+  head: () => ({ meta: [{ title: "Decision - NorthStar Labs" }] }),
 });
 
 const STATUS_LABEL: Record<DecisionStatus, string> = {

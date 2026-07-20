@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/sam/memory")({
   component: SamMemoryPage,
   head: () => ({
     meta: [
-      { title: "SAM Memory  -  Northstar" },
+      { title: "SAM Memory  -  NorthStar Labs" },
       { name: "description", content: "Review, confirm, and manage SAM's structured executive memory." },
     ],
   }),

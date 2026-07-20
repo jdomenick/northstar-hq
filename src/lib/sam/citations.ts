@@ -1,7 +1,7 @@
 import type { SamCitation, SamResponse } from "./schema";
 import type { AssembledContext } from "./context-builder.server";
 
-// Build a deep-link href for a citation entity. Respects Northstar's routes.
+// Build a deep-link href for a citation entity. Respects NorthStar Labs' routes.
 export function citationHref(entityType: SamCitation["entity_type"], id: string): string | null {
   switch (entityType) {
     case "venture":

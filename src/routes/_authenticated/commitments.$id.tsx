@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/commitments/$id")({
   component: CommitmentDetail,
-  head: () => ({ meta: [{ title: "Commitment - Northstar" }] }),
+  head: () => ({ meta: [{ title: "Commitment - NorthStar Labs" }] }),
 });
 
 const STATUS_LABEL: Record<CommitmentStatus, string> = {

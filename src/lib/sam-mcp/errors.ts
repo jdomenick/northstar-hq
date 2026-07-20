@@ -1,4 +1,4 @@
-// Sanitized error taxonomy for the Northstar → SAM MCP client. Codes are
+// Sanitized error taxonomy for the NorthStar Labs → SAM MCP client. Codes are
 // stable strings safe to expose in UI, activity_events, and audit rows.
 // The client never surfaces raw provider messages, headers, or tokens.
 

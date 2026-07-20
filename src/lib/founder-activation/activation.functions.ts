@@ -391,7 +391,7 @@ export const runFounderActivationReview = createServerFn({ method: "POST" })
       const vBlocked = vProjects.filter((p) => p.status === "blocked").length;
       const top = vProjects.sort((a, b) => rank(b.priority) - rank(a.priority))[0];
       let recommendation = "Continue current focus.";
-      if (v.name === "Northstar HQ") recommendation = "Ship the SAM End-to-End Automation Proof using an already-connected provider (Beehiiv draft) so blocked Meta work does not stall the closed-loop goal.";
+      if (v.name === "NorthStar Labs HQ") recommendation = "Ship the SAM End-to-End Automation Proof using an already-connected provider (Beehiiv draft) so blocked Meta work does not stall the closed-loop goal.";
       else if (v.name === "Healing Path System") recommendation = "Advance Healing Path Trusted Voice Strategy this week; social publishing is blocked, so keep organic content moving on channels you already control.";
       else if (v.name === "Warpath Ministries") recommendation = "Use Warpath Founder Living Mode to capture friction notes before adding features.";
       else if (v.name === "Elite Fleet Rides") recommendation = "Stand up Repeat Client Follow-Up first - it feeds every other EFR goal.";

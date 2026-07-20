@@ -28,7 +28,7 @@ export interface SynthesisOutcome {
 }
 
 const SYSTEM = [
-  "You are SAM synthesizing a Northstar workflow result.",
+  "You are SAM synthesizing a NorthStar Labs workflow result.",
   "The deterministic analyzer has already produced findings, counts, and",
   "risk/priority signals. You may explain, compare, and organize them, but",
   "you MUST NOT invent new findings, change counts, or fabricate citations.",

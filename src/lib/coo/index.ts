@@ -1,6 +1,6 @@
 // Public re-exports for the AI COO Core (Phase 3D.3).
 //
-// SAM is Northstar's AI COO. This module owns the durable operating
+// SAM is NorthStar Labs' AI COO. This module owns the durable operating
 // context (organization + venture), the executive-context assembler that
 // bounds and ranks what SAM sees on every turn, and (in later
 // sub-phases) the deterministic engines for accountability, bottleneck,

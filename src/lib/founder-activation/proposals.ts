@@ -1,7 +1,7 @@
 // Static proposal set for the Founder Activation workflow.
 //
 // Content is the founder's verbatim intake. Priority and status values map to
-// existing Northstar enums. Nothing here invents dates, owners, or metrics.
+// existing NorthStar Labs enums. Nothing here invents dates, owners, or metrics.
 
 export type ProposalPriority = "low" | "normal" | "high" | "critical";
 
@@ -59,7 +59,7 @@ export const VENTURES: VentureProposal[] = [
   },
   {
     key: "northstar-hq",
-    name: "Northstar HQ",
+    name: "NorthStar Labs HQ",
     priority: "critical",
     description:
       "An executive operating system that gives SAM shared business context, governed authority, operational tools, decision history, and the ability to recommend, execute, verify, and learn across multiple ventures.",
@@ -96,7 +96,7 @@ export const VENTURES: VentureProposal[] = [
 ];
 
 export const PROJECTS: ProjectProposal[] = [
-  // Northstar HQ
+  // NorthStar Labs HQ
   {
     key: "sam-e2e",
     ventureKey: "northstar-hq",
@@ -104,7 +104,7 @@ export const PROJECTS: ProjectProposal[] = [
     status: "active",
     priority: "critical",
     objective:
-      "Prove that SAM can identify an opportunity, generate a recommendation, apply approval policy, schedule an action, execute through a server-side worker, verify the external result, update Northstar, and recommend the next action. Success requires: a real external action occurs; the browser does not need to remain open; the action is verified externally; full execution history is stored; no duplicate action occurs; Executive Brief is updated; SAM creates a follow-up recommendation.",
+      "Prove that SAM can identify an opportunity, generate a recommendation, apply approval policy, schedule an action, execute through a server-side worker, verify the external result, update NorthStar Labs, and recommend the next action. Success requires: a real external action occurs; the browser does not need to remain open; the action is verified externally; full execution history is stored; no duplicate action occurs; Executive Brief is updated; SAM creates a follow-up recommendation.",
   },
   {
     key: "meta-validation",
@@ -160,7 +160,7 @@ export const PROJECTS: ProjectProposal[] = [
     name: "Healing Path Social Publishing",
     status: "blocked",
     priority: "high",
-    objective: "Automate approved Facebook and Instagram content publishing through Northstar and SAM.",
+    objective: "Automate approved Facebook and Instagram content publishing through NorthStar Labs and SAM.",
     blocker: "Meta developer credentials and OAuth.",
   },
   {
@@ -282,7 +282,7 @@ export const GOALS: GoalProposal[] = [
     title: "Connect Facebook and Instagram",
     priority: "high",
     definitionOfSuccess:
-      "Northstar discovers the Healing Path Facebook Page and Instagram professional account and successfully publishes and verifies one controlled post on each.",
+      "NorthStar Labs discovers the Healing Path Facebook Page and Instagram professional account and successfully publishes and verifies one controlled post on each.",
   },
   {
     key: "g-hp-trust",
@@ -315,7 +315,7 @@ export const DECISIONS: DecisionProposal[] = [
     key: "d-one-os",
     title: "Use One Shared Executive Operating System",
     decision:
-      "Northstar will use SAM as the central intelligence and orchestration layer. Specialized functions may exist, but they must share the same ventures, goals, projects, decisions, commitments, documents, memory, and governance.",
+      "NorthStar Labs will use SAM as the central intelligence and orchestration layer. Specialized functions may exist, but they must share the same ventures, goals, projects, decisions, commitments, documents, memory, and governance.",
     rationale:
       "Disconnected AI executive tools would create conflicting priorities, fragmented memory, and operational silos.",
   },
@@ -351,9 +351,9 @@ export const DECISIONS: DecisionProposal[] = [
   },
   {
     key: "d-sam-in-northstar",
-    title: "Keep SAM Inside Northstar for Now",
+    title: "Keep SAM Inside NorthStar Labs for Now",
     decision:
-      "SAM remains part of Northstar HQ until its role, architecture, and value are proven strongly enough to justify a standalone product.",
+      "SAM remains part of NorthStar Labs HQ until its role, architecture, and value are proven strongly enough to justify a standalone product.",
   },
 ];
 

@@ -1,7 +1,7 @@
 # Social provider adapter contract (S1a)
 
 One contract, six planned adapters. Each adapter is a thin translator
-between a normalized Northstar surface and one vendor SDK. Adapters
+between a normalized NorthStar Labs surface and one vendor SDK. Adapters
 never mutate our tables, never approve content, never bypass gates.
 
 ## Files
@@ -63,7 +63,7 @@ worker's backoff without hard-coding vendor quirks.
 - No autonomy checks. `assertPublishingAllowed` runs BEFORE the adapter.
 - No content policy checks. Brand profile / promotion ratio / duplicate
   checks run in `publish-gates.server.ts` before adapter invocation.
-- No writes to Northstar tables. The job handler owns state transitions.
+- No writes to NorthStar Labs tables. The job handler owns state transitions.
 
 ## Registry
 
