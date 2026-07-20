@@ -3510,17 +3510,22 @@ export type Database = {
       }
       operator_tasks: {
         Row: {
+          approval_state: string
           approved_at: string | null
           approved_by: string | null
           assigned_to_user_id: string | null
+          blocks_stage_advance: boolean
           completed_at: string | null
           created_at: string
           created_by: string | null
+          deal_id: string | null
+          deal_stage: Database["public"]["Enums"]["pipeline_stage"] | null
           description: string | null
           due_at: string | null
           id: string
           kind: Database["public"]["Enums"]["operator_kind"]
           organization_id: string
+          playbook_step_id: string | null
           priority: Database["public"]["Enums"]["operator_task_priority"]
           related_entity_id: string | null
           related_entity_type: string | null
@@ -3531,17 +3536,22 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_state?: string
           approved_at?: string | null
           approved_by?: string | null
           assigned_to_user_id?: string | null
+          blocks_stage_advance?: boolean
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          deal_id?: string | null
+          deal_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
           description?: string | null
           due_at?: string | null
           id?: string
           kind: Database["public"]["Enums"]["operator_kind"]
           organization_id: string
+          playbook_step_id?: string | null
           priority?: Database["public"]["Enums"]["operator_task_priority"]
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -3552,17 +3562,22 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_state?: string
           approved_at?: string | null
           approved_by?: string | null
           assigned_to_user_id?: string | null
+          blocks_stage_advance?: boolean
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          deal_id?: string | null
+          deal_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
           description?: string | null
           due_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["operator_kind"]
           organization_id?: string
+          playbook_step_id?: string | null
           priority?: Database["public"]["Enums"]["operator_task_priority"]
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -3573,6 +3588,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "operator_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "operator_tasks_organization_id_fkey"
             columns: ["organization_id"]
@@ -4051,6 +4073,70 @@ export type Database = {
           },
         ]
       }
+      revenue_case_studies: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          deal_id: string
+          headline: string | null
+          id: string
+          metrics: Json
+          organization_id: string
+          published_url: string | null
+          quote: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          deal_id: string
+          headline?: string | null
+          id?: string
+          metrics?: Json
+          organization_id: string
+          published_url?: string | null
+          quote?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          deal_id?: string
+          headline?: string | null
+          id?: string
+          metrics?: Json
+          organization_id?: string
+          published_url?: string | null
+          quote?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_case_studies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_case_studies_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_case_studies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_cashflow_entries: {
         Row: {
           amount_cents: number
@@ -4158,6 +4244,130 @@ export type Database = {
           },
         ]
       }
+      revenue_discovery_briefs: {
+        Row: {
+          budget_range: string | null
+          created_at: string
+          deal_id: string
+          decision_makers: Json
+          goals: Json
+          id: string
+          organization_id: string
+          pain_points: Json
+          prepared_by: string | null
+          questions: Json
+          research_summary: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string
+          deal_id: string
+          decision_makers?: Json
+          goals?: Json
+          id?: string
+          organization_id: string
+          pain_points?: Json
+          prepared_by?: string | null
+          questions?: Json
+          research_summary?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string
+          deal_id?: string
+          decision_makers?: Json
+          goals?: Json
+          id?: string
+          organization_id?: string
+          pain_points?: Json
+          prepared_by?: string | null
+          questions?: Json
+          research_summary?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_discovery_briefs_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_discovery_briefs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_launch_docs: {
+        Row: {
+          created_at: string
+          deal_id: string
+          deliverables: Json
+          handover_url: string | null
+          id: string
+          organization_id: string
+          project_id: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          deliverables?: Json
+          handover_url?: string | null
+          id?: string
+          organization_id: string
+          project_id?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          deliverables?: Json
+          handover_url?: string | null
+          id?: string
+          organization_id?: string
+          project_id?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_launch_docs_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_launch_docs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_launch_docs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_mrr_snapshots: {
         Row: {
           active_clients: number
@@ -4201,66 +4411,88 @@ export type Database = {
       }
       revenue_pipeline: {
         Row: {
+          client_id: string | null
+          close_reason: string | null
           closed_at: string | null
           contact: string | null
           created_at: string
           created_by: string | null
           expected_close: string | null
           id: string
+          lost_reason: string | null
           name: string
           next_action: string | null
           next_action_at: string | null
           notes: string | null
           organization_id: string
+          owner_operator: Database["public"]["Enums"]["operator_kind"]
           owner_user_id: string | null
           probability: number
           source: string | null
           stage: Database["public"]["Enums"]["pipeline_stage"]
+          stage_entered_at: string
           updated_at: string
           value_cents: number
           venture_id: string | null
         }
         Insert: {
+          client_id?: string | null
+          close_reason?: string | null
           closed_at?: string | null
           contact?: string | null
           created_at?: string
           created_by?: string | null
           expected_close?: string | null
           id?: string
+          lost_reason?: string | null
           name: string
           next_action?: string | null
           next_action_at?: string | null
           notes?: string | null
           organization_id: string
+          owner_operator?: Database["public"]["Enums"]["operator_kind"]
           owner_user_id?: string | null
           probability?: number
           source?: string | null
           stage?: Database["public"]["Enums"]["pipeline_stage"]
+          stage_entered_at?: string
           updated_at?: string
           value_cents?: number
           venture_id?: string | null
         }
         Update: {
+          client_id?: string | null
+          close_reason?: string | null
           closed_at?: string | null
           contact?: string | null
           created_at?: string
           created_by?: string | null
           expected_close?: string | null
           id?: string
+          lost_reason?: string | null
           name?: string
           next_action?: string | null
           next_action_at?: string | null
           notes?: string | null
           organization_id?: string
+          owner_operator?: Database["public"]["Enums"]["operator_kind"]
           owner_user_id?: string | null
           probability?: number
           source?: string | null
           stage?: Database["public"]["Enums"]["pipeline_stage"]
+          stage_entered_at?: string
           updated_at?: string
           value_cents?: number
           venture_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "revenue_pipeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "revenue_pipeline_organization_id_fkey"
             columns: ["organization_id"]
@@ -4273,6 +4505,65 @@ export type Database = {
             columns: ["venture_id"]
             isOneToOne: false
             referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_playbook_steps: {
+        Row: {
+          active: boolean
+          automation_key: string
+          blocks_stage_advance: boolean
+          created_at: string
+          default_due_offset_hours: number
+          description: string | null
+          id: string
+          operator_kind: Database["public"]["Enums"]["operator_kind"]
+          order_index: number
+          organization_id: string | null
+          requires_approval: boolean
+          stage: Database["public"]["Enums"]["pipeline_stage"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          automation_key?: string
+          blocks_stage_advance?: boolean
+          created_at?: string
+          default_due_offset_hours?: number
+          description?: string | null
+          id?: string
+          operator_kind: Database["public"]["Enums"]["operator_kind"]
+          order_index?: number
+          organization_id?: string | null
+          requires_approval?: boolean
+          stage: Database["public"]["Enums"]["pipeline_stage"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          automation_key?: string
+          blocks_stage_advance?: boolean
+          created_at?: string
+          default_due_offset_hours?: number
+          description?: string | null
+          id?: string
+          operator_kind?: Database["public"]["Enums"]["operator_kind"]
+          order_index?: number
+          organization_id?: string | null
+          requires_approval?: boolean
+          stage?: Database["public"]["Enums"]["pipeline_stage"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_playbook_steps_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -4380,6 +4671,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "revenue_referrals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_stage_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          deal_id: string
+          from_stage: Database["public"]["Enums"]["pipeline_stage"] | null
+          id: string
+          operator_kind: Database["public"]["Enums"]["operator_kind"] | null
+          organization_id: string
+          payload: Json
+          reason: string | null
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          deal_id: string
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          operator_kind?: Database["public"]["Enums"]["operator_kind"] | null
+          organization_id: string
+          payload?: Json
+          reason?: string | null
+          to_stage: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          deal_id?: string
+          from_stage?: Database["public"]["Enums"]["pipeline_stage"] | null
+          id?: string
+          operator_kind?: Database["public"]["Enums"]["operator_kind"] | null
+          organization_id?: string
+          payload?: Json
+          reason?: string | null
+          to_stage?: Database["public"]["Enums"]["pipeline_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_stage_events_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_stage_events_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -7785,6 +8130,18 @@ export type Database = {
         | "negotiation"
         | "won"
         | "lost"
+        | "prospect"
+        | "researched"
+        | "contacted"
+        | "engaged"
+        | "discovery_scheduled"
+        | "discovery_held"
+        | "proposal_sent"
+        | "project_kickoff"
+        | "in_delivery"
+        | "launched"
+        | "case_study"
+        | "referral"
       priority_level: "low" | "normal" | "high" | "critical"
       project_status:
         | "proposed"
@@ -8220,6 +8577,18 @@ export const Constants = {
         "negotiation",
         "won",
         "lost",
+        "prospect",
+        "researched",
+        "contacted",
+        "engaged",
+        "discovery_scheduled",
+        "discovery_held",
+        "proposal_sent",
+        "project_kickoff",
+        "in_delivery",
+        "launched",
+        "case_study",
+        "referral",
       ],
       priority_level: ["low", "normal", "high", "critical"],
       project_status: [
