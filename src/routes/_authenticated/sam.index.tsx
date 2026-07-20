@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { LIMITS } from "@/lib/constants";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
+import { DirectivesDrawer } from "@/components/sam/directives-drawer";
 
 type ActionReceipt = {
   status: "success" | "queued" | "blocked" | "failed" | "ambiguous" | "none";
@@ -145,6 +146,7 @@ function SamPage() {
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [directivesOpen, setDirectivesOpen] = useState(false);
   const [images, setImages] = useState<
     Array<{ id: string; prompt: string; dataUrl: string; createdAt: string }>
   >([]);
@@ -298,12 +300,20 @@ function SamPage() {
               <div className="text-[10.5px] font-medium uppercase tracking-[0.28em] text-foreground/70">
                 SAM - Executive Intelligence
               </div>
-              <button
-                className="lg:hidden text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
-                onClick={() => setSidebarOpen(true)}
-              >
-                History
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  className="text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+                  onClick={() => setDirectivesOpen(true)}
+                >
+                  Directives
+                </button>
+                <button
+                  className="lg:hidden text-[10.5px] uppercase tracking-[0.24em] text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  History
+                </button>
+              </div>
             </div>
             <div className="mt-4 border-t border-foreground/80 pt-4">
               <h1 className="font-display text-[30px] leading-[1.05] tracking-tight text-foreground md:text-[42px]">
