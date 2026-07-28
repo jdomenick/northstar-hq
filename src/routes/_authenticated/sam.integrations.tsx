@@ -7,6 +7,7 @@ import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
 import { SamMcpConnectionPanel } from "@/components/sam-mcp-connection-panel";
+import { IntegrationDetailDrawer } from "@/components/integration-detail-drawer";
 import {
   listIntegrationsDashboard,
   testIntegrationConnection,
@@ -40,9 +41,17 @@ function IntegrationsPage() {
   const [connecting, setConnecting] = useState<null | "facebook" | "instagram">(null);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<Record<string, TestConnectionResult>>({});
+  const [detailRow, setDetailRow] = useState<IntegrationRow | null>(null);
 
-  type TestableKey = "beehiiv" | "linkedin" | "stripe" | "supabase_self";
-  const testableKeys = new Set<TestableKey>(["beehiiv", "linkedin", "stripe", "supabase_self"]);
+  type TestableKey = "beehiiv" | "linkedin" | "stripe" | "supabase_self" | "sam_mcp" | "website_sync";
+  const testableKeys = new Set<TestableKey>([
+    "beehiiv",
+    "linkedin",
+    "stripe",
+    "supabase_self",
+    "sam_mcp",
+    "website_sync",
+  ]);
   const testMut = useMutation({
     mutationFn: (key: TestableKey) =>
       testFn({ data: { organizationId: activeOrgId!, key } }),
@@ -128,6 +137,7 @@ function IntegrationsPage() {
                           testMut.mutate(r.key as TestableKey)
                         }
                         testResult={testResult[r.key] ?? null}
+                        onDetails={() => setDetailRow(r)}
                       />
                     ))}
                   </div>
@@ -140,6 +150,13 @@ function IntegrationsPage() {
             </Section>
           </>
         )}
+
+        <IntegrationDetailDrawer
+          organizationId={activeOrgId ?? null}
+          row={detailRow}
+          open={!!detailRow}
+          onOpenChange={(v) => { if (!v) setDetailRow(null); }}
+        />
       </PageBody>
     </div>
   );
@@ -196,12 +213,14 @@ function IntegrationCard({
   onMetaConnect,
   onTest,
   testResult,
+  onDetails,
 }: {
   row: IntegrationRow;
   busy: boolean;
   onMetaConnect: () => void;
   onTest: () => void;
   testResult: TestConnectionResult | null;
+  onDetails: () => void;
 }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card/50 px-5 py-4">
@@ -263,6 +282,12 @@ function IntegrationCard({
       ) : null}
 
       <div className="mt-3 flex items-center justify-end gap-2">
+        <button
+          onClick={onDetails}
+          className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60"
+        >
+          Details
+        </button>
         {row.testable ? (
           <button
             disabled={busy}
