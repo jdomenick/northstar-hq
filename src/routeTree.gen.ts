@@ -51,6 +51,8 @@ import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/p
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
 import { Route as AuthenticatedSettingsIntegrationsConnectionIdRouteImport } from './routes/_authenticated/settings.integrations.$connectionId'
 import { Route as AuthenticatedSamMissionsIdRouteImport } from './routes/_authenticated/sam.missions.$id'
+import { Route as AuthenticatedSamIntegrationsWebhooksRouteImport } from './routes/_authenticated/sam.integrations.webhooks'
+import { Route as AuthenticatedSamIntegrationsRestEndpointsRouteImport } from './routes/_authenticated/sam.integrations.rest-endpoints'
 import { Route as AuthenticatedSamContentLibraryRouteImport } from './routes/_authenticated/sam.content.library'
 import { Route as AuthenticatedSamContentCalendarRouteImport } from './routes/_authenticated/sam.content.calendar'
 import { Route as AuthenticatedLabsVenturesIdRouteImport } from './routes/_authenticated/labs.ventures.$id'
@@ -294,6 +296,18 @@ const AuthenticatedSamMissionsIdRoute =
     path: '/sam/missions/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSamIntegrationsWebhooksRoute =
+  AuthenticatedSamIntegrationsWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedSamIntegrationsRoute,
+  } as any)
+const AuthenticatedSamIntegrationsRestEndpointsRoute =
+  AuthenticatedSamIntegrationsRestEndpointsRouteImport.update({
+    id: '/rest-endpoints',
+    path: '/rest-endpoints',
+    getParentRoute: () => AuthenticatedSamIntegrationsRoute,
+  } as any)
 const AuthenticatedSamContentLibraryRoute =
   AuthenticatedSamContentLibraryRouteImport.update({
     id: '/library',
@@ -416,7 +430,7 @@ export interface FileRoutesByFullPath {
   '/labs/ventures': typeof AuthenticatedLabsVenturesRouteWithChildren
   '/sam/content': typeof AuthenticatedSamContentRouteWithChildren
   '/sam/control': typeof AuthenticatedSamControlRoute
-  '/sam/integrations': typeof AuthenticatedSamIntegrationsRoute
+  '/sam/integrations': typeof AuthenticatedSamIntegrationsRouteWithChildren
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
@@ -431,6 +445,8 @@ export interface FileRoutesByFullPath {
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/sam/integrations/rest-endpoints': typeof AuthenticatedSamIntegrationsRestEndpointsRoute
+  '/sam/integrations/webhooks': typeof AuthenticatedSamIntegrationsWebhooksRoute
   '/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
@@ -474,7 +490,7 @@ export interface FileRoutesByTo {
   '/labs/ventures': typeof AuthenticatedLabsVenturesRouteWithChildren
   '/sam/content': typeof AuthenticatedSamContentRouteWithChildren
   '/sam/control': typeof AuthenticatedSamControlRoute
-  '/sam/integrations': typeof AuthenticatedSamIntegrationsRoute
+  '/sam/integrations': typeof AuthenticatedSamIntegrationsRouteWithChildren
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
@@ -489,6 +505,8 @@ export interface FileRoutesByTo {
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/sam/integrations/rest-endpoints': typeof AuthenticatedSamIntegrationsRestEndpointsRoute
+  '/sam/integrations/webhooks': typeof AuthenticatedSamIntegrationsWebhooksRoute
   '/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
@@ -534,7 +552,7 @@ export interface FileRoutesById {
   '/_authenticated/labs/ventures': typeof AuthenticatedLabsVenturesRouteWithChildren
   '/_authenticated/sam/content': typeof AuthenticatedSamContentRouteWithChildren
   '/_authenticated/sam/control': typeof AuthenticatedSamControlRoute
-  '/_authenticated/sam/integrations': typeof AuthenticatedSamIntegrationsRoute
+  '/_authenticated/sam/integrations': typeof AuthenticatedSamIntegrationsRouteWithChildren
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
@@ -549,6 +567,8 @@ export interface FileRoutesById {
   '/_authenticated/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/_authenticated/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/_authenticated/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
+  '/_authenticated/sam/integrations/rest-endpoints': typeof AuthenticatedSamIntegrationsRestEndpointsRoute
+  '/_authenticated/sam/integrations/webhooks': typeof AuthenticatedSamIntegrationsWebhooksRoute
   '/_authenticated/sam/missions/$id': typeof AuthenticatedSamMissionsIdRoute
   '/_authenticated/settings/integrations/$connectionId': typeof AuthenticatedSettingsIntegrationsConnectionIdRoute
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
@@ -609,6 +629,8 @@ export interface FileRouteTypes {
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
+    | '/sam/integrations/rest-endpoints'
+    | '/sam/integrations/webhooks'
     | '/sam/missions/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
@@ -667,6 +689,8 @@ export interface FileRouteTypes {
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
+    | '/sam/integrations/rest-endpoints'
+    | '/sam/integrations/webhooks'
     | '/sam/missions/$id'
     | '/settings/integrations/$connectionId'
     | '/settings/integrations/new'
@@ -726,6 +750,8 @@ export interface FileRouteTypes {
     | '/_authenticated/labs/ventures/$id'
     | '/_authenticated/sam/content/calendar'
     | '/_authenticated/sam/content/library'
+    | '/_authenticated/sam/integrations/rest-endpoints'
+    | '/_authenticated/sam/integrations/webhooks'
     | '/_authenticated/sam/missions/$id'
     | '/_authenticated/settings/integrations/$connectionId'
     | '/_authenticated/settings/integrations/new'
@@ -1050,6 +1076,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSamMissionsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sam/integrations/webhooks': {
+      id: '/_authenticated/sam/integrations/webhooks'
+      path: '/webhooks'
+      fullPath: '/sam/integrations/webhooks'
+      preLoaderRoute: typeof AuthenticatedSamIntegrationsWebhooksRouteImport
+      parentRoute: typeof AuthenticatedSamIntegrationsRoute
+    }
+    '/_authenticated/sam/integrations/rest-endpoints': {
+      id: '/_authenticated/sam/integrations/rest-endpoints'
+      path: '/rest-endpoints'
+      fullPath: '/sam/integrations/rest-endpoints'
+      preLoaderRoute: typeof AuthenticatedSamIntegrationsRestEndpointsRouteImport
+      parentRoute: typeof AuthenticatedSamIntegrationsRoute
+    }
     '/_authenticated/sam/content/library': {
       id: '/_authenticated/sam/content/library'
       path: '/library'
@@ -1295,6 +1335,24 @@ const AuthenticatedSamContentRouteWithChildren =
     AuthenticatedSamContentRouteChildren,
   )
 
+interface AuthenticatedSamIntegrationsRouteChildren {
+  AuthenticatedSamIntegrationsRestEndpointsRoute: typeof AuthenticatedSamIntegrationsRestEndpointsRoute
+  AuthenticatedSamIntegrationsWebhooksRoute: typeof AuthenticatedSamIntegrationsWebhooksRoute
+}
+
+const AuthenticatedSamIntegrationsRouteChildren: AuthenticatedSamIntegrationsRouteChildren =
+  {
+    AuthenticatedSamIntegrationsRestEndpointsRoute:
+      AuthenticatedSamIntegrationsRestEndpointsRoute,
+    AuthenticatedSamIntegrationsWebhooksRoute:
+      AuthenticatedSamIntegrationsWebhooksRoute,
+  }
+
+const AuthenticatedSamIntegrationsRouteWithChildren =
+  AuthenticatedSamIntegrationsRoute._addFileChildren(
+    AuthenticatedSamIntegrationsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
   AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRoute
@@ -1320,7 +1378,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsVenturesRoute: typeof AuthenticatedLabsVenturesRouteWithChildren
   AuthenticatedSamContentRoute: typeof AuthenticatedSamContentRouteWithChildren
   AuthenticatedSamControlRoute: typeof AuthenticatedSamControlRoute
-  AuthenticatedSamIntegrationsRoute: typeof AuthenticatedSamIntegrationsRoute
+  AuthenticatedSamIntegrationsRoute: typeof AuthenticatedSamIntegrationsRouteWithChildren
   AuthenticatedSamMemoryRoute: typeof AuthenticatedSamMemoryRoute
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
@@ -1353,7 +1411,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsVenturesRoute: AuthenticatedLabsVenturesRouteWithChildren,
   AuthenticatedSamContentRoute: AuthenticatedSamContentRouteWithChildren,
   AuthenticatedSamControlRoute: AuthenticatedSamControlRoute,
-  AuthenticatedSamIntegrationsRoute: AuthenticatedSamIntegrationsRoute,
+  AuthenticatedSamIntegrationsRoute:
+    AuthenticatedSamIntegrationsRouteWithChildren,
   AuthenticatedSamMemoryRoute: AuthenticatedSamMemoryRoute,
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,

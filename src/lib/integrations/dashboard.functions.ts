@@ -1,25 +1,38 @@
 // Unified Integrations dashboard aggregator.
 //
-// Server-only. Returns one truthful row per integration used by SAM.
-// Never fabricates status; every field is sourced from real config,
-// real Supabase rows, or a live provider probe.
-//
-// Categories: publishing, sam, workspace, knowledge, roadmap.
+// Server-only. Iterates INTEGRATION_PROVIDERS and dispatches to a truthful
+// probe. Never fabricates status; every field is sourced from real config,
+// live provider calls, or real database rows.
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  INTEGRATION_PROVIDERS,
+  getProvider,
+  type IntegrationCategory,
+  type ProviderDefinition,
+} from "./providers";
+import {
+  probeBeehiiv,
+  probeLinkedIn,
+  probeMeta,
+  probeEnvOnly,
+  probeStripe,
+  probeSupabaseSelf,
+  probeSamMcp,
+  probeWebsiteSources,
+  probeWebhooks,
+  probeRestEndpoints,
+  type ProbeResult,
+  type ProviderStatus,
+} from "./probes.server";
 
 type Supa = SupabaseClient<Database>;
 
-export type IntegrationStatus =
-  | "connected"          // live, reachable, publishing-ready
-  | "action_needed"      // configured but blocked (armed=false, missing scope, etc.)
-  | "not_connected"      // adapter exists, no credentials
-  | "not_built"          // adapter not implemented yet
-  | "unknown";           // probe failed
+export type IntegrationStatus = ProviderStatus;
 
 export type IntegrationAction =
   | { kind: "none" }
@@ -31,7 +44,7 @@ export type IntegrationAction =
 export interface IntegrationRow {
   key: string;
   label: string;
-  category: "publishing" | "sam" | "workspace" | "knowledge" | "roadmap";
+  category: IntegrationCategory;
   status: IntegrationStatus;
   headline: string;
   detail: string;
@@ -45,296 +58,53 @@ export interface IntegrationRow {
   adapterVersion: string | null;
   action: IntegrationAction;
   testable: boolean;
+  description: string;
+  docsUrl: string | null;
+  externalStep: string | null;
+  approvalRequired: boolean;
+  declaredCapabilities: string[];
 }
 
 const Input = z.object({ organizationId: z.string().uuid() });
 
-async function lastPublicationFor(
-  supabase: Supa,
-  organizationId: string,
-  platform: string,
-): Promise<{ lastActivityAt: string | null; lastErrorAt: string | null; lastErrorMessage: string | null }> {
-  // Most recent successful attempt.
-  const { data: ok } = await supabase
-    .from("social_publication_attempts")
-    .select("completed_at, status")
-    .eq("organization_id", organizationId)
-    .eq("platform", platform)
-    .in("status", ["published", "scheduled", "verified"])
-    .order("completed_at", { ascending: false })
-    .limit(1);
-  const { data: err } = await supabase
-    .from("social_publication_attempts")
-    .select("completed_at, error_code, response_summary, status")
-    .eq("organization_id", organizationId)
-    .eq("platform", platform)
-    .eq("status", "failed")
-    .order("completed_at", { ascending: false })
-    .limit(1);
-  const errRow = err?.[0];
-  let errorMsg: string | null = null;
-  if (errRow) {
-    const summary = errRow.response_summary as { message?: string } | null;
-    errorMsg = summary?.message ?? errRow.error_code ?? "Publication failed";
+function actionFor(def: ProviderDefinition, probe: ProbeResult): IntegrationAction {
+  if (def.key === "facebook" || def.key === "instagram") {
+    return { kind: "start_meta_oauth" };
   }
-  return {
-    lastActivityAt: ok?.[0]?.completed_at ?? null,
-    lastErrorAt: errRow?.completed_at ?? null,
-    lastErrorMessage: errorMsg,
-  };
+  if (def.managePath) {
+    return { kind: "manage_link", href: def.managePath, label: "Manage" };
+  }
+  if (probe.testable) return { kind: "test", supported: true };
+  if (probe.status === "awaiting_credentials" || probe.status === "awaiting_oauth_configuration") {
+    return {
+      kind: "ask_lovable",
+      message: def.externalStep ?? "Ask Lovable to configure this integration.",
+    };
+  }
+  return { kind: "none" };
 }
 
-export const listIntegrationsDashboard = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((v: unknown) => Input.parse(v))
-  .handler(async ({ data, context }): Promise<IntegrationRow[]> => {
-    const rows: IntegrationRow[] = [];
-    const orgId = data.organizationId;
+async function probeFor(def: ProviderDefinition, supabase: Supa, orgId: string): Promise<ProbeResult> {
+  switch (def.key) {
+    case "beehiiv": return probeBeehiiv(supabase, orgId);
+    case "linkedin": return probeLinkedIn(supabase, orgId);
+    case "facebook": return probeMeta(supabase, orgId, "facebook_page");
+    case "instagram": return probeMeta(supabase, orgId, "instagram_business");
+    case "stripe": return probeStripe();
+    case "supabase_self": return probeSupabaseSelf();
+    case "sam_mcp": return probeSamMcp(supabase, orgId);
+    case "website_sync": return probeWebsiteSources(supabase, orgId);
+    case "webhooks": return probeWebhooks(supabase, orgId);
+    case "rest_endpoints": return probeRestEndpoints(supabase, orgId);
+    default: return probeEnvOnly(def);
+  }
+}
 
-    // ---- Beehiiv ------------------------------------------------------
-    try {
-      const { validateBeehiivCredentials } = await import("@/lib/social/providers/beehiiv");
-      const b = await validateBeehiivCredentials();
-      const activity = await lastPublicationFor(context.supabase as Supa, orgId, "beehiiv");
-      let status: IntegrationStatus = "not_connected";
-      if (!b.configured) status = "not_connected";
-      else if (!b.reachable) status = "action_needed";
-      else if (!b.armed) status = "action_needed";
-      else status = "connected";
-      rows.push({
-        key: "beehiiv",
-        label: "Beehiiv",
-        category: "publishing",
-        status,
-        headline: !b.configured
-          ? "Credentials not configured"
-          : !b.reachable
-            ? "Credentials configured but not responding"
-            : !b.armed
-              ? "Reachable. Publishing disarmed."
-              : "Live and armed",
-        detail: b.message,
-        identity: b.publicationName,
-        armed: b.configured ? b.armed : null,
-        lastActivityAt: activity.lastActivityAt,
-        lastActivityLabel: activity.lastActivityAt ? "Last publish" : null,
-        lastErrorAt: activity.lastErrorAt,
-        lastErrorMessage: activity.lastErrorMessage,
-        capabilities: { granted: b.grantedCapabilities, missing: b.missingCapabilities },
-        adapterVersion: "beehiiv.v0.2.0",
-        action: b.configured ? { kind: "test", supported: true } : { kind: "ask_lovable", message: "Ask Lovable to add BEEHIIV_API_KEY and BEEHIIV_PUBLICATION_ID." },
-        testable: b.configured,
-      });
-    } catch (err) {
-      rows.push(unknownRow("beehiiv", "Beehiiv", "publishing", (err as Error).message));
-    }
-
-    // ---- LinkedIn -----------------------------------------------------
-    try {
-      const { validateLinkedInCredentials } = await import("@/lib/social/providers/linkedin");
-      const l = await validateLinkedInCredentials();
-      const activity = await lastPublicationFor(context.supabase as Supa, orgId, "linkedin");
-      let status: IntegrationStatus = "not_connected";
-      if (!l.configured) status = "not_connected";
-      else if (!l.reachable) status = "action_needed";
-      else if (!l.armed) status = "action_needed";
-      else status = "connected";
-      rows.push({
-        key: "linkedin",
-        label: "LinkedIn",
-        category: "publishing",
-        status,
-        headline: !l.configured
-          ? "Not connected"
-          : !l.reachable
-            ? "Connected but not responding"
-            : !l.armed
-              ? "Connected. Publishing disarmed."
-              : "Live and armed",
-        detail: l.message,
-        identity: l.displayName ?? l.email,
-        armed: l.configured ? l.armed : null,
-        lastActivityAt: activity.lastActivityAt,
-        lastActivityLabel: activity.lastActivityAt ? "Last publish" : null,
-        lastErrorAt: activity.lastErrorAt,
-        lastErrorMessage: activity.lastErrorMessage,
-        capabilities: { granted: l.grantedCapabilities, missing: l.missingCapabilities },
-        adapterVersion: "linkedin.v0.1.0",
-        action: l.configured
-          ? { kind: "test", supported: true }
-          : { kind: "ask_lovable", message: "Ask Lovable to connect the LinkedIn connector for this project." },
-        testable: l.configured,
-      });
-    } catch (err) {
-      rows.push(unknownRow("linkedin", "LinkedIn", "publishing", (err as Error).message));
-    }
-
-    // ---- Meta (Facebook / Instagram) ---------------------------------
-    try {
-      const { readMetaConfigStatus } = await import("@/lib/social/providers/meta/config.server");
-      const cfg = readMetaConfigStatus();
-      const { data: dests } = await context.supabase
-        .from("meta_destinations")
-        .select("kind, display_name, publish_available, last_capability_reason")
-        .eq("organization_id", orgId);
-      const fb = (dests ?? []).filter((d) => d.kind === "facebook_page");
-      const ig = (dests ?? []).filter((d) => d.kind === "instagram_business");
-      for (const [key, label, list] of [
-        ["facebook", "Facebook Page", fb] as const,
-        ["instagram", "Instagram Business", ig] as const,
-      ]) {
-        const anyPubReady = list.some((d) => d.publish_available);
-        const activity = await lastPublicationFor(context.supabase as Supa, orgId, key);
-        const status: IntegrationStatus = !cfg.configured
-          ? "action_needed"
-          : list.length === 0
-            ? "not_connected"
-            : anyPubReady
-              ? "connected"
-              : "action_needed";
-        rows.push({
-          key,
-          label,
-          category: "publishing",
-          status,
-          headline: !cfg.configured
-            ? "Meta app credentials required"
-            : list.length === 0
-              ? "Awaiting account connection"
-              : anyPubReady
-                ? `Connected: ${list.map((d) => d.display_name).join(", ")}`
-                : "Connected but missing publish permission",
-          detail: !cfg.configured
-            ? `Missing: ${cfg.missing.join(", ")}`
-            : list.length === 0
-              ? "Start Meta OAuth to connect a Page or IG Business account."
-              : list.map((d) => d.last_capability_reason).filter(Boolean).join(" - ") || "Ready.",
-          identity: list.map((d) => d.display_name).join(", ") || null,
-          armed: cfg.configured && anyPubReady,
-          lastActivityAt: activity.lastActivityAt,
-          lastActivityLabel: activity.lastActivityAt ? "Last publish" : null,
-          lastErrorAt: activity.lastErrorAt,
-          lastErrorMessage: activity.lastErrorMessage,
-          capabilities: { granted: [], missing: !cfg.configured ? cfg.missing : [] },
-          adapterVersion: `${key}.v0.1.0-framework`,
-          action: cfg.configured
-            ? { kind: "start_meta_oauth" }
-            : { kind: "ask_lovable", message: "Ask Lovable to add Meta app credentials (App ID and Secret)." },
-          testable: false,
-        });
-      }
-    } catch (err) {
-      rows.push(unknownRow("facebook", "Facebook Page", "publishing", (err as Error).message));
-      rows.push(unknownRow("instagram", "Instagram Business", "publishing", (err as Error).message));
-    }
-
-    // ---- Not-yet-built social ----------------------------------------
-    for (const p of [
-      { key: "x", label: "X" },
-      { key: "reddit", label: "Reddit" },
-    ] as const) {
-      rows.push({
-        key: p.key,
-        label: p.label,
-        category: "roadmap",
-        status: "not_built",
-        headline: "Not implemented yet",
-        detail: `${p.label} publishing is on the roadmap. No credentials collected, no publish path armed.`,
-        identity: null,
-        armed: null,
-        lastActivityAt: null,
-        lastActivityLabel: null,
-        lastErrorAt: null,
-        lastErrorMessage: null,
-        capabilities: { granted: [], missing: [] },
-        adapterVersion: null,
-        action: { kind: "none" },
-        testable: false,
-      });
-    }
-
-    // ---- SAM MCP ------------------------------------------------------
-    try {
-      const { data: mcp } = await context.supabase
-        .from("sam_mcp_connections")
-        .select("status, server_url, last_connected_at, last_error, last_error_at")
-        .eq("organization_id", orgId)
-        .order("updated_at", { ascending: false })
-        .limit(1);
-      const m = mcp?.[0] as
-        | { status?: string; server_url?: string; last_connected_at?: string | null; last_error?: string | null; last_error_at?: string | null }
-        | undefined;
-      const status: IntegrationStatus = !m
-        ? "not_connected"
-        : m.status === "connected"
-          ? "connected"
-          : m.status === "error"
-            ? "action_needed"
-            : "not_connected";
-      rows.push({
-        key: "sam_mcp",
-        label: "SAM MCP Server",
-        category: "sam",
-        status,
-        headline: !m ? "Not connected" : m.status === "connected" ? "Connected" : m.status === "error" ? "Error" : "Configured",
-        detail: m?.server_url ?? "Connect a SAM MCP server URL and API key.",
-        identity: m?.server_url ?? null,
-        armed: null,
-        lastActivityAt: m?.last_connected_at ?? null,
-        lastActivityLabel: m?.last_connected_at ? "Last connected" : null,
-        lastErrorAt: m?.last_error_at ?? null,
-        lastErrorMessage: m?.last_error ?? null,
-        capabilities: { granted: [], missing: [] },
-        adapterVersion: "sam-mcp.v1",
-        action: { kind: "manage_link", href: "/sam/integrations#sam-mcp", label: "Manage" },
-        testable: false,
-      });
-    } catch {
-      // ignore; table may be empty
-    }
-
-    // ---- Website / knowledge ingestion -------------------------------
-    try {
-      const { count: siteCount } = await context.supabase
-        .from("integration_connections")
-        .select("id", { count: "exact", head: true })
-        .eq("organization_id", orgId)
-        .eq("status", "active");
-      rows.push({
-        key: "website",
-        label: "Website & Knowledge Sources",
-        category: "knowledge",
-        status: (siteCount ?? 0) > 0 ? "connected" : "not_connected",
-        headline: (siteCount ?? 0) > 0 ? `${siteCount} active source${siteCount === 1 ? "" : "s"}` : "No sources configured",
-        detail: "Websites, sitemaps, APIs, and files SAM ingests as knowledge.",
-        identity: null,
-        armed: null,
-        lastActivityAt: null,
-        lastActivityLabel: null,
-        lastErrorAt: null,
-        lastErrorMessage: null,
-        capabilities: { granted: [], missing: [] },
-        adapterVersion: "ingest.v1",
-        action: { kind: "manage_link", href: "/settings/integrations", label: "Manage sources" },
-        testable: false,
-      });
-    } catch {
-      // ignore
-    }
-
-    return rows;
-  });
-
-function unknownRow(
-  key: string,
-  label: string,
-  category: IntegrationRow["category"],
-  msg: string,
-): IntegrationRow {
+function unknownRow(def: ProviderDefinition, msg: string): IntegrationRow {
   return {
-    key,
-    label,
-    category,
+    key: def.key,
+    label: def.label,
+    category: def.category,
     status: "unknown",
     headline: "Status check failed",
     detail: msg,
@@ -348,7 +118,170 @@ function unknownRow(
     adapterVersion: null,
     action: { kind: "none" },
     testable: false,
+    description: def.description,
+    docsUrl: def.docsUrl ?? null,
+    externalStep: def.externalStep ?? null,
+    approvalRequired: def.approvalRequired ?? false,
+    declaredCapabilities: def.capabilities,
   };
+}
+
+export const listIntegrationsDashboard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => Input.parse(v))
+  .handler(async ({ data, context }): Promise<IntegrationRow[]> => {
+    const supabase = context.supabase as Supa;
+    const orgId = data.organizationId;
+    const rows = await Promise.all(
+      INTEGRATION_PROVIDERS.map(async (def) => {
+        try {
+          const p = await probeFor(def, supabase, orgId);
+          return {
+            key: def.key,
+            label: def.label,
+            category: def.category,
+            status: p.status,
+            headline: p.headline,
+            detail: p.detail,
+            identity: p.identity,
+            armed: p.armed,
+            lastActivityAt: p.lastActivityAt,
+            lastActivityLabel: p.lastActivityLabel,
+            lastErrorAt: p.lastErrorAt,
+            lastErrorMessage: p.lastErrorMessage,
+            capabilities: { granted: p.grantedCapabilities, missing: p.missingCapabilities },
+            adapterVersion: p.adapterVersion,
+            action: actionFor(def, p),
+            testable: p.testable,
+            description: def.description,
+            docsUrl: def.docsUrl ?? null,
+            externalStep: def.externalStep ?? null,
+            approvalRequired: def.approvalRequired ?? false,
+            declaredCapabilities: def.capabilities,
+          } satisfies IntegrationRow;
+        } catch (err) {
+          return unknownRow(def, (err as Error).message);
+        }
+      }),
+    );
+    return rows;
+  });
+
+// -----------------------------------------------------------------------
+// Detail: same as row + activity log (last 20 events across the platform)
+// -----------------------------------------------------------------------
+const DetailInput = z.object({ organizationId: z.string().uuid(), key: z.string().min(1) });
+
+export interface ActivityEvent {
+  at: string;
+  kind: string;
+  outcome: "success" | "error" | "info";
+  message: string;
+}
+
+export interface IntegrationDetail {
+  row: IntegrationRow;
+  activity: ActivityEvent[];
+  requiredEnv: string[];
+  optionalEnv: string[];
+  requiredScopes: string[];
+  approvalStatus: string | null;
+}
+
+export const getIntegrationDetail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => DetailInput.parse(v))
+  .handler(async ({ data, context }): Promise<IntegrationDetail | null> => {
+    const def = getProvider(data.key);
+    if (!def) return null;
+    const supabase = context.supabase as Supa;
+    const orgId = data.organizationId;
+    let probe: ProbeResult;
+    try {
+      probe = await probeFor(def, supabase, orgId);
+    } catch (err) {
+      return { row: unknownRow(def, (err as Error).message), activity: [], requiredEnv: def.requiredEnv ?? [], optionalEnv: def.optionalEnv ?? [], requiredScopes: def.requiredScopes ?? [], approvalStatus: def.approvalStatus ?? null };
+    }
+    const row: IntegrationRow = {
+      key: def.key,
+      label: def.label,
+      category: def.category,
+      status: probe.status,
+      headline: probe.headline,
+      detail: probe.detail,
+      identity: probe.identity,
+      armed: probe.armed,
+      lastActivityAt: probe.lastActivityAt,
+      lastActivityLabel: probe.lastActivityLabel,
+      lastErrorAt: probe.lastErrorAt,
+      lastErrorMessage: probe.lastErrorMessage,
+      capabilities: { granted: probe.grantedCapabilities, missing: probe.missingCapabilities },
+      adapterVersion: probe.adapterVersion,
+      action: actionFor(def, probe),
+      testable: probe.testable,
+      description: def.description,
+      docsUrl: def.docsUrl ?? null,
+      externalStep: def.externalStep ?? null,
+      approvalRequired: def.approvalRequired ?? false,
+      declaredCapabilities: def.capabilities,
+    };
+    const activity = await loadActivity(supabase, orgId, def);
+    return {
+      row,
+      activity,
+      requiredEnv: def.requiredEnv ?? [],
+      optionalEnv: def.optionalEnv ?? [],
+      requiredScopes: def.requiredScopes ?? [],
+      approvalStatus: def.approvalStatus ?? null,
+    };
+  });
+
+async function loadActivity(
+  supabase: Supa,
+  orgId: string,
+  def: ProviderDefinition,
+): Promise<ActivityEvent[]> {
+  // Publishing providers: read from social_publication_attempts.
+  if (["beehiiv", "linkedin", "facebook", "instagram", "x", "reddit"].includes(def.key)) {
+    const platform = def.key;
+    const { data } = await supabase
+      .from("social_publication_attempts")
+      .select("completed_at, status, error_code, response_summary, external_post_id")
+      .eq("organization_id", orgId)
+      .eq("platform", platform)
+      .order("completed_at", { ascending: false })
+      .limit(20);
+    return (data ?? []).map((r) => {
+      const summary = r.response_summary as { message?: string } | null;
+      const outcome: ActivityEvent["outcome"] =
+        r.status === "published" || r.status === "verified" || r.status === "scheduled"
+          ? "success"
+          : r.status === "failed"
+            ? "error"
+            : "info";
+      return {
+        at: r.completed_at ?? new Date().toISOString(),
+        kind: r.status ?? "attempt",
+        outcome,
+        message: summary?.message ?? r.error_code ?? (r.external_post_id ? `Post ${r.external_post_id}` : "publish attempt"),
+      };
+    });
+  }
+  if (def.key === "webhooks") {
+    const { data } = await supabase
+      .from("integration_webhook_deliveries")
+      .select("delivered_at, event_type, status_code, error")
+      .eq("organization_id", orgId)
+      .order("delivered_at", { ascending: false })
+      .limit(20);
+    return (data ?? []).map((r) => ({
+      at: r.delivered_at ?? new Date().toISOString(),
+      kind: r.event_type ?? "delivery",
+      outcome: r.error || (r.status_code && r.status_code >= 400) ? "error" : "success",
+      message: r.error ?? `HTTP ${r.status_code ?? "?"}`,
+    }));
+  }
+  return [];
 }
 
 // -----------------------------------------------------------------------
@@ -357,7 +290,7 @@ function unknownRow(
 
 const TestInput = z.object({
   organizationId: z.string().uuid(),
-  key: z.enum(["beehiiv", "linkedin"]),
+  key: z.enum(["beehiiv", "linkedin", "stripe", "supabase_self"]),
 });
 
 export interface TestConnectionResult {
@@ -388,15 +321,39 @@ export const testIntegrationConnection = createServerFn({ method: "POST" })
         latencyMs: Date.now() - t0,
       };
     }
-    const { validateLinkedInCredentials } = await import("@/lib/social/providers/linkedin");
-    const l = await validateLinkedInCredentials();
+    if (data.key === "linkedin") {
+      const { validateLinkedInCredentials } = await import("@/lib/social/providers/linkedin");
+      const l = await validateLinkedInCredentials();
+      return {
+        key: "linkedin",
+        ok: l.configured && l.reachable,
+        reachable: l.reachable,
+        headline: l.reachable ? "LinkedIn reachable" : "LinkedIn not reachable",
+        detail: l.message,
+        identity: l.displayName ?? l.email,
+        latencyMs: Date.now() - t0,
+      };
+    }
+    if (data.key === "stripe") {
+      const p = await probeStripe();
+      return {
+        key: "stripe",
+        ok: p.status === "connected",
+        reachable: p.status !== "awaiting_credentials",
+        headline: p.headline,
+        detail: p.detail,
+        identity: p.identity,
+        latencyMs: Date.now() - t0,
+      };
+    }
+    const p = probeSupabaseSelf();
     return {
-      key: "linkedin",
-      ok: l.configured && l.reachable,
-      reachable: l.reachable,
-      headline: l.reachable ? "LinkedIn reachable" : "LinkedIn not reachable",
-      detail: l.message,
-      identity: l.displayName ?? l.email,
+      key: "supabase_self",
+      ok: p.status === "connected",
+      reachable: p.status === "connected",
+      headline: p.headline,
+      detail: p.detail,
+      identity: p.identity,
       latencyMs: Date.now() - t0,
     };
   });

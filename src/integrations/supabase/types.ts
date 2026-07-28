@@ -2840,6 +2840,90 @@ export type Database = {
           },
         ]
       }
+      integration_rest_endpoints: {
+        Row: {
+          auth_config_ciphertext: string | null
+          auth_type: string
+          base_url: string
+          created_at: string
+          created_by: string | null
+          default_headers: Json
+          default_query_params: Json
+          description: string | null
+          enabled: boolean
+          id: string
+          last_error: string | null
+          last_error_at: string | null
+          last_status_code: number | null
+          last_success_at: string | null
+          method: string
+          name: string
+          organization_id: string
+          timeout_ms: number
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          auth_config_ciphertext?: string | null
+          auth_type?: string
+          base_url: string
+          created_at?: string
+          created_by?: string | null
+          default_headers?: Json
+          default_query_params?: Json
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_status_code?: number | null
+          last_success_at?: string | null
+          method?: string
+          name: string
+          organization_id: string
+          timeout_ms?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          auth_config_ciphertext?: string | null
+          auth_type?: string
+          base_url?: string
+          created_at?: string
+          created_by?: string | null
+          default_headers?: Json
+          default_query_params?: Json
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_status_code?: number | null
+          last_success_at?: string | null
+          method?: string
+          name?: string
+          organization_id?: string
+          timeout_ms?: number
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_rest_endpoints_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_rest_endpoints_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_sources: {
         Row: {
           category: string | null
@@ -3028,6 +3112,132 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "integration_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_webhook_deliveries: {
+        Row: {
+          attempt: number
+          delivered_at: string
+          error: string | null
+          event_type: string
+          id: string
+          organization_id: string
+          request_summary: Json
+          response_summary: Json | null
+          status_code: number | null
+          webhook_id: string
+        }
+        Insert: {
+          attempt?: number
+          delivered_at?: string
+          error?: string | null
+          event_type: string
+          id?: string
+          organization_id: string
+          request_summary?: Json
+          response_summary?: Json | null
+          status_code?: number | null
+          webhook_id: string
+        }
+        Update: {
+          attempt?: number
+          delivered_at?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          organization_id?: string
+          request_summary?: Json
+          response_summary?: Json | null
+          status_code?: number | null
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_webhook_deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "integration_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_webhooks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          event_types: string[]
+          id: string
+          last_delivery_at: string | null
+          last_error: string | null
+          last_error_at: string | null
+          last_status_code: number | null
+          name: string
+          organization_id: string
+          secret_ciphertext: string | null
+          target_url: string
+          updated_at: string
+          venture_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          event_types?: string[]
+          id?: string
+          last_delivery_at?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_status_code?: number | null
+          name: string
+          organization_id: string
+          secret_ciphertext?: string | null
+          target_url: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          event_types?: string[]
+          id?: string
+          last_delivery_at?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_status_code?: number | null
+          name?: string
+          organization_id?: string
+          secret_ciphertext?: string | null
+          target_url?: string
+          updated_at?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_webhooks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_webhooks_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
             referencedColumns: ["id"]
           },
         ]
