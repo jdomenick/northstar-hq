@@ -68,14 +68,14 @@ export const upsertWebhook = createServerFn({ method: "POST" })
     const { encryptSecret } = await import("@/lib/crypto/secrets.server");
     const secretCipher = data.secret ? encryptSecret(data.secret) : null;
     if (data.id) {
-      const patch: Record<string, unknown> = {
+      const patch = {
         name: data.name,
         description: data.description ?? null,
         target_url: data.targetUrl,
         event_types: data.eventTypes,
         enabled: data.enabled,
+        ...(data.secret != null ? { secret_ciphertext: secretCipher } : {}),
       };
-      if (data.secret !== undefined && data.secret !== null) patch.secret_ciphertext = secretCipher;
       const { error } = await context.supabase
         .from("integration_webhooks")
         .update(patch)
