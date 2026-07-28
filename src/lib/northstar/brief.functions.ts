@@ -109,9 +109,9 @@ function businessStatusSentence(
   }
 
   // Critical operational blockers come next.
-  if (criticalInsights > 0 || delivery.atRiskProjects > 0 || delivery.overdueCommitments > 0) {
+  if (risk.criticalInsights > 0 || delivery.atRiskProjects > 0 || delivery.overdueCommitments > 0) {
     const parts: string[] = [];
-    if (criticalInsights > 0) parts.push(`${criticalInsights} critical issue${criticalInsights === 1 ? "" : "s"}`);
+    if (risk.criticalInsights > 0) parts.push(`${risk.criticalInsights} critical issue${risk.criticalInsights === 1 ? "" : "s"}`);
     if (delivery.atRiskProjects > 0) parts.push(`${delivery.atRiskProjects} project${delivery.atRiskProjects === 1 ? "" : "s"} at risk`);
     if (delivery.overdueCommitments > 0) parts.push(`${delivery.overdueCommitments} overdue commitment${delivery.overdueCommitments === 1 ? "" : "s"}`);
     return {
