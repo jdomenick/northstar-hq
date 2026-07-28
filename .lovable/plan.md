@@ -1,128 +1,121 @@
-# Integrations Module - Production Foundation
+# NorthStar Labs Proposal Management System
 
-Everything is built so each provider becomes operational the moment credentials arrive - no additional UI work.
+Focused proposal workflow reusing existing data. Parallel to legacy `revenue_proposals` (kept intact for pipeline reporting).
 
-## Architecture (single source of truth)
+## 1. Existing data mapped (verified via psql)
+
+- `revenue_clients` (org, venture, name, status, mrr_cents) - client source of truth
+- `revenue_pipeline` - optional deal linkage
+- `revenue_discovery_briefs` (pain_points, goals, budget_range, decision_makers, questions, research_summary) - populates challenges/assessment
+- `revenue_launch_docs` - populates deliverables/timeline where present
+- `organization_operating_context` + `venture_operating_context` - populates business overview
+- `organizations`, `profiles` - client/prepared-by identities
+- `activity_events` - existing activity stream (org-wide notifications)
+- Role helpers: `has_org_role(_org, _user, _min)`, `is_org_member(_org, _user)`, enum `org_role` (owner/admin/executive/member/viewer)
+- Auth: `requireSupabaseAuth` middleware, bearer attacher already registered
+
+Roles used (existing only):
+- `member` = create/edit drafts, add comments
+- `executive` = submit, approve, return, send, supersede
+- No new roles invented.
+
+## 2. Database (one migration)
+
+New enum `nsl_proposal_status`: draft, internal_review, approved, ready_to_send, sent, viewed, accepted, declined, expired, superseded, cancelled.
+
+Tables (all org-scoped, all with GRANTs to authenticated + service_role, NO anon grants):
+- `nsl_proposals` - spec fields; `public_token_hash` (sha256 hex) + `public_token_expires_at`; no raw token stored
+- `nsl_proposal_versions` - immutable jsonb snapshots
+- `nsl_proposal_activity` - action log
+- `nsl_proposal_signatures` - electronic acceptance evidence (no fake "signed_pdf_url")
+- `nsl_proposal_comments` - internal only
+
+RLS:
+- SELECT: `is_org_member(org, auth.uid())`
+- INSERT/UPDATE drafts: `has_org_role(org, auth.uid(), 'member')`
+- Approve/send/supersede: enforced in server functions via `has_org_role(..., 'executive')` (RLS also allows executive writes)
+- Signatures/activity/versions: server-writes only (RLS restricts INSERT to executive; public routes use `supabaseAdmin` behind token verification)
+
+Guards (triggers):
+- Prevent UPDATE of `nsl_proposals` when `locked_at IS NOT NULL` (except by service_role)
+- Cross-org validation trigger: client_id and pipeline_id must share organization_id
+
+Atomic acceptance RPC `nsl_proposal_accept(token_hash, signer_name, signer_email, acknowledgement, ip, ua)`:
+- Single transaction, security-definer
+- Validates status/expiry/lock, inserts signature (ON CONFLICT on `(proposal_id, signer_email)` = idempotent), updates proposal to accepted+locked, inserts activity, all-or-nothing
+- Returns proposal id + accepted_at (or error code)
+
+## 3. State machine
 
 ```text
-src/lib/integrations/
-  providers.ts          registry: 17 providers, categories, capabilities, external steps
-  probes.server.ts      per-provider status probe (secrets, DB, HTTP)
-  dashboard.functions.ts  iterates registry → IntegrationRow[]
-  actions.functions.ts  connect / disconnect / test / retry / re-auth per provider
-  webhooks.functions.ts CRUD + delivery log for custom outbound webhooks
-  rest-endpoints.functions.ts  CRUD + test for Custom REST endpoints
+draft -> internal_review -> approved -> ready_to_send -> sent
+internal_review -> draft (return with reason)
+sent -> viewed | accepted | declined | expired
+accepted -> [locked terminal]
+* -> superseded | cancelled  (by executive)
 ```
 
-Every provider row returns one of these status values (never fabricated):
-`connected`, `awaiting_credentials`, `awaiting_oauth_configuration`,
-`awaiting_provider_approval`, `ready_to_connect`, `action_needed`,
-`authentication_failed`, `connection_error`, `not_configured`, `unknown`.
+Enforced in server functions via a `transition(from, to)` guard table. Invalid transition returns `invalid_transition` error.
 
-## Providers covered
+## 4. Server functions (`src/lib/proposals/*.functions.ts`)
 
-| Provider | Adapter | External step surfaced when blocked |
-|---|---|---|
-| Beehiiv | live (v0.2) | Awaiting API key / Publication ID |
-| LinkedIn | live (v0.1) | Ask Lovable to connect LinkedIn connector |
-| Facebook Page | live OAuth framework | Meta App ID/Secret + App Review for pages_manage_posts |
-| Instagram Business | live OAuth framework | FB Page linked to IG Business + App Review |
-| X (Twitter) | credential probe | Needs X API v2 OAuth 2.0 client + elevated access |
-| Reddit | credential probe | Needs Reddit script/web app credentials |
-| Google Business Profile | credential probe | Requires Google Cloud OAuth client + Business Profile API allow-list |
-| Google Ads | credential probe | Requires developer token + OAuth client (approval required) |
-| Gmail | App-User Connector shell | Ask Lovable to configure google_mail App User Connector |
-| Google Calendar | App-User Connector shell | Ask Lovable to configure google_calendar App User Connector |
-| Google Drive | App-User Connector shell | Ask Lovable to configure google_drive App User Connector |
-| Stripe | secret probe + live key/publishable key detection | Awaiting `STRIPE_SECRET_KEY` |
-| Supabase (this project) | self-probe | Always shows project ref + auth/db reachability |
-| SAM MCP Servers | existing panel + list rows | Manage from panel |
-| Website Sync | existing `integration_connections` count | Manage sources link |
-| Webhooks (outbound) | new table + CRUD + delivery log | Add endpoint |
-| Custom REST API | new table + CRUD + test | Add endpoint |
+Authenticated:
+- `generateProposal({ clientId, pipelineId? })` - assembles draft from existing data, leaves missing sections blank with sentinel `[Needs input]` markers
+- `listProposals({ status? })`, `getProposal({ id })`
+- `updateProposalDraft` - snapshots version only when hash of content sections changes
+- `submitForReview`, `approveProposal`, `returnProposalToDraft(reason)`, `sendProposal`, `markSuperseded`
+- `addComment`, `listComments`
+- `getProposalMetrics` (counts + sums only; no forecasting)
+- `prepareBillingHandoff(proposalId)` -> `{ status: 'pending_billing_integration', client, totals }` + activity `billing_pending_setup`. No Stripe.
 
-## Database (one migration)
+`sendProposal` returns `{ url, token }`; raw token exists only in response, never stored.
 
-```sql
--- Custom outbound webhooks (from NorthStar → external)
-CREATE TABLE public.integration_webhooks (
-  id uuid PK, organization_id uuid, venture_id uuid NULL,
-  name text NOT NULL, target_url text NOT NULL,
-  secret_ciphertext text NULL, event_types text[] NOT NULL DEFAULT '{}',
-  enabled boolean NOT NULL DEFAULT true,
-  last_delivery_at timestamptz, last_status int, last_error text,
-  created_at, updated_at
-);
+## 5. Public server routes (`src/routes/api/public/proposals/*.ts`)
 
-CREATE TABLE public.integration_webhook_deliveries (
-  id uuid PK, webhook_id uuid, event_type text, status_code int,
-  response_body text, error text, attempt int, delivered_at
-);
+All use `supabaseAdmin` (loaded via `await import` inside handler), verify token hash first, sanitize output (strip internal comments/activity/audit metadata):
+- `POST view` - marks first view only (guard on `viewed_at IS NULL`), idempotent
+- `POST accept` - calls `nsl_proposal_accept` RPC, idempotent by signer_email
+- `POST decline` - sets declined, blocks further acceptance
+- `GET pdf?token=...` - streams PDF
 
--- Reusable Custom REST endpoints (SAM can call these)
-CREATE TABLE public.integration_rest_endpoints (
-  id uuid PK, organization_id uuid, venture_id uuid NULL,
-  name text, base_url text, method text, auth_type text,
-  auth_config_ciphertext text NULL, default_headers jsonb,
-  last_success_at, last_error_at, last_error text,
-  enabled boolean, created_at, updated_at
-);
-```
+CORS: same-origin only (no external callers expected).
 
-All tables get GRANTs + RLS scoped to org members via `has_org_role`.
-Secrets stored encrypted using the same `APP_USER_CONNECTION_KEY_SECRET`
-AES-GCM helper already used for app-user connection keys (extract that
-helper into `src/lib/crypto/secrets.server.ts` for shared use).
+## 6. PDF
 
-## UI
+Server-rendered via `@react-pdf/renderer` (pure JS, Worker-safe). One template with fixed sections, NorthStar wordmark asset, page numbers, cover, and (post-acceptance) evidence page with signer name/email/acknowledgement/timestamp/version/proposal id. No claim of "cryptographic signature" anywhere.
 
-Single page `/sam/integrations` (already exists) becomes the foundation:
+## 7. UI (`/labs/proposals/*`, Executive Precision theme)
 
-1. Groups: Publishing · Communication · Commerce · Data · Automation · SAM · Roadmap
-2. Each card: dot + label + status label + headline + detail + identity + armed + last activity + last error + capability chips + primary action.
-3. Click card → right-side **Detail Drawer**:
-   - Full description, docs link
-   - Capability matrix (read / write / publish / sync / metrics / delete)
-   - Required scopes / permissions with checklist of granted vs missing
-   - Configuration section (env vars, connected accounts, endpoints)
-   - Activity log (last 20 events from `activity_events` or provider-specific table)
-   - Actions: Connect · Test · Retry · Re-authenticate · Disconnect · Copy request URL
-   - "What still needs to happen" (external step, in plain language)
+- `labs.proposals.tsx` - list + compact metrics header
+- `labs.proposals.new.tsx` - client picker (+ optional pipeline) -> Generate
+- `labs.proposals.$id.tsx` - tabbed: Editor (fixed sections, textareas with lightweight markdown) | Preview | Versions | Activity | Comments. Actions: Save, Submit, Approve, Return, Send (shows copyable link once), Copy Link, Download PDF, Supersede. Read-only after `sent_at` / `locked_at`.
+- Public route `src/routes/proposal.$token.tsx` (top-level, unauthenticated) - view, download, accept form (name/email/acknowledgement checkbox), decline. Calls the public API routes.
+- Nav entry added under Labs in `app-shell.tsx`.
 
-Two additional routes:
-- `/sam/integrations/webhooks` - list, add, edit, disable, delivery log per hook
-- `/sam/integrations/rest-endpoints` - list, add, test, edit, delete
+## 8. Activity & notifications
 
-## Server functions (all `requireSupabaseAuth` + org membership check)
+Every mutation writes exactly one `nsl_proposal_activity` row. Also writes a summary row into existing `activity_events` for org-wide feed on: submitted_for_review, approved, sent, first-viewed, accepted, declined, expired. No email infra claimed.
 
-- `listIntegrationsDashboard({ organizationId })` - iterates registry
-- `getIntegrationDetail({ organizationId, key })` - full detail + capability + activity + config
-- `testIntegrationConnection({ organizationId, key })` - already exists for Beehiiv/LinkedIn, extend to X, Reddit, Stripe, Supabase, Custom REST
-- `retryIntegrationConnection({ organizationId, key })` - re-runs probe + clears last_error
-- `reauthenticateIntegration({ organizationId, key })` - returns fresh OAuth URL or the "ask Lovable" instruction
-- `listWebhooks`, `createWebhook`, `updateWebhook`, `deleteWebhook`, `listWebhookDeliveries`, `sendTestWebhook`
-- `listRestEndpoints`, `createRestEndpoint`, `updateRestEndpoint`, `deleteRestEndpoint`, `testRestEndpoint`
+## 9. Verification
 
-## Safety rules enforced everywhere
+- `bun run tsgo` clean
+- `build:dev` green
+- Unit test `src/lib/proposals/proposals.test.mjs` covering: state transitions, idempotent acceptance, cross-org rejection, token expiry, superseded/expired rejection, sanitization of public payload, unauthorized approve/send rejection, billing handoff truthfulness, PDF renders bytes
+- Playwright end-to-end: generate -> edit -> approve -> send -> open public link -> accept -> confirm locked + evidence rendered
 
-- No fabricated `connected` states - status derives from real probes only.
-- No secret values in UI - only redacted names and configured-yes/no.
-- All writes go through `has_org_role(_, member)` policies.
-- Encrypted-at-rest for webhook secrets and REST auth configs.
-- Activity log entries created for every connect / test / retry / disconnect.
+## 10. Files
 
-## Delivery order (one execution)
+- 1 migration (tables, enum, RLS, GRANTs, `nsl_proposal_accept` RPC, lock trigger, scope trigger)
+- ~10 files under `src/lib/proposals/` (functions, pdf renderer, hash util, transitions, sanitizer, activity helper, test)
+- 4 server routes under `src/routes/api/public/proposals/`
+- 4 UI routes + 1 public top-level route + small components
+- `app-shell.tsx` nav edit
 
-1. Migration + GRANTs + RLS + crypto helper extraction.
-2. `providers.ts` registry with all 17 entries.
-3. `probes.server.ts` per-provider probes.
-4. Rewrite `dashboard.functions.ts` to iterate registry.
-5. Add `getIntegrationDetail`, `retryIntegrationConnection`, `reauthenticateIntegration`, webhook + REST server fns.
-6. UI: detail drawer on existing page, two new sub-pages for Webhooks and REST.
-7. Typecheck, build, targeted unit tests on probes and CRUD fns.
+## Explicit non-goals
 
-## Truthful non-completions
+- No Stripe, no fake payment events, no email delivery, no cryptographic/handwritten signatures
+- No CRM, no generic block editor, no drag-and-drop, no forecasting
+- No touch of `revenue_proposals`, existing pipeline reporting, or `_app`-style layouts
+- No new roles or auth helpers
 
-- Facebook/Instagram publish requires Meta App Review for `pages_manage_posts` / `instagram_content_publish` - surfaced as "Awaiting Provider Approval" with the exact scopes required.
-- X, Reddit, Google Business Profile, Google Ads - each requires the customer's own developer account and OAuth client; adapter shells accept credentials but are marked "Awaiting Credentials" until keys arrive.
-- Gmail/Calendar/Drive use App-User Connectors (per-user OAuth) - shells wired for `connector_app_user--connect_client`; UI shows "Ask Lovable to configure App User Connector client".
+Proceed?
