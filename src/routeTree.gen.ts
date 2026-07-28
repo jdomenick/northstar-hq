@@ -47,6 +47,7 @@ import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authen
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
+import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
 import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
@@ -275,6 +276,11 @@ const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
   path: '/api/public/proposals/view',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProposalsPdfRoute = ApiPublicProposalsPdfRouteImport.update({
+  id: '/api/public/proposals/pdf',
+  path: '/api/public/proposals/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicProposalsDeclineRoute =
   ApiPublicProposalsDeclineRouteImport.update({
     id: '/api/public/proposals/decline',
@@ -474,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -537,6 +544,7 @@ export interface FileRoutesByTo {
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -602,6 +610,7 @@ export interface FileRoutesById {
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -667,6 +676,7 @@ export interface FileRouteTypes {
     | '/api/public/automation/tick'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/api/public/automation/tick'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -794,6 +805,7 @@ export interface FileRouteTypes {
     | '/api/public/automation/tick'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -813,6 +825,7 @@ export interface RootRouteChildren {
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
+  ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
   ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
   ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
@@ -1087,6 +1100,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/proposals/view'
       fullPath: '/api/public/proposals/view'
       preLoaderRoute: typeof ApiPublicProposalsViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/pdf': {
+      id: '/api/public/proposals/pdf'
+      path: '/api/public/proposals/pdf'
+      fullPath: '/api/public/proposals/pdf'
+      preLoaderRoute: typeof ApiPublicProposalsPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/proposals/decline': {
@@ -1507,6 +1527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
+  ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
   ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
   ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,

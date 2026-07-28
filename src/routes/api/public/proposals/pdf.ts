@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/proposals/pdf")({
             metadata: { ip: clientIp(request), user_agent: request.headers.get("user-agent") } as never,
           });
 
-          return new Response(bytes, {
+          return new Response(new Blob([bytes as BlobPart], { type: "application/pdf" }), {
             status: 200,
             headers: {
               "content-type": "application/pdf",
