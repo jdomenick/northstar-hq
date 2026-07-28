@@ -46,8 +46,10 @@ import { Route as AuthenticatedLabsKnowledgeRouteImport } from './routes/_authen
 import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authenticated/labs.goals'
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
+import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenticated/labs.billing'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
@@ -273,6 +275,12 @@ const AuthenticatedLabsDecisionsRoute =
     path: '/labs/decisions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsBillingRoute =
+  AuthenticatedLabsBillingRouteImport.update({
+    id: '/labs/billing',
+    path: '/labs/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLabsAccountabilityRoute =
   AuthenticatedLabsAccountabilityRouteImport.update({
     id: '/labs/accountability',
@@ -285,6 +293,11 @@ const AuthenticatedLabsProposalsIndexRoute =
     path: '/labs/proposals/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe/webhook',
+  path: '/api/public/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
   id: '/api/public/proposals/view',
   path: '/api/public/proposals/view',
@@ -466,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
   '/labs/goals': typeof AuthenticatedLabsGoalsRouteWithChildren
@@ -504,6 +518,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -533,6 +548,7 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
   '/labs/goals': typeof AuthenticatedLabsGoalsRouteWithChildren
@@ -571,6 +587,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -602,6 +619,7 @@ export interface FileRoutesById {
   '/auth/reset': typeof AuthResetRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/_authenticated/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
   '/_authenticated/labs/goals': typeof AuthenticatedLabsGoalsRouteWithChildren
@@ -640,6 +658,7 @@ export interface FileRoutesById {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -671,6 +690,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/proposal/$token'
     | '/labs/accountability'
+    | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
     | '/labs/goals'
@@ -709,6 +729,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/api/public/stripe/webhook'
     | '/labs/proposals/'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -738,6 +759,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/proposal/$token'
     | '/labs/accountability'
+    | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
     | '/labs/goals'
@@ -776,6 +798,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/api/public/stripe/webhook'
     | '/labs/proposals'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -806,6 +829,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/proposal/$token'
     | '/_authenticated/labs/accountability'
+    | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
     | '/_authenticated/labs/documents'
     | '/_authenticated/labs/goals'
@@ -844,6 +868,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/api/public/stripe/webhook'
     | '/_authenticated/labs/proposals/'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
@@ -866,6 +891,7 @@ export interface RootRouteChildren {
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
   ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
   ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
   ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
@@ -1134,6 +1160,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsDecisionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labs/billing': {
+      id: '/_authenticated/labs/billing'
+      path: '/labs/billing'
+      fullPath: '/labs/billing'
+      preLoaderRoute: typeof AuthenticatedLabsBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/labs/accountability': {
       id: '/_authenticated/labs/accountability'
       path: '/labs/accountability'
@@ -1147,6 +1180,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/labs/proposals/'
       preLoaderRoute: typeof AuthenticatedLabsProposalsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/stripe/webhook': {
+      id: '/api/public/stripe/webhook'
+      path: '/api/public/stripe/webhook'
+      fullPath: '/api/public/stripe/webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/proposals/view': {
       id: '/api/public/proposals/view'
@@ -1509,6 +1549,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
+  AuthenticatedLabsBillingRoute: typeof AuthenticatedLabsBillingRoute
   AuthenticatedLabsDecisionsRoute: typeof AuthenticatedLabsDecisionsRouteWithChildren
   AuthenticatedLabsDocumentsRoute: typeof AuthenticatedLabsDocumentsRouteWithChildren
   AuthenticatedLabsGoalsRoute: typeof AuthenticatedLabsGoalsRouteWithChildren
@@ -1544,6 +1585,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
+  AuthenticatedLabsBillingRoute: AuthenticatedLabsBillingRoute,
   AuthenticatedLabsDecisionsRoute: AuthenticatedLabsDecisionsRouteWithChildren,
   AuthenticatedLabsDocumentsRoute: AuthenticatedLabsDocumentsRouteWithChildren,
   AuthenticatedLabsGoalsRoute: AuthenticatedLabsGoalsRouteWithChildren,
@@ -1594,6 +1636,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
   ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
   ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
   ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
