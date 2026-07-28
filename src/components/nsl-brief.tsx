@@ -14,10 +14,10 @@ interface Props {
 
 const toneClasses: Record<NslBriefTone, { bg: string; border: string; text: string; badge: string }> = {
   strong: {
-    bg: "bg-[color:var(--success)]/10",
-    border: "border-[color:var(--success)]/25",
-    text: "text-[color:var(--success)]",
-    badge: "bg-[color:var(--success)]/15 text-[color:var(--success)] border-[color:var(--success)]/30",
+    bg: "bg-brand-ok/10",
+    border: "border-brand-ok/25",
+    text: "text-brand-ok",
+    badge: "bg-brand-ok/15 text-brand-ok border-brand-ok/30",
   },
   stable: {
     bg: "bg-primary/8",
@@ -26,23 +26,23 @@ const toneClasses: Record<NslBriefTone, { bg: string; border: string; text: stri
     badge: "bg-primary/10 text-primary border-primary/25",
   },
   attention: {
-    bg: "bg-[color:var(--warning)]/10",
-    border: "border-[color:var(--warning)]/25",
-    text: "text-[color:var(--warning)]",
-    badge: "bg-[color:var(--warning)]/15 text-[color:var(--warning)] border-[color:var(--warning)]/30",
+    bg: "bg-brand-warn/10",
+    border: "border-brand-warn/25",
+    text: "text-brand-warn",
+    badge: "bg-brand-warn/15 text-brand-warn border-brand-warn/30",
   },
   critical: {
-    bg: "bg-destructive/10",
-    border: "border-destructive/25",
-    text: "text-destructive",
-    badge: "bg-destructive/15 text-destructive border-destructive/30",
+    bg: "bg-brand-danger/10",
+    border: "border-brand-danger/25",
+    text: "text-brand-danger",
+    badge: "bg-brand-danger/15 text-brand-danger border-brand-danger/30",
   },
 };
 
 const signalToneClasses: Record<"ok" | "warn" | "danger", { text: string; icon: typeof TrendingUp }> = {
-  ok: { text: "text-[color:var(--success)]", icon: TrendingUp },
-  warn: { text: "text-[color:var(--warning)]", icon: AlertCircle },
-  danger: { text: "text-destructive", icon: ShieldAlert },
+  ok: { text: "text-brand-ok", icon: TrendingUp },
+  warn: { text: "text-brand-warn", icon: AlertCircle },
+  danger: { text: "text-brand-danger", icon: ShieldAlert },
 };
 
 function timeAgo(iso: string) {
