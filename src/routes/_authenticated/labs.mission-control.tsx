@@ -111,7 +111,7 @@ function MissionControl() {
   });
 
   const conns = integrations.data ?? [];
-  const connectedCount = conns.filter((c) => c.status === "connected").length;
+  const connectedCount = conns.filter((c) => c.status === "active").length;
   const erroredConns = conns.filter((c) => c.status === "error");
   const jobs = jobs24h.data ?? [];
   const failedJobs = jobs.filter((j) => j.status === "failed");
@@ -277,7 +277,7 @@ function MissionControl() {
                         ? "No content created yet."
                         : "Nothing scheduled or awaiting approval."
               }
-              link={{ to: "/sam/content-ops", label: "Content Ops" }}
+              link={{ to: "/content-ops", label: "Content Ops" }}
             />
             <ExecCard title="CTO" subtitle="Systems & automation" icon={GitBranch}
               stats={[
