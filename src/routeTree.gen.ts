@@ -46,6 +46,7 @@ import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
+import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
@@ -271,6 +272,12 @@ const AuthenticatedLabsAccountabilityRoute =
     path: '/labs/accountability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsProposalsIndexRoute =
+  AuthenticatedLabsProposalsIndexRouteImport.update({
+    id: '/labs/proposals/',
+    path: '/labs/proposals/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
   id: '/api/public/proposals/view',
   path: '/api/public/proposals/view',
@@ -482,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -546,6 +554,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -612,6 +621,7 @@ export interface FileRoutesById {
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -678,6 +688,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/labs/proposals/'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/labs/proposals'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -807,6 +819,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
     | '/api/public/proposals/view'
+    | '/_authenticated/labs/proposals/'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -1093,6 +1106,13 @@ declare module '@tanstack/react-router' {
       path: '/labs/accountability'
       fullPath: '/labs/accountability'
       preLoaderRoute: typeof AuthenticatedLabsAccountabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/labs/proposals/': {
+      id: '/_authenticated/labs/proposals/'
+      path: '/labs/proposals'
+      fullPath: '/labs/proposals/'
+      preLoaderRoute: typeof AuthenticatedLabsProposalsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/proposals/view': {
@@ -1466,6 +1486,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsCommitmentsIdRoute: typeof AuthenticatedLabsCommitmentsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
+  AuthenticatedLabsProposalsIndexRoute: typeof AuthenticatedLabsProposalsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1500,6 +1521,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsCommitmentsIdRoute: AuthenticatedLabsCommitmentsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
+  AuthenticatedLabsProposalsIndexRoute: AuthenticatedLabsProposalsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
