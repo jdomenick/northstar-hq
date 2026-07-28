@@ -467,26 +467,74 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
 }
 
 export async function probeWebsiteSources(supabase: Supa, orgId: string): Promise<ProbeResult> {
-  const { count } = await supabase
-    .from("integration_connections")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", orgId)
-    .eq("status", "active");
-  const n = count ?? 0;
+  const [sourcesRes, runsRes] = await Promise.all([
+    supabase
+      .from("integration_sources")
+      .select("id, title, source_url, source_type, last_synced_at, sync_enabled, deleted_at")
+      .eq("organization_id", orgId)
+      .is("deleted_at", null)
+      .order("last_synced_at", { ascending: false, nullsFirst: false })
+      .limit(50),
+    supabase
+      .from("integration_sync_runs")
+      .select("id, status, started_at, completed_at, records_discovered, records_created, records_failed, failure_message")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+  const sources = sourcesRes.data ?? [];
+  const runs = runsRes.data ?? [];
+  const enabledSources = sources.filter((s) => s.sync_enabled);
+  const n = enabledSources.length;
+  const lastOk = runs.find((r) => r.status === "succeeded" || r.status === "partial");
+  const lastFail = runs.find((r) => r.status === "failed");
+  const totalDiscovered = runs.reduce((s, r) => s + (r.records_discovered ?? 0), 0);
+  const totalCreated = runs.reduce((s, r) => s + (r.records_created ?? 0), 0);
+  const totalFailed = runs.reduce((s, r) => s + (r.records_failed ?? 0), 0);
+  const status: ProviderStatus = sources.length === 0
+    ? "not_configured"
+    : n === 0
+      ? "action_needed"
+      : "connected";
   return {
-    status: n > 0 ? "connected" : "not_configured",
-    headline: n > 0 ? `${n} active source${n === 1 ? "" : "s"}` : "No sources configured",
-    detail: "Websites, sitemaps, APIs, and files SAM ingests as knowledge.",
+    status,
+    headline: sources.length === 0
+      ? "No sources configured"
+      : `${n} of ${sources.length} enabled - ${totalCreated}/${totalDiscovered} pages indexed`,
+    detail: sources.length === 0
+      ? "Add a website, sitemap, API, or file source for SAM to ingest."
+      : `${runs.length} recent sync runs, ${totalFailed} record failure${totalFailed === 1 ? "" : "s"}.`,
     identity: null,
     armed: n > 0,
     grantedCapabilities: n > 0 ? ["read", "sync"] : [],
     missingCapabilities: [],
-    lastActivityAt: null,
-    lastActivityLabel: null,
-    lastErrorAt: null,
-    lastErrorMessage: null,
+    lastActivityAt: lastOk?.completed_at ?? null,
+    lastActivityLabel: lastOk ? "Last successful sync" : null,
+    lastErrorAt: lastFail?.completed_at ?? null,
+    lastErrorMessage: lastFail?.failure_message ?? null,
     adapterVersion: "ingest.v1",
-    testable: false,
+    testable: sources.length > 0,
+    diagnostics: {
+      kind: "website_sync",
+      sources: sources.map((s) => ({
+        id: s.id,
+        title: s.title,
+        url: s.source_url,
+        sourceType: s.source_type,
+        lastSyncedAt: s.last_synced_at,
+        enabled: s.sync_enabled,
+      })),
+      recentRuns: runs.map((r) => ({
+        id: r.id,
+        status: r.status,
+        startedAt: r.started_at,
+        completedAt: r.completed_at,
+        recordsDiscovered: r.records_discovered ?? 0,
+        recordsCreated: r.records_created ?? 0,
+        recordsFailed: r.records_failed ?? 0,
+        failureMessage: r.failure_message,
+      })),
+    },
   };
 }
 
@@ -524,6 +572,7 @@ export async function probeWebhooks(supabase: Supa, orgId: string): Promise<Prob
     lastErrorMessage: errRow ? last?.error ?? `HTTP ${last?.status_code}` : null,
     adapterVersion: "webhooks.v1",
     testable: false,
+    diagnostics: { kind: "webhooks_summary", total: total ?? 0, enabled: enabled ?? 0 },
   };
 }
 
@@ -567,5 +616,6 @@ export async function probeRestEndpoints(supabase: Supa, orgId: string): Promise
     lastErrorMessage: recentErr?.[0]?.last_error ?? null,
     adapterVersion: "rest.v1",
     testable: false,
+    diagnostics: { kind: "rest_summary", total: total ?? 0, enabled: enabled ?? 0 },
   };
 }
