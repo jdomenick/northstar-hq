@@ -28,6 +28,7 @@ import {
   probeRestEndpoints,
   type ProbeResult,
   type ProviderStatus,
+  type IntegrationDiagnostics,
 } from "./probes.server";
 
 type Supa = SupabaseClient<Database>;
@@ -63,6 +64,7 @@ export interface IntegrationRow {
   externalStep: string | null;
   approvalRequired: boolean;
   declaredCapabilities: string[];
+  diagnostics: IntegrationDiagnostics | null;
 }
 
 const Input = z.object({ organizationId: z.string().uuid() });
@@ -123,6 +125,7 @@ function unknownRow(def: ProviderDefinition, msg: string): IntegrationRow {
     externalStep: def.externalStep ?? null,
     approvalRequired: def.approvalRequired ?? false,
     declaredCapabilities: def.capabilities,
+    diagnostics: null,
   };
 }
 
@@ -158,6 +161,7 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
             externalStep: def.externalStep ?? null,
             approvalRequired: def.approvalRequired ?? false,
             declaredCapabilities: def.capabilities,
+            diagnostics: p.diagnostics ?? null,
           } satisfies IntegrationRow;
         } catch (err) {
           return unknownRow(def, (err as Error).message);
@@ -224,6 +228,7 @@ export const getIntegrationDetail = createServerFn({ method: "POST" })
       externalStep: def.externalStep ?? null,
       approvalRequired: def.approvalRequired ?? false,
       declaredCapabilities: def.capabilities,
+      diagnostics: probe.diagnostics ?? null,
     };
     const activity = await loadActivity(supabase, orgId, def);
     return {
@@ -281,6 +286,45 @@ async function loadActivity(
       message: r.error ?? `HTTP ${r.status_code ?? "?"}`,
     }));
   }
+  if (def.key === "website_sync") {
+    const { data } = await supabase
+      .from("integration_sync_runs")
+      .select("started_at, completed_at, status, trigger_type, records_discovered, records_created, records_failed, failure_message")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    return (data ?? []).map((r) => {
+      const outcome: ActivityEvent["outcome"] =
+        r.status === "succeeded" ? "success"
+        : r.status === "failed" ? "error"
+        : "info";
+      const parts = [
+        r.trigger_type ? `${r.trigger_type} sync` : "sync",
+        `${r.records_created ?? 0}/${r.records_discovered ?? 0} indexed`,
+      ];
+      if ((r.records_failed ?? 0) > 0) parts.push(`${r.records_failed} failed`);
+      if (r.failure_message) parts.push(r.failure_message);
+      return {
+        at: r.completed_at ?? r.started_at ?? new Date().toISOString(),
+        kind: r.status ?? "sync",
+        outcome,
+        message: parts.join(" - "),
+      };
+    });
+  }
+  if (def.key === "sam_mcp") {
+    const { data } = await supabase
+      .from("sam_mcp_connections")
+      .select("last_success_at, last_tested_at, last_error_message, last_error_code, status")
+      .eq("organization_id", orgId)
+      .limit(1);
+    const m = data?.[0];
+    if (!m) return [];
+    const events: ActivityEvent[] = [];
+    if (m.last_success_at) events.push({ at: m.last_success_at, kind: "connected", outcome: "success", message: `Status: ${m.status}` });
+    if (m.last_tested_at && m.last_error_message) events.push({ at: m.last_tested_at, kind: m.last_error_code ?? "error", outcome: "error", message: m.last_error_message });
+    return events;
+  }
   return [];
 }
 
@@ -290,7 +334,7 @@ async function loadActivity(
 
 const TestInput = z.object({
   organizationId: z.string().uuid(),
-  key: z.enum(["beehiiv", "linkedin", "stripe", "supabase_self"]),
+  key: z.enum(["beehiiv", "linkedin", "stripe", "supabase_self", "sam_mcp", "website_sync"]),
 });
 
 export interface TestConnectionResult {
@@ -306,7 +350,7 @@ export interface TestConnectionResult {
 export const testIntegrationConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => TestInput.parse(v))
-  .handler(async ({ data }): Promise<TestConnectionResult> => {
+  .handler(async ({ data, context }): Promise<TestConnectionResult> => {
     const t0 = Date.now();
     if (data.key === "beehiiv") {
       const { validateBeehiivCredentials } = await import("@/lib/social/providers/beehiiv");
@@ -340,6 +384,30 @@ export const testIntegrationConnection = createServerFn({ method: "POST" })
         key: "stripe",
         ok: p.status === "connected",
         reachable: p.status !== "awaiting_credentials",
+        headline: p.headline,
+        detail: p.detail,
+        identity: p.identity,
+        latencyMs: Date.now() - t0,
+      };
+    }
+    if (data.key === "sam_mcp") {
+      const p = await probeSamMcp(context.supabase as Supa, data.organizationId);
+      return {
+        key: "sam_mcp",
+        ok: p.status === "connected",
+        reachable: p.status === "connected" || p.status === "action_needed",
+        headline: p.headline,
+        detail: p.detail,
+        identity: p.identity,
+        latencyMs: Date.now() - t0,
+      };
+    }
+    if (data.key === "website_sync") {
+      const p = await probeWebsiteSources(context.supabase as Supa, data.organizationId);
+      return {
+        key: "website_sync",
+        ok: p.status === "connected",
+        reachable: p.status !== "not_configured",
         headline: p.headline,
         detail: p.detail,
         identity: p.identity,
