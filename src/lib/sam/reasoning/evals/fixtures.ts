@@ -209,7 +209,7 @@ export const REASONING_FIXTURES: EvalFixture[] = [
       mustDeclineAction: true,
       mustNotFabricate: true,
     },
-    scoreDimensions: ["actionability", "factual_grounding"],
+    scoreDimensions: ["actionability", "factual_grounding", "recommendation_quality"],
   },
   {
     id: "high_consequence_phrasing_escalates",
