@@ -310,9 +310,21 @@ function MissionControl() {
           </div>
         </section>
 
-        {/* Operators */}
+        {/* SAM Work Queues */}
         <section>
-          <SectionHeader title="Autonomous operators" hint="Continuous queues, pause on demand, audit every action" />
+          <SectionHeader
+            title="SAM work queues"
+            hint={connectedCount > 0
+              ? "Queued work, approvals, and audit history"
+              : "Managed manually until integrations are connected"}
+          />
+          {connectedCount === 0 && (
+            <div className="mt-3 rounded-md border border-border bg-card px-4 py-3 text-[12px] text-foreground/70">
+              No integrations are connected yet, so these queues are worked manually. Add a connection under{" "}
+              <Link to="/sam/integrations" className="underline underline-offset-2">Integrations</Link>{" "}
+              to let SAM take actions on your behalf.
+            </div>
+          )}
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <OperatorPanel
               kind="hunter"
