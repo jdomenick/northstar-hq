@@ -136,6 +136,12 @@ export async function probeBeehiiv(supabase: Supa, orgId: string): Promise<Probe
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: "beehiiv.v0.2.0",
     testable: b.configured,
+    diagnostics: {
+      kind: "beehiiv",
+      publicationName: b.publicationName,
+      publishArmed: b.armed,
+      publicationId: process.env.BEEHIIV_PUBLICATION_ID ?? null,
+    },
   };
 }
 
@@ -170,6 +176,13 @@ export async function probeLinkedIn(supabase: Supa, orgId: string): Promise<Prob
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: "linkedin.v0.1.0",
     testable: l.configured,
+    diagnostics: {
+      kind: "linkedin",
+      identity: l.configured
+        ? { displayName: l.displayName ?? null, email: l.email ?? null, profileUrn: (l as { profileUrn?: string | null }).profileUrn ?? null }
+        : null,
+      publishArmed: l.armed,
+    },
   };
 }
 
