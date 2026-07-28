@@ -55,6 +55,7 @@ type NavItem = {
     | "/labs/"
     | "/labs/mission-control"
     | "/labs/revenue"
+    | "/labs/proposals"
     | "/labs/ventures"
     | "/labs/projects"
     | "/labs/decisions"
@@ -82,6 +83,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/labs/", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
       { to: "/labs/revenue", label: "Revenue", icon: DollarSign },
+      { to: "/labs/proposals", label: "Proposals", icon: FileText },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
       { to: "/labs/projects", label: "Projects", icon: FolderKanban },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
