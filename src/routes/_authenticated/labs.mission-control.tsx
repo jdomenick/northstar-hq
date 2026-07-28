@@ -433,11 +433,11 @@ function PriorityTile({
   value: string;
   sub: string;
   tone?: "ok" | "warn";
-  to: "/labs/revenue" | "/labs/decisions" | "/labs/accountability" | "/labs/projects" | "/labs/goals" | "/sam";
+  to: string;
 }) {
   return (
-    <Link
-      to={to}
+    <a
+      href={to}
       className={cn(
         "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors",
         tone === "warn" ? "border-destructive/40 hover:border-destructive/60" : "border-border hover:border-primary/40",
@@ -454,7 +454,55 @@ function PriorityTile({
       <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 group-hover:text-foreground">
         Open <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
       </div>
-    </Link>
+    </a>
+  );
+}
+
+function IntegrationAttentionCard({ row }: { row: IntegrationRow }) {
+  const a = row.executiveAction;
+  const isError = a.health === "error";
+  const tone = isError
+    ? { border: "border-[oklch(0.5_0.18_27)]/40", dot: "bg-[oklch(0.5_0.18_27)]", text: "text-[oklch(0.5_0.18_27)]", label: "Error" }
+    : { border: "border-[oklch(0.75_0.15_75)]/40", dot: "bg-[oklch(0.75_0.15_75)]", text: "text-[oklch(0.6_0.15_75)]", label: "Warning" };
+  const impactLabel = a.impact
+    ? a.impact === "high" ? "High impact" : a.impact === "medium" ? "Medium impact" : "Low impact"
+    : null;
+  return (
+    <a
+      href={`/sam/integrations?open=${encodeURIComponent(row.key)}`}
+      className={cn(
+        "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors hover:border-foreground/30",
+        tone.border,
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Plug className="h-3.5 w-3.5 shrink-0 text-foreground/60" strokeWidth={1.8} />
+          <span className="truncate font-display text-[15px] leading-none">{row.label}</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+          <span className={cn("text-[10px] font-medium uppercase tracking-[0.18em]", tone.text)}>{tone.label}</span>
+        </div>
+      </div>
+      {a.title && (
+        <div className={cn("mt-3 text-[13px] font-medium", tone.text)}>{a.title}</div>
+      )}
+      {a.issue && (
+        <div className="mt-1 line-clamp-2 text-[12px] leading-snug text-foreground/80">{a.issue}</div>
+      )}
+      {a.nextStep && (
+        <div className="mt-2 text-[12px] leading-snug text-muted-foreground">
+          <span className="text-foreground/70">Next step:</span> {a.nextStep}
+        </div>
+      )}
+      <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+        <span>{impactLabel ?? "\u00a0"}</span>
+        <span className="group-hover:text-foreground">
+          Open details <ArrowRight className="ml-0.5 inline h-3 w-3" />
+        </span>
+      </div>
+    </a>
   );
 }
 
