@@ -276,7 +276,7 @@ function InsightRow({ insight }: { insight: NslBrief["priorityInsights"][number]
   const classes = signalToneClasses[tone];
   return (
     <div className="flex items-start gap-4 rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold", classes.text, tone === "danger" ? "bg-destructive/10 border-destructive/20" : tone === "warn" ? "bg-[color:var(--warning)]/10 border-[color:var(--warning)]/20" : "bg-primary/10 border-primary/20")}>
+      <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold", classes.text, tone === "danger" ? "bg-brand-danger/10 border-brand-danger/20" : tone === "warn" ? "bg-brand-warn/10 border-brand-warn/20" : "bg-brand-ok/10 border-brand-ok/20")}>
         {insight.rank}
       </div>
       <div className="min-w-0 flex-1">
