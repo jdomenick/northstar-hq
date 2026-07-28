@@ -168,6 +168,7 @@ export const linkedinAdapter: SocialProviderAdapter = {
       maxTextLength: 3000,
       maxHashtagCount: 10,
       supportedMediaFormats: [],
+      maxMediaCount: 0,
       supportsFetchMetrics: false,
       supportsVerifyPublication: true,
       destinationsMayRequireManualApproval: false,
