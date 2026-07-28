@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, Flag,
+  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, ArrowRight, Flag, Plug,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
@@ -30,6 +31,11 @@ import {
   type OperatorKind, type OperatorTask,
 } from "@/lib/mission-control/hooks";
 import { OPERATOR_LABELS, OPERATOR_SUBTITLES, OPERATOR_PURPOSE } from "@/lib/mission-control/labels";
+import {
+  listIntegrationsDashboard,
+  type IntegrationRow,
+} from "@/lib/integrations/dashboard.functions";
+import type { ExecutiveImpact } from "@/lib/integrations/executive-action";
 
 export const Route = createFileRoute("/_authenticated/labs/mission-control")({
   component: MissionControl,
@@ -52,6 +58,28 @@ function MissionControl() {
   const cash = useCashflow(activeOrgId, 90);
   const proposals = useProposals(activeOrgId);
   const operators = useOperatorStates(activeOrgId);
+
+  // Integrations Attention: reuse the existing Integrations dashboard as the
+  // single source of truth. We only surface Warning/Error rows here; healthy
+  // integrations stay silent.
+  const integrationsListFn = useServerFn(listIntegrationsDashboard);
+  const integrationsDashboard = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.integrations-attention", activeOrgId],
+    queryFn: () => integrationsListFn({ data: { organizationId: activeOrgId! } }),
+  });
+  const impactRank: Record<ExecutiveImpact, number> = { high: 3, medium: 2, low: 1 };
+  const healthRank: Record<"error" | "warning" | "healthy", number> = { error: 3, warning: 2, healthy: 1 };
+  const attentionRows = (integrationsDashboard.data ?? [])
+    .filter((r) => r.executiveAction.actionRequired && r.executiveAction.health !== "healthy")
+    .sort((a, b) => {
+      const h = (healthRank[b.executiveAction.health] ?? 0) - (healthRank[a.executiveAction.health] ?? 0);
+      if (h !== 0) return h;
+      const ai = a.executiveAction.impact ? impactRank[a.executiveAction.impact] : 0;
+      const bi = b.executiveAction.impact ? impactRank[b.executiveAction.impact] : 0;
+      return bi - ai;
+    });
+  const topIntegration = attentionRows[0] ?? null;
 
   // CTO: integration connections + automation job health (real data only).
   const integrations = useQuery({
@@ -216,8 +244,33 @@ function MissionControl() {
               tone={topInsight && (topInsight.severity === "critical" || topInsight.severity === "warning") ? "warn" : "ok"}
               to="/sam"
             />
+            {topIntegration && (
+              <PriorityTile
+                label="Top integration issue"
+                value={topIntegration.label}
+                sub={topIntegration.executiveAction.title ?? topIntegration.executiveAction.issue ?? "Attention required"}
+                tone={topIntegration.executiveAction.health === "error" ? "warn" : "warn"}
+                to={`/sam/integrations?open=${encodeURIComponent(topIntegration.key)}`}
+              />
+            )}
           </div>
         </section>
+
+        {/* Integrations Attention: only renders when at least one integration
+            has a Warning or Error state. Healthy integrations stay silent. */}
+        {attentionRows.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Integrations attention"
+              hint={`${attentionRows.length} integration${attentionRows.length === 1 ? "" : "s"} need action`}
+            />
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {attentionRows.map((r) => (
+                <IntegrationAttentionCard key={r.key} row={r} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Top KPI strip */}
         <section className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-[0_14px_40px_-34px_oklch(0.22_0.02_255/0.5)] md:grid-cols-4">
