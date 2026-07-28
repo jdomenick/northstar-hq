@@ -145,6 +145,7 @@ function MissionControl() {
   const failedJobs = jobs.filter((j) => j.status === "failed");
   const runningJobs = jobs.filter((j) => j.status === "running" || j.status === "queued");
 
+  const now = Date.now();
   const activeCampaigns = (campaigns.data ?? []).filter((c) => !c.paused && (!c.end_at || new Date(c.end_at).getTime() > now));
   const items = contentItems.data ?? [];
   const awaitingApproval = items.filter((i) => i.approval_status === "pending" || i.status === "in_review" || i.status === "pending_approval");
@@ -160,7 +161,6 @@ function MissionControl() {
   const goalsAtRisk = (goals.data ?? []).filter(isGoalAtRisk);
 
   // Revenue at risk: open deals whose expected close has passed.
-  const now = Date.now();
   const atRiskDeals = (pipeline.data ?? []).filter(
     (d) => d.stage !== "won" && d.stage !== "lost" && d.expected_close && new Date(d.expected_close).getTime() < now,
   );
