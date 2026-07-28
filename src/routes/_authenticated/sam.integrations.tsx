@@ -8,6 +8,7 @@ import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
 import { SamMcpConnectionPanel } from "@/components/sam-mcp-connection-panel";
 import { IntegrationDetailDrawer } from "@/components/integration-detail-drawer";
+import { ExecutiveActionBlock } from "@/components/executive-action-block";
 import {
   listIntegrationsDashboard,
   testIntegrationConnection,
@@ -267,6 +268,10 @@ function IntegrationCard({
           ) : null}
         </div>
       )}
+
+      <div className="mt-3">
+        <ExecutiveActionBlock action={row.executiveAction} variant="card" />
+      </div>
 
       {testResult ? (
         <div

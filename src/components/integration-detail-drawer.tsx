@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { getIntegrationDetail, type IntegrationRow } from "@/lib/integrations/dashboard.functions";
 import type { IntegrationDiagnostics } from "@/lib/integrations/probes.server";
+import { ExecutiveActionBlock } from "@/components/executive-action-block";
 
 function formatWhen(iso: string | null): string {
   if (!iso) return "never";
@@ -48,6 +49,10 @@ export function IntegrationDetailDrawer({
           <div className="mt-6 text-sm text-muted-foreground">Loading details...</div>
         ) : (
           <div className="mt-6 space-y-6">
+            <Block label="Executive action">
+              <ExecutiveActionBlock action={d.row.executiveAction} variant="drawer" />
+            </Block>
+
             <Block label="Current status">
               <div className="text-[13px] text-foreground">{d.row.headline}</div>
               <div className="mt-1 text-[12.5px] text-muted-foreground">{d.row.detail}</div>
