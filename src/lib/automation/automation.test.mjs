@@ -120,11 +120,11 @@ test("buildAuditEntry strips forbidden keys and rejects oversize", async () => {
   assert.equal(entry.metadata.nested.ok, true);
   const key = buildEventKey({ jobId: "j1", event: "job_succeeded", attemptNumber: 1 });
   assert.match(key, /^j1\|job_succeeded\|1\|-$/);
-  // Oversize metadata should throw.
+  // Oversize metadata should throw with the sanitized code.
   const huge = "x".repeat(50_000);
   assert.throws(
     () => buildAuditEntry("job_failed", { extra: { blob: huge } }),
-    /job_output_too_large/,
+    (err) => err && err.code === "job_output_too_large",
   );
 });
 
