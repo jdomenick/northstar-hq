@@ -15,6 +15,7 @@ import {
   type IntegrationCategory,
   type ProviderDefinition,
 } from "./providers";
+import { deriveExecutiveAction, type ExecutiveAction } from "./executive-action";
 import {
   probeBeehiiv,
   probeLinkedIn,
@@ -65,6 +66,7 @@ export interface IntegrationRow {
   approvalRequired: boolean;
   declaredCapabilities: string[];
   diagnostics: IntegrationDiagnostics | null;
+  executiveAction: ExecutiveAction;
 }
 
 const Input = z.object({ organizationId: z.string().uuid() });
@@ -126,6 +128,15 @@ function unknownRow(def: ProviderDefinition, msg: string): IntegrationRow {
     approvalRequired: def.approvalRequired ?? false,
     declaredCapabilities: def.capabilities,
     diagnostics: null,
+    executiveAction: {
+      health: "error",
+      actionRequired: true,
+      title: "Status check failed",
+      issue: msg,
+      nextStep: "Retry from the Integrations dashboard. If it persists, open Details for logs.",
+      impact: "medium",
+      href: null,
+    },
   };
 }
 
@@ -162,6 +173,7 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
             approvalRequired: def.approvalRequired ?? false,
             declaredCapabilities: def.capabilities,
             diagnostics: p.diagnostics ?? null,
+            executiveAction: deriveExecutiveAction(def, p),
           } satisfies IntegrationRow;
         } catch (err) {
           return unknownRow(def, (err as Error).message);
@@ -229,6 +241,7 @@ export const getIntegrationDetail = createServerFn({ method: "POST" })
       approvalRequired: def.approvalRequired ?? false,
       declaredCapabilities: def.capabilities,
       diagnostics: probe.diagnostics ?? null,
+      executiveAction: deriveExecutiveAction(def, probe),
     };
     const activity = await loadActivity(supabase, orgId, def);
     return {
