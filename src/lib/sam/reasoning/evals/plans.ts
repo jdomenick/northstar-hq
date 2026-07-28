@@ -408,7 +408,11 @@ export const FIXTURE_PLANS: Record<string, FixtureContextPlan> = {
         ...baseResponse({
           answer: "Contract conflicts with an active goal to keep Warpath paused; negotiate scope or decline.",
           executive_summary: "Contradiction between contract and paused-venture commitment.",
-          risks: ["Breaks an active goal commitment", "Delivery collapses if Warpath relaunches"],
+          risks: [
+            "Contract contradicts the active paused-venture goal",
+            "Breaks an active goal commitment",
+            "Delivery collapses if Warpath relaunches",
+          ],
           assumptions: [],
           recommendations: ["Decline contract", "Negotiate scope that avoids relaunch"],
           model_confidence_hint: "moderate",
