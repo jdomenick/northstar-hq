@@ -1,45 +1,53 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
-import { getMetaConnectorHealth } from "@/lib/social/providers/meta/health.functions";
 import { SamMcpConnectionPanel } from "@/components/sam-mcp-connection-panel";
+import {
+  listIntegrationsDashboard,
+  testIntegrationConnection,
+  type IntegrationRow,
+  type IntegrationStatus,
+  type TestConnectionResult,
+} from "@/lib/integrations/dashboard.functions";
 
 export const Route = createFileRoute("/_authenticated/sam/integrations")({
   component: IntegrationsPage,
   head: () => ({
     meta: [
-      { title: "Integrations  -  NorthStar Labs" },
-      { name: "description", content: "Connect the systems SAM reads from." },
+      { title: "Integrations - NorthStar Labs" },
+      { name: "description", content: "Every external system SAM uses. Truthful status, one dashboard." },
     ],
   }),
 });
 
-type TileState = "connected" | "not_connected" | "not_configured" | "coming_soon";
-
-type Tile = {
-  name: string;
-  cat: string;
-  state: TileState;
-  detail?: string;
-  action?: { kind: "manage" | "connect_meta" | "link"; href?: string };
-};
-
 function IntegrationsPage() {
   const { activeOrgId } = useOrg();
-  const health = useServerFn(getMetaConnectorHealth);
-  const metaQ = useQuery({
+  const qc = useQueryClient();
+  const listFn = useServerFn(listIntegrationsDashboard);
+  const testFn = useServerFn(testIntegrationConnection);
+  const rowsQ = useQuery({
     enabled: !!activeOrgId,
-    queryKey: ["meta-connector-health", activeOrgId],
-    queryFn: () => health({ data: { organizationId: activeOrgId! } }),
+    queryKey: ["integrations-dashboard", activeOrgId],
+    queryFn: () => listFn({ data: { organizationId: activeOrgId! } }),
   });
 
   const [connecting, setConnecting] = useState<null | "facebook" | "instagram">(null);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<Record<string, TestConnectionResult>>({});
+
+  const testMut = useMutation({
+    mutationFn: (key: "beehiiv" | "linkedin") =>
+      testFn({ data: { organizationId: activeOrgId!, key } }),
+    onSuccess: (result) => {
+      setTestResult((prev) => ({ ...prev, [result.key]: result }));
+      qc.invalidateQueries({ queryKey: ["integrations-dashboard", activeOrgId] });
+    },
+  });
 
   const startMetaConnect = async (which: "facebook" | "instagram") => {
     if (!activeOrgId) return;
@@ -69,73 +77,21 @@ function IntegrationsPage() {
     }
   };
 
-  const meta = metaQ.data;
-  const metaConfigured = meta?.configured ?? false;
-  const fbDests = (meta?.destinations ?? []).filter((d) => d.kind === "facebook_page");
-  const igDests = (meta?.destinations ?? []).filter((d) => d.kind === "instagram_business");
-
-  const facebookTile: Tile = {
-    name: "Facebook Page",
-    cat: "Social",
-    state: !metaConfigured
-      ? "not_configured"
-      : fbDests.some((d) => d.publish_available)
-        ? "connected"
-        : "not_connected",
-    detail: !metaConfigured
-      ? `Missing: ${(meta?.missing ?? []).join(", ") || "credentials"}`
-      : fbDests.length > 0
-        ? fbDests.map((d) => d.display_name).join(", ")
-        : "Connect a Facebook Page",
-    action: { kind: "connect_meta" },
-  };
-  const instagramTile: Tile = {
-    name: "Instagram Business",
-    cat: "Social",
-    state: !metaConfigured
-      ? "not_configured"
-      : igDests.some((d) => d.publish_available)
-        ? "connected"
-        : "not_connected",
-    detail: !metaConfigured
-      ? "Configured with Facebook credentials"
-      : igDests.length > 0
-        ? igDests.map((d) => d.display_name).join(", ")
-        : "Requires a Facebook Page linked to an IG Business account",
-    action: { kind: "connect_meta" },
-  };
-
-  const tiles: Tile[] = [
-    facebookTile,
-    instagramTile,
-    { name: "LinkedIn", cat: "Social", state: "coming_soon" },
-    { name: "X (Twitter)", cat: "Social", state: "coming_soon" },
-    { name: "Reddit", cat: "Social", state: "coming_soon" },
-    {
-      name: "Website",
-      cat: "Knowledge",
-      state: "connected",
-      detail: "Managed under Settings",
-      action: { kind: "link", href: "/settings/integrations" },
-    },
-    { name: "Gmail", cat: "Communication", state: "coming_soon" },
-    { name: "Google Calendar", cat: "Communication", state: "coming_soon" },
-    { name: "Slack", cat: "Communication", state: "coming_soon" },
-    { name: "Zoom", cat: "Communication", state: "coming_soon" },
-    { name: "Notion", cat: "Knowledge", state: "coming_soon" },
-    { name: "Linear", cat: "Projects", state: "coming_soon" },
-    { name: "GitHub", cat: "Projects", state: "coming_soon" },
-    { name: "Stripe", cat: "Finance", state: "coming_soon" },
-    { name: "HubSpot", cat: "Sales", state: "coming_soon" },
+  const rows = rowsQ.data ?? [];
+  const groups: Array<{ key: IntegrationRow["category"]; label: string }> = [
+    { key: "publishing", label: "Publishing" },
+    { key: "sam", label: "SAM" },
+    { key: "knowledge", label: "Knowledge" },
+    { key: "workspace", label: "Workspace" },
+    { key: "roadmap", label: "Roadmap" },
   ];
 
-  const cats = Array.from(new Set(tiles.map((i) => i.cat)));
   return (
     <div>
       <PageHeader
         eyebrow="Integrations"
-        title="What SAM can see."
-        description="NorthStar Labs is only as sharp as its inputs. Connect the systems that hold the truth."
+        title="Integrations"
+        description="Every external system SAM uses. Real status, last activity, and last error - no fabrication."
       />
       <PageBody>
         {connectError ? (
@@ -143,117 +99,198 @@ function IntegrationsPage() {
             {connectError}
           </div>
         ) : null}
-        <Section title="SAM">
-          <SamMcpConnectionPanel />
-        </Section>
-        {cats.map((cat) => (
-          <Section key={cat} title={cat}>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {tiles
-                .filter((i) => i.cat === cat)
-                .map((i) => (
-                  <TileRow
-                    key={i.name}
-                    tile={i}
-                    busy={
-                      (i.name === "Facebook Page" && connecting === "facebook") ||
-                      (i.name === "Instagram Business" && connecting === "instagram")
-                    }
-                    onConnectMeta={() =>
-                      startMetaConnect(i.name === "Instagram Business" ? "instagram" : "facebook")
-                    }
-                  />
-                ))}
-            </div>
-          </Section>
-        ))}
+
+        {rowsQ.isLoading ? (
+          <div className="text-sm text-muted-foreground">Loading integrations...</div>
+        ) : rowsQ.isError ? (
+          <div className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            Could not load integrations dashboard.
+          </div>
+        ) : (
+          <>
+            {groups.map((g) => {
+              const groupRows = rows.filter((r) => r.category === g.key);
+              if (groupRows.length === 0) return null;
+              return (
+                <Section key={g.key} title={g.label}>
+                  <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                    {groupRows.map((r) => (
+                      <IntegrationCard
+                        key={r.key}
+                        row={r}
+                        busy={
+                          (r.key === "facebook" && connecting === "facebook") ||
+                          (r.key === "instagram" && connecting === "instagram") ||
+                          (testMut.isPending && testMut.variables === r.key)
+                        }
+                        onMetaConnect={() =>
+                          startMetaConnect(r.key === "instagram" ? "instagram" : "facebook")
+                        }
+                        onTest={() =>
+                          (r.key === "beehiiv" || r.key === "linkedin") &&
+                          testMut.mutate(r.key)
+                        }
+                        testResult={testResult[r.key] ?? null}
+                      />
+                    ))}
+                  </div>
+                </Section>
+              );
+            })}
+
+            <Section title="SAM MCP details">
+              <SamMcpConnectionPanel />
+            </Section>
+          </>
+        )}
       </PageBody>
     </div>
   );
 }
 
-function TileRow({
-  tile,
+function statusLabel(s: IntegrationStatus): string {
+  switch (s) {
+    case "connected": return "Connected";
+    case "action_needed": return "Action needed";
+    case "not_connected": return "Not connected";
+    case "not_built": return "Not built";
+    case "unknown": return "Unknown";
+  }
+}
+
+function statusDot(s: IntegrationStatus): string {
+  switch (s) {
+    case "connected": return "bg-[oklch(0.72_0.14_155)]";
+    case "action_needed": return "bg-[oklch(0.75_0.15_75)]";
+    case "not_connected": return "bg-muted-foreground/60";
+    case "not_built": return "bg-muted-foreground/30";
+    case "unknown": return "bg-[oklch(0.5_0.18_27)]";
+  }
+}
+
+function formatWhen(iso: string | null): string {
+  if (!iso) return "never";
+  const d = new Date(iso);
+  const now = Date.now();
+  const diff = now - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return d.toLocaleDateString();
+}
+
+function IntegrationCard({
+  row,
   busy,
-  onConnectMeta,
+  onMetaConnect,
+  onTest,
+  testResult,
 }: {
-  tile: Tile;
+  row: IntegrationRow;
   busy: boolean;
-  onConnectMeta: () => void;
+  onMetaConnect: () => void;
+  onTest: () => void;
+  testResult: TestConnectionResult | null;
 }) {
-  const stateLabel: Record<TileState, string> = {
-    connected: "Connected",
-    not_connected: "Not connected",
-    not_configured: "Credentials required",
-    coming_soon: "Coming soon",
-  };
-  const dot =
-    tile.state === "connected"
-      ? "bg-[oklch(0.72_0.14_155)]"
-      : tile.state === "not_connected"
-        ? "bg-[oklch(0.55_0.14_65)]"
-        : tile.state === "not_configured"
-          ? "bg-[oklch(0.5_0.18_27)]"
-          : "bg-muted-foreground/40";
-
-  const button = () => {
-    if (tile.state === "coming_soon") {
-      return (
-        <span className="rounded-md px-2.5 py-1.5 text-[12px] text-muted-foreground/70">
-          Coming soon
-        </span>
-      );
-    }
-    if (tile.action?.kind === "link" && tile.action.href) {
-      return (
-        <Link
-          to={tile.action.href}
-          className="rounded-md px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-        >
-          Manage
-        </Link>
-      );
-    }
-    if (tile.action?.kind === "connect_meta") {
-      const label =
-        tile.state === "connected"
-          ? "Manage"
-          : tile.state === "not_configured"
-            ? "Setup"
-            : "Connect";
-      return (
-        <button
-          disabled={busy || tile.state === "not_configured"}
-          onClick={onConnectMeta}
-          className={
-            tile.state === "connected"
-              ? "rounded-md px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground disabled:opacity-50"
-              : "rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90 disabled:opacity-50"
-          }
-          title={tile.state === "not_configured" ? "Meta app credentials must be added first" : undefined}
-        >
-          {busy ? "..." : label}
-        </button>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="group flex items-center justify-between rounded-xl bg-card/40 px-5 py-4 hover:bg-card/70">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/70 text-[13px] font-semibold text-foreground">
-          {tile.name.slice(0, 1)}
-        </div>
-        <div className="min-w-0">
-          <div className="text-[13.5px] text-foreground">{tile.name}</div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
-            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-            <span className="truncate">{tile.detail ?? stateLabel[tile.state]}</span>
+    <div className="rounded-xl border border-border/60 bg-card/50 px-5 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${statusDot(row.status)}`} />
+            <div className="text-[14px] font-medium text-foreground">{row.label}</div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              {statusLabel(row.status)}
+            </div>
           </div>
+          <div className="mt-1.5 text-[13px] text-foreground">{row.headline}</div>
+          <div className="mt-1 text-[12.5px] text-muted-foreground">{row.detail}</div>
+          {row.identity ? (
+            <div className="mt-2 text-[11.5px] text-muted-foreground">
+              Identity: <span className="font-mono text-foreground/80">{row.identity}</span>
+            </div>
+          ) : null}
         </div>
       </div>
-      {button()}
+
+      {(row.lastActivityAt || row.lastErrorAt || row.armed !== null) && (
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t border-border/40 pt-3 text-[11.5px] text-muted-foreground">
+          {row.armed !== null ? (
+            <div>
+              <span className="text-foreground/70">Armed</span>{" "}
+              <span className={row.armed ? "text-[oklch(0.72_0.14_155)]" : "text-[oklch(0.75_0.15_75)]"}>
+                {row.armed ? "yes" : "no"}
+              </span>
+            </div>
+          ) : null}
+          {row.lastActivityAt ? (
+            <div>
+              <span className="text-foreground/70">{row.lastActivityLabel ?? "Last activity"}</span>{" "}
+              {formatWhen(row.lastActivityAt)}
+            </div>
+          ) : null}
+          {row.lastErrorAt ? (
+            <div className="col-span-2 text-[oklch(0.5_0.18_27)]">
+              <span className="text-foreground/70">Last error</span> {formatWhen(row.lastErrorAt)}
+              {row.lastErrorMessage ? ` - ${row.lastErrorMessage}` : ""}
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {testResult ? (
+        <div
+          className={`mt-3 rounded-md border px-3 py-2 text-[12px] ${
+            testResult.ok
+              ? "border-[oklch(0.72_0.14_155)]/30 bg-[oklch(0.72_0.14_155)]/5 text-[oklch(0.55_0.14_155)]"
+              : "border-[oklch(0.5_0.18_27)]/30 bg-[oklch(0.5_0.18_27)]/5 text-[oklch(0.5_0.18_27)]"
+          }`}
+        >
+          <div className="font-medium">{testResult.headline} ({testResult.latencyMs}ms)</div>
+          <div className="mt-0.5 opacity-80">{testResult.detail}</div>
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex items-center justify-end gap-2">
+        {row.testable ? (
+          <button
+            disabled={busy}
+            onClick={onTest}
+            className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60 disabled:opacity-50"
+          >
+            {busy ? "Testing..." : "Test connection"}
+          </button>
+        ) : null}
+        {row.action.kind === "start_meta_oauth" ? (
+          <button
+            disabled={busy}
+            onClick={onMetaConnect}
+            className="rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90 disabled:opacity-50"
+          >
+            {busy ? "..." : row.status === "connected" ? "Manage" : "Connect"}
+          </button>
+        ) : null}
+        {row.action.kind === "manage_link" ? (
+          <Link
+            to={row.action.href}
+            className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60"
+          >
+            {row.action.label}
+          </Link>
+        ) : null}
+        {row.action.kind === "ask_lovable" ? (
+          <div className="text-[11.5px] text-muted-foreground italic">
+            {row.action.message}
+          </div>
+        ) : null}
+        {row.action.kind === "none" && row.status === "not_built" ? (
+          <span className="text-[11.5px] text-muted-foreground/70">On the roadmap</span>
+        ) : null}
+      </div>
     </div>
   );
 }
