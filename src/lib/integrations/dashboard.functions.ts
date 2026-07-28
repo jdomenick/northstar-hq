@@ -9,6 +9,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Supa = SupabaseClient<Database>;
 
 export type IntegrationStatus =
   | "connected"          // live, reachable, publishing-ready
@@ -46,7 +50,7 @@ export interface IntegrationRow {
 const Input = z.object({ organizationId: z.string().uuid() });
 
 async function lastPublicationFor(
-  supabase: ReturnType<typeof createSupa>,
+  supabase: Supa,
   organizationId: string,
   platform: string,
 ): Promise<{ lastActivityAt: string | null; lastErrorAt: string | null; lastErrorMessage: string | null }> {
@@ -80,11 +84,6 @@ async function lastPublicationFor(
   };
 }
 
-// Local type alias to keep the helper signature readable.
-type SupaClient = Parameters<Parameters<typeof requireSupabaseAuth.next>[0]>[0]["context"]["supabase"];
-// Fallback: cast the middleware context supabase via createSupa stub.
-function createSupa(): unknown { return null; }
-
 export const listIntegrationsDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => Input.parse(v))
@@ -96,7 +95,7 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
     try {
       const { validateBeehiivCredentials } = await import("@/lib/social/providers/beehiiv");
       const b = await validateBeehiivCredentials();
-      const activity = await lastPublicationFor(context.supabase as never, orgId, "beehiiv");
+      const activity = await lastPublicationFor(context.supabase as Supa, orgId, "beehiiv");
       let status: IntegrationStatus = "not_connected";
       if (!b.configured) status = "not_connected";
       else if (!b.reachable) status = "action_needed";
@@ -134,7 +133,7 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
     try {
       const { validateLinkedInCredentials } = await import("@/lib/social/providers/linkedin");
       const l = await validateLinkedInCredentials();
-      const activity = await lastPublicationFor(context.supabase as never, orgId, "linkedin");
+      const activity = await lastPublicationFor(context.supabase as Supa, orgId, "linkedin");
       let status: IntegrationStatus = "not_connected";
       if (!l.configured) status = "not_connected";
       else if (!l.reachable) status = "action_needed";
@@ -185,7 +184,7 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
         ["instagram", "Instagram Business", ig] as const,
       ]) {
         const anyPubReady = list.some((d) => d.publish_available);
-        const activity = await lastPublicationFor(context.supabase as never, orgId, key);
+        const activity = await lastPublicationFor(context.supabase as Supa, orgId, key);
         const status: IntegrationStatus = !cfg.configured
           ? "action_needed"
           : list.length === 0
