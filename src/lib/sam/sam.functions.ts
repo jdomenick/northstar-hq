@@ -245,7 +245,7 @@ export const askSam = createServerFn({ method: "POST" })
         content: result.response.answer,
         created_by: userId,
         status: "complete",
-        metadata,
+        metadata: metadata as never,
       })
       .select("id")
       .single();
