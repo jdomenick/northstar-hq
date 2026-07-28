@@ -20,7 +20,7 @@ import { getAutonomy } from "@/lib/content-ops/autonomy.functions";
 import { listContentItems } from "@/lib/content-ops/content.functions";
 import { listStrategies } from "@/lib/content-ops/strategy.functions";
 import { listLearnings } from "@/lib/content-ops/learnings.functions";
-import { validateBeehiivConnection } from "@/lib/content-ops/beehiiv-validate.functions";
+import { listContentOpsConnections } from "@/lib/content-ops/connections.functions";
 
 export const Route = createFileRoute("/_authenticated/sam/content")({
   component: ContentOpsWorkspace,
@@ -46,7 +46,7 @@ function ContentOpsWorkspace() {
   const listStrategiesFn = useServerFn(listStrategies);
   const listContentFn = useServerFn(listContentItems);
   const listLearningsFn = useServerFn(listLearnings);
-  const validateBeehiivFn = useServerFn(validateBeehiivConnection);
+  const listConnectionsFn = useServerFn(listContentOpsConnections);
 
   const enabled = Boolean(organizationId && ventureId);
 
@@ -86,11 +86,11 @@ function ContentOpsWorkspace() {
     enabled,
     queryFn: () => listLearningsFn({ data: { organizationId: organizationId!, ventureId: ventureId! } }),
   });
-  const beehiivQ = useQuery({
-    queryKey: ["content-ops", "beehiiv-validation", organizationId, ventureId],
+  const connectionsQ = useQuery({
+    queryKey: ["content-ops", "connections", organizationId, ventureId],
     enabled,
     queryFn: () =>
-      validateBeehiivFn({
+      listConnectionsFn({
         data: {
           organizationId: organizationId!,
           ventureId: ventureId!,
