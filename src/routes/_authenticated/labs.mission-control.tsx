@@ -400,7 +400,7 @@ function ExecCard({
   icon: typeof Rocket;
   stats: { label: string; value: string | number; tone?: "warn" }[];
   detail: string;
-  link: { to: "/labs/ventures" | "/labs/projects" | "/labs/revenue" | "/sam/integrations"; label: string };
+  link: { to: "/labs/ventures" | "/labs/projects" | "/labs/revenue" | "/sam/integrations" | "/content-ops"; label: string };
 }) {
   return (
     <div className="flex flex-col rounded-md border border-border bg-card shadow-[0_16px_42px_-38px_oklch(0.22_0.02_255/0.55)]">
