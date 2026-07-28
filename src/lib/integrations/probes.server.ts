@@ -196,7 +196,7 @@ export async function probeMeta(
   const platformKey = kind === "facebook_page" ? "facebook" : "instagram";
   const { data: dests } = await supabase
     .from("meta_destinations")
-    .select("kind, display_name, publish_available, last_capability_reason")
+    .select("id, kind, display_name, publish_available, last_capability_reason")
     .eq("organization_id", orgId);
   const list = (dests ?? []).filter((d) => d.kind === kind);
   const anyPubReady = list.some((d) => d.publish_available);
@@ -241,6 +241,16 @@ export async function probeMeta(
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: `${platformKey}.v0.1.0`,
     testable: false,
+    diagnostics: {
+      kind: "meta",
+      destinations: list.map((d) => ({
+        id: d.id,
+        kind: d.kind,
+        displayName: d.display_name,
+        publishAvailable: d.publish_available,
+        lastCapabilityReason: d.last_capability_reason,
+      })),
+    },
   };
 }
 
@@ -275,6 +285,13 @@ export function probeEnvOnly(def: ProviderDefinition): ProbeResult {
     lastErrorMessage: null,
     adapterVersion: `${def.key}.shell`,
     testable: false,
+    diagnostics: {
+      kind: "env_shell",
+      requiredEnv: def.requiredEnv ?? [],
+      missingEnv: missing,
+      approvalRequired: !!approval,
+      docsUrl: def.docsUrl ?? null,
+    },
   };
 }
 
