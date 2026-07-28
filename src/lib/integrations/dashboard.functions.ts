@@ -350,7 +350,7 @@ export interface TestConnectionResult {
 export const testIntegrationConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => TestInput.parse(v))
-  .handler(async ({ data }): Promise<TestConnectionResult> => {
+  .handler(async ({ data, context }): Promise<TestConnectionResult> => {
     const t0 = Date.now();
     if (data.key === "beehiiv") {
       const { validateBeehiivCredentials } = await import("@/lib/social/providers/beehiiv");
