@@ -274,6 +274,38 @@ function KpiTile({ label, value, sub, tone }: { label: string; value: string; su
   );
 }
 
+function PriorityTile({
+  label, value, sub, tone, to,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  tone?: "ok" | "warn";
+  to: "/labs/revenue" | "/labs/decisions" | "/labs/accountability" | "/labs/projects" | "/labs/goals" | "/sam";
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors",
+        tone === "warn" ? "border-destructive/40 hover:border-destructive/60" : "border-border hover:border-primary/40",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+        {tone === "warn"
+          ? <AlertTriangle className="h-3.5 w-3.5 text-destructive" strokeWidth={1.8} />
+          : <Flag className="h-3.5 w-3.5 text-muted-foreground/70" strokeWidth={1.8} />}
+      </div>
+      <div className={cn("mt-2 font-display text-[22px] leading-none tabular-nums", tone === "warn" && "text-destructive")}>{value}</div>
+      <div className="mt-2 line-clamp-2 text-[11.5px] leading-snug text-foreground/70">{sub}</div>
+      <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 group-hover:text-foreground">
+        Open <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+      </div>
+    </Link>
+  );
+}
+
 function ExecCard({
   title, subtitle, icon: Icon, stats, detail, link,
 }: {
