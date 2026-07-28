@@ -33,7 +33,20 @@ export interface ProbeResult {
   lastErrorMessage: string | null;
   adapterVersion: string | null;
   testable: boolean;
+  diagnostics?: IntegrationDiagnostics;
 }
+
+export type IntegrationDiagnostics =
+  | { kind: "stripe"; mode: "live" | "test" | "unknown"; account: { id: string | null; email: string | null; displayName: string | null; country: string | null; chargesEnabled: boolean | null; payoutsEnabled: boolean | null } | null; webhookSecretPresent: boolean; publishableKeyPresent: boolean }
+  | { kind: "mcp"; servers: Array<{ serverUrl: string; status: string; protocolVersion: string | null; toolCount: number; tools: string[]; lastTestedAt: string | null; lastSuccessAt: string | null }> }
+  | { kind: "website_sync"; sources: Array<{ id: string; title: string; url: string | null; sourceType: string; lastSyncedAt: string | null; enabled: boolean }>; recentRuns: Array<{ id: string; status: string; startedAt: string | null; completedAt: string | null; recordsDiscovered: number; recordsCreated: number; recordsFailed: number; failureMessage: string | null }> }
+  | { kind: "beehiiv"; publicationName: string | null; publishArmed: boolean; publicationId: string | null }
+  | { kind: "linkedin"; identity: { displayName: string | null; email: string | null; profileUrn: string | null } | null; publishArmed: boolean }
+  | { kind: "meta"; destinations: Array<{ id: string; kind: string; displayName: string; publishAvailable: boolean; lastCapabilityReason: string | null }> }
+  | { kind: "supabase_self"; host: string; hasServiceRole: boolean }
+  | { kind: "webhooks_summary"; total: number; enabled: number }
+  | { kind: "rest_summary"; total: number; enabled: number }
+  | { kind: "env_shell"; requiredEnv: string[]; missingEnv: string[]; approvalRequired: boolean; docsUrl: string | null };
 
 type Supa = SupabaseClient<Database>;
 
