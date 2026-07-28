@@ -74,7 +74,18 @@ export async function executeClaimedJob(
     // Duplicate attempt is fine; recover from prior claim.
     if (attemptErr.code !== "23505") throw new AutomationError("internal_automation_error", attemptErr.message);
   }
-  const attemptId = attempt?.id ?? null;
+  let attemptId = attempt?.id ?? null;
+  // On duplicate, reuse the existing attempt row so its terminal status is
+  // updated at the end of this run rather than left dangling as "running".
+  if (!attemptId) {
+    const { data: existing } = await supabase
+      .from("automation_job_attempts")
+      .select("id")
+      .eq("job_id", job.id)
+      .eq("attempt_number", job.attempt_number)
+      .maybeSingle();
+    attemptId = existing?.id ?? null;
+  }
 
   await writeJobEvent(supabase, {
     organizationId: job.organization_id,
