@@ -312,14 +312,22 @@ export async function probeStripe(): Promise<ProbeResult> {
       lastErrorMessage: null,
       adapterVersion: "stripe.v0.0",
       testable: false,
+      diagnostics: {
+        kind: "stripe",
+        mode: "unknown",
+        account: null,
+        webhookSecretPresent: !!process.env.STRIPE_WEBHOOK_SECRET,
+        publishableKeyPresent: !!process.env.STRIPE_PUBLISHABLE_KEY,
+      },
     };
   }
-  const mode = sk.startsWith("sk_live_")
+  const mode: "live" | "test" | "unknown" = sk.startsWith("sk_live_")
     ? "live"
     : sk.startsWith("sk_test_")
       ? "test"
       : "unknown";
-  // Live probe: Stripe /v1/account is cheap and confirms key validity.
+  // Live probe: Stripe /v1/account confirms key validity and returns account meta.
+  let account: { id: string | null; email: string | null; displayName: string | null; country: string | null; chargesEnabled: boolean | null; payoutsEnabled: boolean | null } | null = null;
   let identity: string | null = null;
   let ok = true;
   let errMsg: string | null = null;
@@ -328,8 +336,19 @@ export async function probeStripe(): Promise<ProbeResult> {
       headers: { Authorization: `Bearer ${sk}` },
     });
     if (res.ok) {
-      const j = (await res.json()) as { id?: string; display_name?: string; email?: string };
-      identity = j.display_name ?? j.email ?? j.id ?? null;
+      const j = (await res.json()) as {
+        id?: string; display_name?: string; email?: string; country?: string;
+        charges_enabled?: boolean; payouts_enabled?: boolean;
+      };
+      account = {
+        id: j.id ?? null,
+        email: j.email ?? null,
+        displayName: j.display_name ?? null,
+        country: j.country ?? null,
+        chargesEnabled: j.charges_enabled ?? null,
+        payoutsEnabled: j.payouts_enabled ?? null,
+      };
+      identity = account.displayName ?? account.email ?? account.id;
     } else {
       ok = false;
       errMsg = `Stripe rejected the key (${res.status})`;
@@ -354,6 +373,13 @@ export async function probeStripe(): Promise<ProbeResult> {
     lastErrorMessage: errMsg,
     adapterVersion: "stripe.v0.1",
     testable: true,
+    diagnostics: {
+      kind: "stripe",
+      mode,
+      account,
+      webhookSecretPresent: !!process.env.STRIPE_WEBHOOK_SECRET,
+      publishableKeyPresent: !!process.env.STRIPE_PUBLISHABLE_KEY,
+    },
   };
 }
 
@@ -361,13 +387,14 @@ export function probeSupabaseSelf(): ProbeResult {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
   const ok = !!url && !!key;
+  const host = ok ? new URL(url!).host : "";
   return {
     status: ok ? "connected" : "connection_error",
     headline: ok ? "Project database live" : "Missing Supabase environment",
     detail: ok
-      ? `Connected to ${new URL(url!).host}. Auth, database, and storage available.`
+      ? `Connected to ${host}. Auth, database, and storage available.`
       : "SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY not set.",
-    identity: ok ? new URL(url!).host : null,
+    identity: ok ? host : null,
     armed: ok,
     grantedCapabilities: ok ? ["read", "write", "sync"] : [],
     missingCapabilities: ok ? [] : ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY"],
@@ -377,17 +404,24 @@ export function probeSupabaseSelf(): ProbeResult {
     lastErrorMessage: null,
     adapterVersion: "supabase.self",
     testable: false,
+    diagnostics: {
+      kind: "supabase_self",
+      host,
+      hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    },
   };
 }
 
 export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeResult> {
   const { data } = await supabase
     .from("sam_mcp_connections")
-    .select("status, server_url, last_success_at, last_error_message, last_tested_at")
+    .select("status, server_url, protocol_version, discovered_tools, last_success_at, last_error_message, last_tested_at")
     .eq("organization_id", orgId)
     .order("updated_at", { ascending: false })
     .limit(1);
   const m = data?.[0];
+  const rawTools = m && Array.isArray(m.discovered_tools) ? (m.discovered_tools as Array<{ name?: string }>) : [];
+  const toolNames = rawTools.map((t) => t?.name).filter((n): n is string => typeof n === "string");
   const status: ProviderStatus = !m
     ? "not_configured"
     : m.status === "connected"
@@ -400,7 +434,7 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
     headline: !m
       ? "No MCP server configured"
       : m.status === "connected"
-        ? "Connected"
+        ? `Connected - ${toolNames.length} tool${toolNames.length === 1 ? "" : "s"}`
         : m.status === "failed"
           ? "Connection error"
           : "Configured",
@@ -414,7 +448,21 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
     lastErrorAt: m?.last_tested_at ?? null,
     lastErrorMessage: m?.last_error_message ?? null,
     adapterVersion: "sam-mcp.v1",
-    testable: false,
+    testable: !!m,
+    diagnostics: {
+      kind: "mcp",
+      servers: m
+        ? [{
+            serverUrl: m.server_url,
+            status: m.status,
+            protocolVersion: m.protocol_version,
+            toolCount: toolNames.length,
+            tools: toolNames.slice(0, 40),
+            lastTestedAt: m.last_tested_at,
+            lastSuccessAt: m.last_success_at,
+          }]
+        : [],
+    },
   };
 }
 
