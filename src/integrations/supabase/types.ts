@@ -948,6 +948,463 @@ export type Database = {
           },
         ]
       }
+      billing_customers: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          metadata: Json
+          name: string | null
+          organization_id: string
+          stripe_customer_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          metadata?: Json
+          name?: string | null
+          organization_id: string
+          stripe_customer_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          metadata?: Json
+          name?: string | null
+          organization_id?: string
+          stripe_customer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_customers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_events: {
+        Row: {
+          actor_id: string | null
+          actor_type: string
+          client_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["billing_event_type"]
+          id: string
+          invoice_id: string | null
+          organization_id: string
+          payload: Json
+          proposal_id: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_type?: string
+          client_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["billing_event_type"]
+          id?: string
+          invoice_id?: string | null
+          organization_id: string
+          payload?: Json
+          proposal_id?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_type?: string
+          client_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["billing_event_type"]
+          id?: string
+          invoice_id?: string | null
+          organization_id?: string
+          payload?: Json
+          proposal_id?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_invoices: {
+        Row: {
+          amount_cents: number
+          amount_paid_cents: number
+          client_id: string
+          collection_method: Database["public"]["Enums"]["billing_collection_method"]
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_id: string | null
+          due_at: string | null
+          finalized_at: string | null
+          hosted_invoice_url: string | null
+          id: string
+          invoice_pdf_url: string | null
+          metadata: Json
+          organization_id: string
+          paid_at: string | null
+          proposal_id: string | null
+          proposal_version: number | null
+          refunded_amount_cents: number
+          status: Database["public"]["Enums"]["billing_invoice_status"]
+          stripe_invoice_id: string
+          stripe_payment_intent_id: string | null
+          type: Database["public"]["Enums"]["billing_invoice_type"]
+          updated_at: string
+          voided_at: string | null
+        }
+        Insert: {
+          amount_cents: number
+          amount_paid_cents?: number
+          client_id: string
+          collection_method?: Database["public"]["Enums"]["billing_collection_method"]
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id?: string | null
+          due_at?: string | null
+          finalized_at?: string | null
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          metadata?: Json
+          organization_id: string
+          paid_at?: string | null
+          proposal_id?: string | null
+          proposal_version?: number | null
+          refunded_amount_cents?: number
+          status?: Database["public"]["Enums"]["billing_invoice_status"]
+          stripe_invoice_id: string
+          stripe_payment_intent_id?: string | null
+          type: Database["public"]["Enums"]["billing_invoice_type"]
+          updated_at?: string
+          voided_at?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          amount_paid_cents?: number
+          client_id?: string
+          collection_method?: Database["public"]["Enums"]["billing_collection_method"]
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id?: string | null
+          due_at?: string | null
+          finalized_at?: string | null
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          metadata?: Json
+          organization_id?: string
+          paid_at?: string | null
+          proposal_id?: string | null
+          proposal_version?: number | null
+          refunded_amount_cents?: number
+          status?: Database["public"]["Enums"]["billing_invoice_status"]
+          stripe_invoice_id?: string
+          stripe_payment_intent_id?: string | null
+          type?: Database["public"]["Enums"]["billing_invoice_type"]
+          updated_at?: string
+          voided_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "billing_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          invoice_id: string
+          metadata: Json
+          organization_id: string
+          paid_at: string | null
+          receipt_url: string | null
+          refunded_amount_cents: number
+          refunded_at: string | null
+          status: Database["public"]["Enums"]["billing_payment_status"]
+          stripe_charge_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          invoice_id: string
+          metadata?: Json
+          organization_id: string
+          paid_at?: string | null
+          receipt_url?: string | null
+          refunded_amount_cents?: number
+          refunded_at?: string | null
+          status?: Database["public"]["Enums"]["billing_payment_status"]
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          invoice_id?: string
+          metadata?: Json
+          organization_id?: string
+          paid_at?: string | null
+          receipt_url?: string | null
+          refunded_amount_cents?: number
+          refunded_at?: string | null
+          status?: Database["public"]["Enums"]["billing_payment_status"]
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_subscriptions: {
+        Row: {
+          amount_cents: number
+          cancel_at: string | null
+          canceled_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          customer_id: string | null
+          id: string
+          interval: string
+          metadata: Json
+          organization_id: string
+          proposal_id: string | null
+          proposal_version: number | null
+          status: Database["public"]["Enums"]["billing_subscription_status"]
+          stripe_price_id: string | null
+          stripe_subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          cancel_at?: string | null
+          canceled_at?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_id?: string | null
+          id?: string
+          interval?: string
+          metadata?: Json
+          organization_id: string
+          proposal_id?: string | null
+          proposal_version?: number | null
+          status?: Database["public"]["Enums"]["billing_subscription_status"]
+          stripe_price_id?: string | null
+          stripe_subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          cancel_at?: string | null
+          canceled_at?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_id?: string | null
+          id?: string
+          interval?: string
+          metadata?: Json
+          organization_id?: string
+          proposal_id?: string | null
+          proposal_version?: number | null
+          status?: Database["public"]["Enums"]["billing_subscription_status"]
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "billing_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_webhook_events: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          event_type: string
+          id: string
+          last_error: string | null
+          payload: Json
+          processed_at: string | null
+          processing_status: Database["public"]["Enums"]["billing_webhook_processing_status"]
+          received_at: string
+          stripe_event_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          payload: Json
+          processed_at?: string | null
+          processing_status?: Database["public"]["Enums"]["billing_webhook_processing_status"]
+          received_at?: string
+          stripe_event_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: Database["public"]["Enums"]["billing_webhook_processing_status"]
+          received_at?: string
+          stripe_event_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commitments: {
         Row: {
           completed_at: string | null
@@ -8911,6 +9368,55 @@ export type Database = {
       shares_org_with: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
+      billing_collection_method: "send_invoice" | "charge_automatically"
+      billing_event_type:
+        | "customer_created"
+        | "invoice_created"
+        | "invoice_finalized"
+        | "invoice_sent"
+        | "invoice_payment_failed"
+        | "setup_deposit_paid"
+        | "onboarding_payment_complete"
+        | "setup_final_paid"
+        | "ready_for_go_live"
+        | "subscription_created"
+        | "subscription_updated"
+        | "subscription_canceled"
+        | "recurring_billing_active"
+        | "refund_issued"
+      billing_invoice_status:
+        | "draft"
+        | "open"
+        | "paid"
+        | "uncollectible"
+        | "void"
+        | "refunded"
+        | "partially_refunded"
+      billing_invoice_type:
+        | "setup_deposit"
+        | "setup_final"
+        | "subscription"
+        | "adjustment"
+      billing_payment_status:
+        | "pending"
+        | "succeeded"
+        | "failed"
+        | "refunded"
+        | "partially_refunded"
+      billing_subscription_status:
+        | "incomplete"
+        | "incomplete_expired"
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "unpaid"
+        | "paused"
+      billing_webhook_processing_status:
+        | "received"
+        | "processing"
+        | "processed"
+        | "failed"
       cashflow_direction: "inflow" | "outflow"
       client_status: "active" | "paused" | "churned" | "onboarding"
       commitment_status:
@@ -9353,6 +9859,61 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      billing_collection_method: ["send_invoice", "charge_automatically"],
+      billing_event_type: [
+        "customer_created",
+        "invoice_created",
+        "invoice_finalized",
+        "invoice_sent",
+        "invoice_payment_failed",
+        "setup_deposit_paid",
+        "onboarding_payment_complete",
+        "setup_final_paid",
+        "ready_for_go_live",
+        "subscription_created",
+        "subscription_updated",
+        "subscription_canceled",
+        "recurring_billing_active",
+        "refund_issued",
+      ],
+      billing_invoice_status: [
+        "draft",
+        "open",
+        "paid",
+        "uncollectible",
+        "void",
+        "refunded",
+        "partially_refunded",
+      ],
+      billing_invoice_type: [
+        "setup_deposit",
+        "setup_final",
+        "subscription",
+        "adjustment",
+      ],
+      billing_payment_status: [
+        "pending",
+        "succeeded",
+        "failed",
+        "refunded",
+        "partially_refunded",
+      ],
+      billing_subscription_status: [
+        "incomplete",
+        "incomplete_expired",
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "unpaid",
+        "paused",
+      ],
+      billing_webhook_processing_status: [
+        "received",
+        "processing",
+        "processed",
+        "failed",
+      ],
       cashflow_direction: ["inflow", "outflow"],
       client_status: ["active", "paused", "churned", "onboarding"],
       commitment_status: [
