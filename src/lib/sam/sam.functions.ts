@@ -189,6 +189,10 @@ export const askSam = createServerFn({ method: "POST" })
       input_tokens: result.usage.inputTokens ?? null,
       output_tokens: result.usage.outputTokens ?? null,
       truncations: result.context.truncations,
+      strategy: result.strategy,
+      strategy_reason: result.strategyReason,
+      explainable_summary: result.summary,
+      reasoning_trace: result.trace,
     }));
 
     // 7b. Action routing: attempt to execute an operational intent BEFORE
@@ -268,6 +272,7 @@ export const askSam = createServerFn({ method: "POST" })
         inputTokens: result.usage.inputTokens,
         outputTokens: result.usage.outputTokens,
         status: "ok",
+        strategy: result.strategy,
         citationLineage: result.response.citations.map((c) => ({
           entity_type: c.entity_type,
           entity_id: c.entity_id,

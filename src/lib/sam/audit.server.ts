@@ -35,6 +35,7 @@ export interface AuditWriteInput {
   errorCode?: string | null;
   learningEventIds?: string[];
   citationLineage?: unknown[];
+  strategy?: string;
 }
 
 export async function writeAudit(
@@ -61,7 +62,7 @@ export async function writeAudit(
       prompt_version: PROMPT_VERSION,
       constitution_version: CONSTITUTION_VERSION,
       pipeline_version: PIPELINE_VERSION,
-      strategy: "single_pass",
+      strategy: input.strategy ?? "single_pass",
       confidence_method: CONFIDENCE_METHOD,
       weights_version: WEIGHTS_VERSION,
       finished_at: finishedAt,
