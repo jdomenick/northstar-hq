@@ -51,6 +51,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  /* NorthStar brand signal colors (used by the Brief and other product surfaces). */
+  --color-brand-ok: var(--brand-ok);
+  --color-brand-warn: var(--brand-warn);
+  --color-brand-danger: var(--brand-danger);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -83,6 +87,10 @@
   --destructive-foreground: oklch(1 0 0);
   --success: oklch(0.7 0.16 155);
   --warning: oklch(0.78 0.16 75);
+  /* NorthStar brand signal colors. Kept cool (blue/white/red) to match the obsidian + ion identity. */
+  --brand-ok: oklch(0.72 0.16 235);
+  --brand-warn: oklch(0.94 0.008 255);
+  --brand-danger: oklch(0.62 0.22 27);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.68 0.2 252 / 55%);
