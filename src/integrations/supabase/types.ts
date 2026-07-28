@@ -3626,6 +3626,346 @@ export type Database = {
           },
         ]
       }
+      nsl_proposal_activity: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          organization_id: string
+          proposal_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          organization_id: string
+          proposal_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          organization_id?: string
+          proposal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nsl_proposal_activity_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposal_activity_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nsl_proposal_comments: {
+        Row: {
+          author_id: string | null
+          comment: string
+          created_at: string
+          id: string
+          organization_id: string
+          proposal_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          comment: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          proposal_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          comment?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          proposal_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nsl_proposal_comments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposal_comments_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nsl_proposal_signatures: {
+        Row: {
+          acknowledgement: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          organization_id: string
+          proposal_id: string
+          proposal_version: number
+          signed_at: string
+          signer_email: string
+          signer_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          acknowledgement: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          proposal_id: string
+          proposal_version: number
+          signed_at?: string
+          signer_email: string
+          signer_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          acknowledgement?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          proposal_id?: string
+          proposal_version?: number
+          signed_at?: string
+          signer_email?: string
+          signer_name?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nsl_proposal_signatures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposal_signatures_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nsl_proposal_versions: {
+        Row: {
+          change_summary: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          proposal_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          change_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          proposal_id: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          change_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          proposal_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nsl_proposal_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposal_versions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nsl_proposals: {
+        Row: {
+          accepted_at: string | null
+          approved_at: string | null
+          approved_by: string | null
+          assessment_summary: string | null
+          business_overview: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          current_challenges: string | null
+          declined_at: string | null
+          deliverables: string | null
+          executive_summary: string | null
+          expired_at: string | null
+          growth_opportunities: string | null
+          id: string
+          implementation_timeline: string | null
+          investment_summary: string | null
+          locked_at: string | null
+          organization_id: string
+          payment_schedule: string | null
+          pipeline_id: string | null
+          proposal_number: string
+          public_token_expires_at: string | null
+          public_token_hash: string | null
+          recommended_services: string | null
+          recommended_strategy: string | null
+          recurring_fee_cents: number
+          sent_at: string | null
+          setup_fee_cents: number
+          status: Database["public"]["Enums"]["nsl_proposal_status"]
+          terms: string | null
+          title: string
+          total_value_cents: number
+          updated_at: string
+          version: number
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_summary?: string | null
+          business_overview?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          current_challenges?: string | null
+          declined_at?: string | null
+          deliverables?: string | null
+          executive_summary?: string | null
+          expired_at?: string | null
+          growth_opportunities?: string | null
+          id?: string
+          implementation_timeline?: string | null
+          investment_summary?: string | null
+          locked_at?: string | null
+          organization_id: string
+          payment_schedule?: string | null
+          pipeline_id?: string | null
+          proposal_number: string
+          public_token_expires_at?: string | null
+          public_token_hash?: string | null
+          recommended_services?: string | null
+          recommended_strategy?: string | null
+          recurring_fee_cents?: number
+          sent_at?: string | null
+          setup_fee_cents?: number
+          status?: Database["public"]["Enums"]["nsl_proposal_status"]
+          terms?: string | null
+          title: string
+          total_value_cents?: number
+          updated_at?: string
+          version?: number
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assessment_summary?: string | null
+          business_overview?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_challenges?: string | null
+          declined_at?: string | null
+          deliverables?: string | null
+          executive_summary?: string | null
+          expired_at?: string | null
+          growth_opportunities?: string | null
+          id?: string
+          implementation_timeline?: string | null
+          investment_summary?: string | null
+          locked_at?: string | null
+          organization_id?: string
+          payment_schedule?: string | null
+          pipeline_id?: string | null
+          proposal_number?: string
+          public_token_expires_at?: string | null
+          public_token_hash?: string | null
+          recommended_services?: string | null
+          recommended_strategy?: string | null
+          recurring_fee_cents?: number
+          sent_at?: string | null
+          setup_fee_cents?: number
+          status?: Database["public"]["Enums"]["nsl_proposal_status"]
+          terms?: string | null
+          title?: string
+          total_value_cents?: number
+          updated_at?: string
+          version?: number
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nsl_proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_proposals_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operator_audit: {
         Row: {
           actor_user_id: string | null
@@ -8549,6 +8889,21 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string; _user: string }; Returns: boolean }
       is_org_owner: { Args: { _org: string; _user: string }; Returns: boolean }
+      nsl_proposal_accept: {
+        Args: {
+          _acknowledgement: string
+          _ip: string
+          _signer_email: string
+          _signer_name: string
+          _token_hash: string
+          _user_agent: string
+        }
+        Returns: {
+          accepted_at: string
+          idempotent: boolean
+          proposal_id: string
+        }[]
+      }
       org_role_of: {
         Args: { _org: string; _user: string }
         Returns: Database["public"]["Enums"]["org_role"]
@@ -8697,6 +9052,18 @@ export type Database = {
         | "operating_procedure"
         | "general"
       member_status: "invited" | "active" | "suspended" | "removed"
+      nsl_proposal_status:
+        | "draft"
+        | "internal_review"
+        | "approved"
+        | "ready_to_send"
+        | "sent"
+        | "viewed"
+        | "accepted"
+        | "declined"
+        | "expired"
+        | "superseded"
+        | "cancelled"
       operator_kind: "hunter" | "builder"
       operator_task_priority: "low" | "normal" | "high" | "urgent"
       operator_task_status:
@@ -9143,6 +9510,19 @@ export const Constants = {
         "general",
       ],
       member_status: ["invited", "active", "suspended", "removed"],
+      nsl_proposal_status: [
+        "draft",
+        "internal_review",
+        "approved",
+        "ready_to_send",
+        "sent",
+        "viewed",
+        "accepted",
+        "declined",
+        "expired",
+        "superseded",
+        "cancelled",
+      ],
       operator_kind: ["hunter", "builder"],
       operator_task_priority: ["low", "normal", "high", "urgent"],
       operator_task_status: [

@@ -13,6 +13,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -46,6 +47,11 @@ import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
+import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
+import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
+import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
+import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
+import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
@@ -56,6 +62,7 @@ import { Route as AuthenticatedSamIntegrationsRestEndpointsRouteImport } from '.
 import { Route as AuthenticatedSamContentLibraryRouteImport } from './routes/_authenticated/sam.content.library'
 import { Route as AuthenticatedSamContentCalendarRouteImport } from './routes/_authenticated/sam.content.calendar'
 import { Route as AuthenticatedLabsVenturesIdRouteImport } from './routes/_authenticated/labs.ventures.$id'
+import { Route as AuthenticatedLabsProposalsIdRouteImport } from './routes/_authenticated/labs.proposals.$id'
 import { Route as AuthenticatedLabsProjectsIdRouteImport } from './routes/_authenticated/labs.projects.$id'
 import { Route as AuthenticatedLabsKnowledgeIdRouteImport } from './routes/_authenticated/labs.knowledge.$id'
 import { Route as AuthenticatedLabsGoalsIdRouteImport } from './routes/_authenticated/labs.goals.$id'
@@ -86,6 +93,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProposalTokenRoute = ProposalTokenRouteImport.update({
+  id: '/proposal/$token',
+  path: '/proposal/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -267,6 +279,34 @@ const AuthenticatedLabsAccountabilityRoute =
     path: '/labs/accountability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsProposalsIndexRoute =
+  AuthenticatedLabsProposalsIndexRouteImport.update({
+    id: '/labs/proposals/',
+    path: '/labs/proposals/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
+  id: '/api/public/proposals/view',
+  path: '/api/public/proposals/view',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicProposalsPdfRoute = ApiPublicProposalsPdfRouteImport.update({
+  id: '/api/public/proposals/pdf',
+  path: '/api/public/proposals/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicProposalsDeclineRoute =
+  ApiPublicProposalsDeclineRouteImport.update({
+    id: '/api/public/proposals/decline',
+    path: '/api/public/proposals/decline',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicProposalsAcceptRoute =
+  ApiPublicProposalsAcceptRouteImport.update({
+    id: '/api/public/proposals/accept',
+    path: '/api/public/proposals/accept',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
   id: '/api/public/automation/tick',
   path: '/api/public/automation/tick',
@@ -325,6 +365,12 @@ const AuthenticatedLabsVenturesIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedLabsVenturesRoute,
+  } as any)
+const AuthenticatedLabsProposalsIdRoute =
+  AuthenticatedLabsProposalsIdRouteImport.update({
+    id: '/labs/proposals/$id',
+    path: '/labs/proposals/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLabsProjectsIdRoute =
   AuthenticatedLabsProjectsIdRouteImport.update({
@@ -418,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -442,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -452,6 +500,11 @@ export interface FileRoutesByFullPath {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
+  '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -478,6 +531,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -502,6 +556,7 @@ export interface FileRoutesByTo {
   '/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -512,6 +567,11 @@ export interface FileRoutesByTo {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
+  '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -540,6 +600,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/_authenticated/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -564,6 +625,7 @@ export interface FileRoutesById {
   '/_authenticated/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/_authenticated/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/_authenticated/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/_authenticated/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/_authenticated/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/_authenticated/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/_authenticated/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -574,6 +636,11 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
+  '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
+  '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
+  '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -602,6 +669,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/decisions'
     | '/labs/documents'
@@ -626,6 +694,7 @@ export interface FileRouteTypes {
     | '/labs/goals/$id'
     | '/labs/knowledge/$id'
     | '/labs/projects/$id'
+    | '/labs/proposals/$id'
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
@@ -636,6 +705,11 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/accept'
+    | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
+    | '/api/public/proposals/view'
+    | '/labs/proposals/'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -662,6 +736,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/decisions'
     | '/labs/documents'
@@ -686,6 +761,7 @@ export interface FileRouteTypes {
     | '/labs/goals/$id'
     | '/labs/knowledge/$id'
     | '/labs/projects/$id'
+    | '/labs/proposals/$id'
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
@@ -696,6 +772,11 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/accept'
+    | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
+    | '/api/public/proposals/view'
+    | '/labs/proposals'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -723,6 +804,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/proposal/$token'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/decisions'
     | '/_authenticated/labs/documents'
@@ -747,6 +829,7 @@ export interface FileRouteTypes {
     | '/_authenticated/labs/goals/$id'
     | '/_authenticated/labs/knowledge/$id'
     | '/_authenticated/labs/projects/$id'
+    | '/_authenticated/labs/proposals/$id'
     | '/_authenticated/labs/ventures/$id'
     | '/_authenticated/sam/content/calendar'
     | '/_authenticated/sam/content/library'
@@ -757,6 +840,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/accept'
+    | '/api/public/proposals/decline'
+    | '/api/public/proposals/pdf'
+    | '/api/public/proposals/view'
+    | '/_authenticated/labs/proposals/'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -771,8 +859,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ProposalTokenRoute: typeof ProposalTokenRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
+  ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
+  ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
+  ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
+  ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
   ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
@@ -808,6 +901,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposal/$token': {
+      id: '/proposal/$token'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token'
+      preLoaderRoute: typeof ProposalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1041,6 +1141,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsAccountabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labs/proposals/': {
+      id: '/_authenticated/labs/proposals/'
+      path: '/labs/proposals'
+      fullPath: '/labs/proposals/'
+      preLoaderRoute: typeof AuthenticatedLabsProposalsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/proposals/view': {
+      id: '/api/public/proposals/view'
+      path: '/api/public/proposals/view'
+      fullPath: '/api/public/proposals/view'
+      preLoaderRoute: typeof ApiPublicProposalsViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/pdf': {
+      id: '/api/public/proposals/pdf'
+      path: '/api/public/proposals/pdf'
+      fullPath: '/api/public/proposals/pdf'
+      preLoaderRoute: typeof ApiPublicProposalsPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/decline': {
+      id: '/api/public/proposals/decline'
+      path: '/api/public/proposals/decline'
+      fullPath: '/api/public/proposals/decline'
+      preLoaderRoute: typeof ApiPublicProposalsDeclineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/accept': {
+      id: '/api/public/proposals/accept'
+      path: '/api/public/proposals/accept'
+      fullPath: '/api/public/proposals/accept'
+      preLoaderRoute: typeof ApiPublicProposalsAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/automation/tick': {
       id: '/api/public/automation/tick'
       path: '/api/public/automation/tick'
@@ -1110,6 +1245,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/labs/ventures/$id'
       preLoaderRoute: typeof AuthenticatedLabsVenturesIdRouteImport
       parentRoute: typeof AuthenticatedLabsVenturesRoute
+    }
+    '/_authenticated/labs/proposals/$id': {
+      id: '/_authenticated/labs/proposals/$id'
+      path: '/labs/proposals/$id'
+      fullPath: '/labs/proposals/$id'
+      preLoaderRoute: typeof AuthenticatedLabsProposalsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/labs/projects/$id': {
       id: '/_authenticated/labs/projects/$id'
@@ -1383,7 +1525,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsCommitmentsIdRoute: typeof AuthenticatedLabsCommitmentsIdRoute
+  AuthenticatedLabsProposalsIdRoute: typeof AuthenticatedLabsProposalsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
+  AuthenticatedLabsProposalsIndexRoute: typeof AuthenticatedLabsProposalsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1417,7 +1561,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsCommitmentsIdRoute: AuthenticatedLabsCommitmentsIdRoute,
+  AuthenticatedLabsProposalsIdRoute: AuthenticatedLabsProposalsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
+  AuthenticatedLabsProposalsIndexRoute: AuthenticatedLabsProposalsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1441,8 +1587,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ProposalTokenRoute: ProposalTokenRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
+  ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
+  ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
+  ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
+  ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
   ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
