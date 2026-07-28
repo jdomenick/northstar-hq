@@ -340,7 +340,7 @@ export function probeSupabaseSelf(): ProbeResult {
 export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeResult> {
   const { data } = await supabase
     .from("sam_mcp_connections")
-    .select("status, server_url, last_connected_at, last_error, last_error_at")
+    .select("status, server_url, last_success_at, last_error_message, last_tested_at")
     .eq("organization_id", orgId)
     .order("updated_at", { ascending: false })
     .limit(1);
@@ -349,7 +349,7 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
     ? "not_configured"
     : m.status === "connected"
       ? "connected"
-      : m.status === "error"
+      : m.status === "failed"
         ? "connection_error"
         : "action_needed";
   return {
@@ -358,7 +358,7 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
       ? "No MCP server configured"
       : m.status === "connected"
         ? "Connected"
-        : m.status === "error"
+        : m.status === "failed"
           ? "Connection error"
           : "Configured",
     detail: m?.server_url ?? "Add a SAM MCP server URL and API key from the MCP panel.",
@@ -366,10 +366,10 @@ export async function probeSamMcp(supabase: Supa, orgId: string): Promise<ProbeR
     armed: m?.status === "connected",
     grantedCapabilities: [],
     missingCapabilities: [],
-    lastActivityAt: m?.last_connected_at ?? null,
-    lastActivityLabel: m?.last_connected_at ? "Last connected" : null,
-    lastErrorAt: m?.last_error_at ?? null,
-    lastErrorMessage: m?.last_error ?? null,
+    lastActivityAt: m?.last_success_at ?? null,
+    lastActivityLabel: m?.last_success_at ? "Last connected" : null,
+    lastErrorAt: m?.last_tested_at ?? null,
+    lastErrorMessage: m?.last_error_message ?? null,
     adapterVersion: "sam-mcp.v1",
     testable: false,
   };
