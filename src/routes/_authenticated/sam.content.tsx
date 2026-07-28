@@ -20,7 +20,7 @@ import { getAutonomy } from "@/lib/content-ops/autonomy.functions";
 import { listContentItems } from "@/lib/content-ops/content.functions";
 import { listStrategies } from "@/lib/content-ops/strategy.functions";
 import { listLearnings } from "@/lib/content-ops/learnings.functions";
-import { validateBeehiivConnection } from "@/lib/content-ops/beehiiv-validate.functions";
+import { listContentOpsConnections } from "@/lib/content-ops/connections.functions";
 
 export const Route = createFileRoute("/_authenticated/sam/content")({
   component: ContentOpsWorkspace,
@@ -46,7 +46,7 @@ function ContentOpsWorkspace() {
   const listStrategiesFn = useServerFn(listStrategies);
   const listContentFn = useServerFn(listContentItems);
   const listLearningsFn = useServerFn(listLearnings);
-  const validateBeehiivFn = useServerFn(validateBeehiivConnection);
+  const listConnectionsFn = useServerFn(listContentOpsConnections);
 
   const enabled = Boolean(organizationId && ventureId);
 
@@ -86,11 +86,11 @@ function ContentOpsWorkspace() {
     enabled,
     queryFn: () => listLearningsFn({ data: { organizationId: organizationId!, ventureId: ventureId! } }),
   });
-  const beehiivQ = useQuery({
-    queryKey: ["content-ops", "beehiiv-validation", organizationId, ventureId],
+  const connectionsQ = useQuery({
+    queryKey: ["content-ops", "connections", organizationId, ventureId],
     enabled,
     queryFn: () =>
-      validateBeehiivFn({
+      listConnectionsFn({
         data: {
           organizationId: organizationId!,
           ventureId: ventureId!,
@@ -148,55 +148,63 @@ function ContentOpsWorkspace() {
         </QuietPanel>
 
         <section className="mt-10">
-          <SectionLabel>Beehiiv connection</SectionLabel>
-          {beehiivQ.isLoading ? (
-            <EditorialSkeleton rows={2} />
-          ) : beehiivQ.isError ? (
-            <ErrorLine message="Could not check Beehiiv connection." />
+          <SectionLabel>Connections</SectionLabel>
+          {connectionsQ.isLoading ? (
+            <EditorialSkeleton rows={4} />
+          ) : connectionsQ.isError ? (
+            <ErrorLine message="Could not load publishing connections." />
           ) : (
-            <QuietPanel>
-              <div className="grid gap-2 text-sm">
-                <div>
-                  <SectionLabel>Status</SectionLabel>
-                  <div className="mt-1">
-                    {beehiivQ.data?.configured
-                      ? beehiivQ.data.reachable
-                        ? "Credentials configured and reachable."
-                        : "Credentials configured but Beehiiv is not responding."
-                      : "Credentials not configured."}
-                  </div>
-                </div>
-                <div>
-                  <SectionLabel>Publication</SectionLabel>
-                  <div className="mt-1 font-mono text-xs">
-                    {beehiivQ.data?.publicationName ?? "(unknown)"} - id {beehiivQ.data?.publicationId ?? "-"}
-                  </div>
-                </div>
-                <div>
-                  <SectionLabel>Identity match (Healing Path)</SectionLabel>
-                  <div className="mt-1">
-                    {beehiivQ.data?.identityMatches == null
-                      ? "not checked"
-                      : beehiivQ.data.identityMatches
-                        ? "matches"
-                        : "does not match"}
-                  </div>
-                </div>
-                <div>
-                  <SectionLabel>Capabilities</SectionLabel>
-                  <div className="mt-1 font-mono text-xs">
-                    granted: {(beehiivQ.data?.grantedCapabilities ?? []).join(", ") || "-"}
-                    <br />
-                    missing: {(beehiivQ.data?.missingCapabilities ?? []).join(", ") || "-"}
-                  </div>
-                </div>
-                <div>
-                  <SectionLabel>Publishing armed</SectionLabel>
-                  <div className="mt-1">{beehiivQ.data?.armed ? "ARMED" : "DISARMED (6a)"}</div>
-                </div>
-                <div className="text-muted-foreground">{beehiivQ.data?.message}</div>
-              </div>
-            </QuietPanel>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(connectionsQ.data ?? []).map((c) => {
+                const tone =
+                  c.tone === "configured"
+                    ? "neutral"
+                    : c.tone === "blocked"
+                      ? "attention"
+                      : "muted";
+                const toneLabel =
+                  c.tone === "configured"
+                    ? "connected"
+                    : c.tone === "blocked"
+                      ? "action needed"
+                      : "not built";
+                return (
+                  <QuietPanel key={c.key}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <SectionLabel>{c.label}</SectionLabel>
+                        <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
+                          {c.category}
+                        </div>
+                      </div>
+                      <StatusLine tone={tone as "neutral" | "attention" | "muted"}>
+                        {toneLabel}
+                      </StatusLine>
+                    </div>
+                    <div className="mt-3 text-sm">{c.headline}</div>
+                    <div className="mt-1 text-sm text-muted-foreground">{c.detail}</div>
+                    {c.identity ? (
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        Identity: <span className="font-mono">{c.identity}</span>
+                      </div>
+                    ) : null}
+                    {c.tone !== "not_implemented" ? (
+                      <div className="mt-3 grid gap-1 text-xs font-mono text-muted-foreground">
+                        <div>
+                          granted: {c.grantedCapabilities.join(", ") || "-"}
+                        </div>
+                        <div>
+                          missing: {c.missingCapabilities.join(", ") || "-"}
+                        </div>
+                        {c.armed !== null ? (
+                          <div>armed: {c.armed ? "yes" : "no"}</div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </QuietPanel>
+                );
+              })}
+            </div>
           )}
         </section>
 
