@@ -6,18 +6,18 @@ export type PipelineStage = Database["public"]["Enums"]["pipeline_stage"];
 // Internal codenames stay `hunter` / `builder` in the database and code.
 // The UI uses "Growth Operator" and "Delivery Operator" externally.
 export const OPERATOR_LABELS: Record<OperatorKind, string> = {
-  hunter: "Growth Operator",
-  builder: "Delivery Operator",
+  hunter: "Growth queue",
+  builder: "Delivery queue",
 };
 
 export const OPERATOR_SUBTITLES: Record<OperatorKind, string> = {
-  hunter: "Business development",
-  builder: "Client delivery",
+  hunter: "Prospecting and sales",
+  builder: "Onboarding and delivery",
 };
 
 export const OPERATOR_PURPOSE: Record<OperatorKind, string> = {
-  hunter: "Finds ideal accounts, opens conversations, and moves opportunities to a signed proposal.",
-  builder: "Turns closed deals into launched work, testimonials, and referrals.",
+  hunter: "Tracks prospecting, outreach, and sales work from first contact through signed proposal.",
+  builder: "Tracks onboarding, delivery, and launch work from signed proposal through case study and referral.",
 };
 
 // Full Revenue Machine lifecycle in canonical order.
