@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight,
+  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, Flag,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
@@ -58,6 +58,24 @@ function MissionControl() {
   const overdueCommitments = (commitments.data ?? []).filter(isCommitmentOverdue);
   const goalsAtRisk = (goals.data ?? []).filter(isGoalAtRisk);
 
+  // Revenue at risk: open deals whose expected close has passed.
+  const now = Date.now();
+  const atRiskDeals = (pipeline.data ?? []).filter(
+    (d) => d.stage !== "won" && d.stage !== "lost" && d.expected_close && new Date(d.expected_close).getTime() < now,
+  );
+  const revenueAtRiskCents = atRiskDeals.reduce((s, d) => s + (d.value_cents ?? 0), 0);
+
+  // Highest priority SAM recommendation.
+  const severityRank: Record<string, number> = { critical: 5, warning: 4, attention: 3, opportunity: 2, information: 1 };
+  const priorityRank: Record<string, number> = { critical: 4, high: 3, normal: 2, low: 1 };
+  const topInsight = [...(insights.data ?? [])].sort((a, b) => {
+    const sd = (severityRank[b.severity] ?? 0) - (severityRank[a.severity] ?? 0);
+    if (sd !== 0) return sd;
+    return (priorityRank[b.priority] ?? 0) - (priorityRank[a.priority] ?? 0);
+  })[0];
+  const activeInsightsCount = (insights.data ?? []).length;
+  const opportunityCount = (insights.data ?? []).filter((i) => i.severity === "opportunity").length;
+
   return (
     <div className="min-h-screen">
       {/* Header bar */}
@@ -79,6 +97,55 @@ function MissionControl() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-10 md:py-8 space-y-8">
+        {/* Executive Priorities: answers "what needs my attention right now?" */}
+        <section>
+          <SectionHeader title="Executive priorities" hint="What requires your attention right now" />
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <PriorityTile
+              label="Revenue at risk"
+              value={revenueAtRiskCents > 0 ? formatMoney(revenueAtRiskCents, { compact: true }) : "None"}
+              sub={atRiskDeals.length > 0 ? `${atRiskDeals.length} deal${atRiskDeals.length === 1 ? "" : "s"} past expected close` : "No open deals past due"}
+              tone={atRiskDeals.length > 0 ? "warn" : "ok"}
+              to="/labs/revenue"
+            />
+            <PriorityTile
+              label="Decisions waiting"
+              value={String(waitingDecisions.length)}
+              sub={waitingDecisions[0]?.title ?? "Nothing waiting on you"}
+              tone={waitingDecisions.length > 0 ? "warn" : "ok"}
+              to="/labs/decisions"
+            />
+            <PriorityTile
+              label="Overdue commitments"
+              value={String(overdueCommitments.length)}
+              sub={overdueCommitments[0]?.title ?? "All commitments on time"}
+              tone={overdueCommitments.length > 0 ? "warn" : "ok"}
+              to="/labs/accountability"
+            />
+            <PriorityTile
+              label="Projects at risk"
+              value={String(atRiskProjects.length)}
+              sub={atRiskProjects[0]?.name ?? "Delivery is clean"}
+              tone={atRiskProjects.length > 0 ? "warn" : "ok"}
+              to="/labs/projects"
+            />
+            <PriorityTile
+              label="Goals at risk"
+              value={String(goalsAtRisk.length)}
+              sub={goalsAtRisk[0]?.title ?? "All goals on track"}
+              tone={goalsAtRisk.length > 0 ? "warn" : "ok"}
+              to="/labs/goals"
+            />
+            <PriorityTile
+              label="Top SAM recommendation"
+              value={topInsight ? (topInsight.severity.charAt(0).toUpperCase() + topInsight.severity.slice(1)) : "None"}
+              sub={topInsight?.title ?? "No active recommendations"}
+              tone={topInsight && (topInsight.severity === "critical" || topInsight.severity === "warning") ? "warn" : "ok"}
+              to="/sam"
+            />
+          </div>
+        </section>
+
         {/* Top KPI strip */}
         <section className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-[0_14px_40px_-34px_oklch(0.22_0.02_255/0.5)] md:grid-cols-4">
           <KpiTile label="MRR" value={formatMoney(rev.mrrCents, { compact: true })} sub={`${rev.activeClients} active clients`} />
@@ -123,19 +190,23 @@ function MissionControl() {
             <ExecCard title="CMO" subtitle="Content & audience" icon={Sparkles}
               stats={[
                 { label: "Ventures", value: activeVentures.length },
-                { label: "Content ops", value: "Live" },
-                { label: "Autonomy", value: "Approval-required" },
+                { label: "Goals active", value: (goals.data ?? []).length },
+                { label: "Opportunities", value: opportunityCount },
               ]}
-              detail="Content Operations engine wired. Connect social accounts under Integrations to publish live."
+              detail={activeVentures.length === 0
+                ? "No active ventures yet. Create one to begin planning content."
+                : `Publishing runs in approval-required mode across ${activeVentures.length} venture${activeVentures.length === 1 ? "" : "s"}. Connect social accounts under Integrations to publish live.`}
               link={{ to: "/sam/integrations", label: "Integrations" }}
             />
             <ExecCard title="CTO" subtitle="Systems & automation" icon={GitBranch}
               stats={[
                 { label: "Decisions waiting", value: waitingDecisions.length, tone: waitingDecisions.length > 0 ? "warn" : undefined },
-                { label: "Automation", value: "Durable" },
-                { label: "SAM MCP", value: "Ready" },
+                { label: "Active insights", value: activeInsightsCount },
+                { label: "Opportunities", value: opportunityCount },
               ]}
-              detail="Scheduler on 1-minute tick. SAM MCP client vertical slice deployed."
+              detail={topInsight
+                ? `Top signal: ${topInsight.title}`
+                : "No active signals across the operation right now."}
               link={{ to: "/sam/integrations", label: "Integrations" }}
             />
             <ExecCard title="CFO" subtitle="Cash & runway" icon={ShieldCheck}
@@ -200,6 +271,38 @@ function KpiTile({ label, value, sub, tone }: { label: string; value: string; su
       <div className={cn("mt-2 font-display text-[24px] leading-none tabular-nums text-foreground", tone === "warn" && "text-destructive")}>{value}</div>
       {sub && <div className="mt-2 text-[11px] text-muted-foreground">{sub}</div>}
     </div>
+  );
+}
+
+function PriorityTile({
+  label, value, sub, tone, to,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  tone?: "ok" | "warn";
+  to: "/labs/revenue" | "/labs/decisions" | "/labs/accountability" | "/labs/projects" | "/labs/goals" | "/sam";
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors",
+        tone === "warn" ? "border-destructive/40 hover:border-destructive/60" : "border-border hover:border-primary/40",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+        {tone === "warn"
+          ? <AlertTriangle className="h-3.5 w-3.5 text-destructive" strokeWidth={1.8} />
+          : <Flag className="h-3.5 w-3.5 text-muted-foreground/70" strokeWidth={1.8} />}
+      </div>
+      <div className={cn("mt-2 font-display text-[22px] leading-none tabular-nums", tone === "warn" && "text-destructive")}>{value}</div>
+      <div className="mt-2 line-clamp-2 text-[11.5px] leading-snug text-foreground/70">{sub}</div>
+      <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 group-hover:text-foreground">
+        Open <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+      </div>
+    </Link>
   );
 }
 
