@@ -15,6 +15,10 @@ import {
 import type { AssembledContext } from "./context-builder.server";
 import type { ConfidenceObject } from "./confidence";
 import type { SamCitation } from "./schema";
+import type { ReasoningTrace, ExplainableSummary } from "./reasoning/trace";
+import { redactTrace } from "./reasoning/redact";
+
+const DEFAULT_TRACE_RETENTION_DAYS = 180;
 
 export interface AuditWriteInput {
   orgId: string;
@@ -36,12 +40,18 @@ export interface AuditWriteInput {
   learningEventIds?: string[];
   citationLineage?: unknown[];
   strategy?: string;
+  // Private reasoning trace + public explainable summary. The trace is
+  // redacted and persisted in sam_reasoning_traces; the summary is passed
+  // through unchanged.
+  trace?: ReasoningTrace | null;
+  summary?: ExplainableSummary | null;
+  traceRetentionDays?: number;
 }
 
 export async function writeAudit(
   supabase: SupabaseClient<Database>,
   input: AuditWriteInput,
-): Promise<{ invocationId: string | null }> {
+): Promise<{ invocationId: string | null; traceId: string | null }> {
   // Use supabase (authenticated) client; RLS policies allow org members SELECT
   // only, but INSERT is limited to service_role. Load admin lazily inside the
   // server-fn handler graph.
@@ -141,5 +151,37 @@ export async function writeAudit(
     error_code: input.errorCode ?? null,
   });
 
-  return { invocationId };
+  // Persist the private reasoning trace to its dedicated, admin-only store.
+  // Redaction runs before write so credential-shaped fragments never persist.
+  let traceId: string | null = null;
+  if (input.trace) {
+    const retention = input.traceRetentionDays ?? DEFAULT_TRACE_RETENTION_DAYS;
+    const expiresAt = new Date(Date.now() + retention * 86400 * 1000).toISOString();
+    const { data: traceRow } = await supabaseAdmin
+      .from("sam_reasoning_traces")
+      .insert({
+        organization_id: input.orgId,
+        invocation_id: invocationId,
+        conversation_id: input.conversationId,
+        message_id: input.messageId,
+        strategy: input.strategy ?? "single_pass",
+        intent: input.intent,
+        prompt_version: PROMPT_VERSION,
+        constitution_version: CONSTITUTION_VERSION,
+        pipeline_version: PIPELINE_VERSION,
+        provider_id: input.providerId,
+        model_id: input.modelId,
+        trace: redactTrace(input.trace) as never,
+        summary: (input.summary ?? null) as never,
+        citations: input.citations as never,
+        redaction_applied: true,
+        retention_days: retention,
+        expires_at: expiresAt,
+      })
+      .select("id")
+      .single();
+    traceId = traceRow?.id ?? null;
+  }
+
+  return { invocationId, traceId };
 }

@@ -175,25 +175,43 @@ export const askSam = createServerFn({ method: "POST" })
     }
 
     // 8. Persist SAM message.
-    const metadata = JSON.parse(JSON.stringify({
-      intent: result.intent,
-      confidence: result.confidence,
-      citations: result.response.citations,
-      hrefs: result.hrefs,
-      response: result.response,
-      provider: result.provider,
-      pipeline_version: "sam.pipeline.v1.0.0",
-      prompt_version: "sam.prompt.v1.0.0",
-      constitution_version: "sam.constitution.v1.0.0",
-      latency_ms: result.usage.latencyMs,
-      input_tokens: result.usage.inputTokens ?? null,
-      output_tokens: result.usage.outputTokens ?? null,
-      truncations: result.context.truncations,
-      strategy: result.strategy,
-      strategy_reason: result.strategyReason,
-      explainable_summary: result.summary,
-      reasoning_trace: result.trace,
+    //
+    // SECURITY: the private ReasoningTrace MUST NOT live in message metadata.
+    // Ordinary conversation retrieval (loadConversation) selects this jsonb
+    // and returns it to the browser. Only the public surface is allowed here:
+    // strategy, strategy_reason, explainable_summary, confidence summary,
+    // verified citation references, and the audit invocation id (filled in
+    // after the audit write). The full trace persists in sam_reasoning_traces,
+    // which is admin-role RLS-gated.
+    const publicCitationRefs = result.response.citations.map((c) => ({
+      entity_type: c.entity_type,
+      entity_id: c.entity_id,
+      kind: c.kind,
+      title: c.title ?? null,
     }));
+    const confidenceSummary = {
+      score: result.confidence.score,
+      band: result.confidence.band,
+      reasons: result.confidence.reasons.slice(0, 4),
+      method: result.confidence.method,
+    };
+    const metadata = JSON.parse(
+      JSON.stringify({
+        intent: result.intent,
+        confidence: confidenceSummary,
+        citations: publicCitationRefs,
+        hrefs: result.hrefs,
+        provider: result.provider,
+        pipeline_version: "sam.pipeline.v1.0.0",
+        prompt_version: "sam.prompt.v1.0.0",
+        constitution_version: "sam.constitution.v1.0.0",
+        latency_ms: result.usage.latencyMs,
+        truncations: result.context.truncations,
+        strategy: result.strategy,
+        strategy_reason: result.strategyReason,
+        explainable_summary: result.summary,
+      }),
+    ) as Record<string, unknown>;
 
     // 7b. Action routing: attempt to execute an operational intent BEFORE
     // we persist the assistant message so its receipt goes into metadata.
@@ -227,7 +245,7 @@ export const askSam = createServerFn({ method: "POST" })
         content: result.response.answer,
         created_by: userId,
         status: "complete",
-        metadata,
+        metadata: metadata as never,
       })
       .select("id")
       .single();
@@ -255,8 +273,9 @@ export const askSam = createServerFn({ method: "POST" })
     }
 
     // 9. Audit (delivery-blocking). Failure ⇒ throw and hide sanitized error.
+    let auditInvocationId: string | null = null;
     try {
-      await writeAudit(supabase, {
+      const auditRes = await writeAudit(supabase, {
         orgId: data.organizationId,
         userId,
         conversationId,
@@ -273,12 +292,22 @@ export const askSam = createServerFn({ method: "POST" })
         outputTokens: result.usage.outputTokens,
         status: "ok",
         strategy: result.strategy,
+        trace: result.trace,
+        summary: result.summary,
         citationLineage: result.response.citations.map((c) => ({
           entity_type: c.entity_type,
           entity_id: c.entity_id,
           kind: c.kind,
         })),
       });
+      auditInvocationId = auditRes.invocationId;
+      if (auditInvocationId) {
+        metadata.audit_invocation_id = auditInvocationId;
+        await supabase
+          .from("conversation_messages")
+          .update({ metadata: metadata as never })
+          .eq("id", samMessageId);
+      }
     } catch (e) {
       // Roll back the SAM message: audit is required per ADR-0008.
       await supabase.from("conversation_messages").delete().eq("id", samMessageId);
