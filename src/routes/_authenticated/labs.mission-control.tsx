@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, Flag,
 } from "lucide-react";
@@ -50,6 +52,77 @@ function MissionControl() {
   const cash = useCashflow(activeOrgId, 90);
   const proposals = useProposals(activeOrgId);
   const operators = useOperatorStates(activeOrgId);
+
+  // CTO: integration connections + automation job health (real data only).
+  const integrations = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.integrations", activeOrgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("integration_connections")
+        .select("id,display_name,status,last_error_at,last_error_code,last_successful_sync_at")
+        .eq("organization_id", activeOrgId!)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const jobs24h = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.jobs24h", activeOrgId],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("automation_jobs")
+        .select("id,status,job_type,completed_at,created_at")
+        .eq("organization_id", activeOrgId!)
+        .gte("created_at", since);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // CMO: campaigns + content pipeline (real data only).
+  const campaigns = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.campaigns", activeOrgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("social_campaigns")
+        .select("id,name,paused,end_at")
+        .eq("organization_id", activeOrgId!)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const contentItems = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.contentItems", activeOrgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("social_content_items")
+        .select("id,status,approval_status,scheduled_for,published_at,blocked_reason")
+        .eq("organization_id", activeOrgId!)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const conns = integrations.data ?? [];
+  const connectedCount = conns.filter((c) => c.status === "connected").length;
+  const erroredConns = conns.filter((c) => c.status === "error");
+  const jobs = jobs24h.data ?? [];
+  const failedJobs = jobs.filter((j) => j.status === "failed");
+  const runningJobs = jobs.filter((j) => j.status === "running" || j.status === "queued");
+
+  const activeCampaigns = (campaigns.data ?? []).filter((c) => !c.paused && (!c.end_at || new Date(c.end_at).getTime() > now));
+  const items = contentItems.data ?? [];
+  const awaitingApproval = items.filter((i) => i.approval_status === "pending" || i.status === "in_review" || i.status === "pending_approval");
+  const scheduledContent = items.filter((i) => i.scheduled_for && !i.published_at && new Date(i.scheduled_for).getTime() > now);
+  const publishedThisWeek = items.filter((i) => i.published_at && (now - new Date(i.published_at).getTime()) < 7 * 24 * 60 * 60 * 1000);
+  const blockedContent = items.filter((i) => i.status === "blocked" || !!i.blocked_reason);
 
   const rev = summarizeRevenue(clients.data ?? [], pipeline.data ?? [], cash.data ?? [], proposals.data ?? []);
   const activeVentures = (ventures.data ?? []).filter((v) => v.status !== "archived" && v.status !== "closed");
@@ -189,24 +262,38 @@ function MissionControl() {
             />
             <ExecCard title="CMO" subtitle="Content & audience" icon={Sparkles}
               stats={[
-                { label: "Ventures", value: activeVentures.length },
-                { label: "Goals active", value: (goals.data ?? []).length },
-                { label: "Opportunities", value: opportunityCount },
+                { label: "Campaigns running", value: activeCampaigns.length },
+                { label: "Awaiting approval", value: awaitingApproval.length, tone: awaitingApproval.length > 0 ? "warn" : undefined },
+                { label: "Scheduled", value: scheduledContent.length },
               ]}
-              detail={activeVentures.length === 0
-                ? "No active ventures yet. Create one to begin planning content."
-                : `Publishing runs in approval-required mode across ${activeVentures.length} venture${activeVentures.length === 1 ? "" : "s"}. Connect social accounts under Integrations to publish live.`}
-              link={{ to: "/sam/integrations", label: "Integrations" }}
+              detail={
+                blockedContent.length > 0
+                  ? `${blockedContent.length} item${blockedContent.length === 1 ? "" : "s"} blocked from publishing.`
+                  : awaitingApproval.length > 0
+                    ? `${awaitingApproval.length} item${awaitingApproval.length === 1 ? "" : "s"} waiting on your approval.`
+                    : publishedThisWeek.length > 0
+                      ? `${publishedThisWeek.length} published in the last 7 days.`
+                      : items.length === 0
+                        ? "No content created yet."
+                        : "Nothing scheduled or awaiting approval."
+              }
+              link={{ to: "/sam/content-ops", label: "Content Ops" }}
             />
             <ExecCard title="CTO" subtitle="Systems & automation" icon={GitBranch}
               stats={[
-                { label: "Decisions waiting", value: waitingDecisions.length, tone: waitingDecisions.length > 0 ? "warn" : undefined },
-                { label: "Active insights", value: activeInsightsCount },
-                { label: "Opportunities", value: opportunityCount },
+                { label: "Connected systems", value: connectedCount },
+                { label: "Integrations in error", value: erroredConns.length, tone: erroredConns.length > 0 ? "warn" : undefined },
+                { label: "Failed jobs · 24h", value: failedJobs.length, tone: failedJobs.length > 0 ? "warn" : undefined },
               ]}
-              detail={topInsight
-                ? `Top signal: ${topInsight.title}`
-                : "No active signals across the operation right now."}
+              detail={
+                erroredConns.length > 0
+                  ? `${erroredConns[0].display_name} is in an error state.`
+                  : failedJobs.length > 0
+                    ? `${failedJobs.length} automation${failedJobs.length === 1 ? "" : "s"} failed in the last 24 hours.`
+                    : conns.length === 0
+                      ? "No integrations connected yet."
+                      : `${runningJobs.length} job${runningJobs.length === 1 ? "" : "s"} in flight, ${jobs.length} run in the last 24h.`
+              }
               link={{ to: "/sam/integrations", label: "Integrations" }}
             />
             <ExecCard title="CFO" subtitle="Cash & runway" icon={ShieldCheck}
