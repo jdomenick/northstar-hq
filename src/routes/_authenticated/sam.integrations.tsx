@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,17 @@ function IntegrationsPage() {
   const [connectError, setConnectError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<Record<string, TestConnectionResult>>({});
   const [detailRow, setDetailRow] = useState<IntegrationRow | null>(null);
+
+  // Support deep-link from Mission Control: /sam/integrations?open=<key>
+  useEffect(() => {
+    if (!rowsQ.data) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get("open");
+    if (!key) return;
+    const row = rowsQ.data.find((r) => r.key === key);
+    if (row) setDetailRow(row);
+  }, [rowsQ.data]);
 
   type TestableKey = "beehiiv" | "linkedin" | "stripe" | "supabase_self" | "sam_mcp" | "website_sync";
   const testableKeys = new Set<TestableKey>([

@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, Flag,
+  Play, Pause, Plus, Circle, CheckCircle2, Clock, AlertTriangle, DollarSign, Rocket, Building2, ShieldCheck, GitBranch, Sparkles, ArrowUpRight, ArrowRight, Flag, Plug,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
@@ -30,6 +31,11 @@ import {
   type OperatorKind, type OperatorTask,
 } from "@/lib/mission-control/hooks";
 import { OPERATOR_LABELS, OPERATOR_SUBTITLES, OPERATOR_PURPOSE } from "@/lib/mission-control/labels";
+import {
+  listIntegrationsDashboard,
+  type IntegrationRow,
+} from "@/lib/integrations/dashboard.functions";
+import type { ExecutiveImpact } from "@/lib/integrations/executive-action";
 
 export const Route = createFileRoute("/_authenticated/labs/mission-control")({
   component: MissionControl,
@@ -52,6 +58,28 @@ function MissionControl() {
   const cash = useCashflow(activeOrgId, 90);
   const proposals = useProposals(activeOrgId);
   const operators = useOperatorStates(activeOrgId);
+
+  // Integrations Attention: reuse the existing Integrations dashboard as the
+  // single source of truth. We only surface Warning/Error rows here; healthy
+  // integrations stay silent.
+  const integrationsListFn = useServerFn(listIntegrationsDashboard);
+  const integrationsDashboard = useQuery({
+    enabled: !!activeOrgId,
+    queryKey: ["mc.integrations-attention", activeOrgId],
+    queryFn: () => integrationsListFn({ data: { organizationId: activeOrgId! } }),
+  });
+  const impactRank: Record<ExecutiveImpact, number> = { high: 3, medium: 2, low: 1 };
+  const healthRank: Record<"error" | "warning" | "healthy", number> = { error: 3, warning: 2, healthy: 1 };
+  const attentionRows = (integrationsDashboard.data ?? [])
+    .filter((r) => r.executiveAction.actionRequired && r.executiveAction.health !== "healthy")
+    .sort((a, b) => {
+      const h = (healthRank[b.executiveAction.health] ?? 0) - (healthRank[a.executiveAction.health] ?? 0);
+      if (h !== 0) return h;
+      const ai = a.executiveAction.impact ? impactRank[a.executiveAction.impact] : 0;
+      const bi = b.executiveAction.impact ? impactRank[b.executiveAction.impact] : 0;
+      return bi - ai;
+    });
+  const topIntegration = attentionRows[0] ?? null;
 
   // CTO: integration connections + automation job health (real data only).
   const integrations = useQuery({
@@ -216,8 +244,33 @@ function MissionControl() {
               tone={topInsight && (topInsight.severity === "critical" || topInsight.severity === "warning") ? "warn" : "ok"}
               to="/sam"
             />
+            {topIntegration && (
+              <PriorityTile
+                label="Top integration issue"
+                value={topIntegration.label}
+                sub={topIntegration.executiveAction.title ?? topIntegration.executiveAction.issue ?? "Attention required"}
+                tone={topIntegration.executiveAction.health === "error" ? "warn" : "warn"}
+                to={`/sam/integrations?open=${encodeURIComponent(topIntegration.key)}`}
+              />
+            )}
           </div>
         </section>
+
+        {/* Integrations Attention: only renders when at least one integration
+            has a Warning or Error state. Healthy integrations stay silent. */}
+        {attentionRows.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Integrations attention"
+              hint={`${attentionRows.length} integration${attentionRows.length === 1 ? "" : "s"} need action`}
+            />
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {attentionRows.map((r) => (
+                <IntegrationAttentionCard key={r.key} row={r} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Top KPI strip */}
         <section className="grid grid-cols-2 overflow-hidden rounded-md border border-border bg-card shadow-[0_14px_40px_-34px_oklch(0.22_0.02_255/0.5)] md:grid-cols-4">
@@ -380,11 +433,11 @@ function PriorityTile({
   value: string;
   sub: string;
   tone?: "ok" | "warn";
-  to: "/labs/revenue" | "/labs/decisions" | "/labs/accountability" | "/labs/projects" | "/labs/goals" | "/sam";
+  to: string;
 }) {
   return (
-    <Link
-      to={to}
+    <a
+      href={to}
       className={cn(
         "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors",
         tone === "warn" ? "border-destructive/40 hover:border-destructive/60" : "border-border hover:border-primary/40",
@@ -401,7 +454,55 @@ function PriorityTile({
       <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70 group-hover:text-foreground">
         Open <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
       </div>
-    </Link>
+    </a>
+  );
+}
+
+function IntegrationAttentionCard({ row }: { row: IntegrationRow }) {
+  const a = row.executiveAction;
+  const isError = a.health === "error";
+  const tone = isError
+    ? { border: "border-[oklch(0.5_0.18_27)]/40", dot: "bg-[oklch(0.5_0.18_27)]", text: "text-[oklch(0.5_0.18_27)]", label: "Error" }
+    : { border: "border-[oklch(0.75_0.15_75)]/40", dot: "bg-[oklch(0.75_0.15_75)]", text: "text-[oklch(0.6_0.15_75)]", label: "Warning" };
+  const impactLabel = a.impact
+    ? a.impact === "high" ? "High impact" : a.impact === "medium" ? "Medium impact" : "Low impact"
+    : null;
+  return (
+    <a
+      href={`/sam/integrations?open=${encodeURIComponent(row.key)}`}
+      className={cn(
+        "group flex min-w-0 flex-col rounded-md border bg-card p-4 transition-colors hover:border-foreground/30",
+        tone.border,
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Plug className="h-3.5 w-3.5 shrink-0 text-foreground/60" strokeWidth={1.8} />
+          <span className="truncate font-display text-[15px] leading-none">{row.label}</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+          <span className={cn("text-[10px] font-medium uppercase tracking-[0.18em]", tone.text)}>{tone.label}</span>
+        </div>
+      </div>
+      {a.title && (
+        <div className={cn("mt-3 text-[13px] font-medium", tone.text)}>{a.title}</div>
+      )}
+      {a.issue && (
+        <div className="mt-1 line-clamp-2 text-[12px] leading-snug text-foreground/80">{a.issue}</div>
+      )}
+      {a.nextStep && (
+        <div className="mt-2 text-[12px] leading-snug text-muted-foreground">
+          <span className="text-foreground/70">Next step:</span> {a.nextStep}
+        </div>
+      )}
+      <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+        <span>{impactLabel ?? "\u00a0"}</span>
+        <span className="group-hover:text-foreground">
+          Open details <ArrowRight className="ml-0.5 inline h-3 w-3" />
+        </span>
+      </div>
+    </a>
   );
 }
 
