@@ -6017,6 +6017,146 @@ export type Database = {
           },
         ]
       }
+      sam_reasoning_replays: {
+        Row: {
+          context_hash: string
+          created_at: string
+          evaluator_version: string
+          failures: Json
+          fixture_id: string
+          id: string
+          metadata: Json
+          model_id: string | null
+          organization_id: string | null
+          output_hash: string
+          prompt_version: string
+          provider_id: string | null
+          scores: Json
+          strategy: string
+        }
+        Insert: {
+          context_hash: string
+          created_at?: string
+          evaluator_version: string
+          failures?: Json
+          fixture_id: string
+          id?: string
+          metadata?: Json
+          model_id?: string | null
+          organization_id?: string | null
+          output_hash: string
+          prompt_version: string
+          provider_id?: string | null
+          scores: Json
+          strategy: string
+        }
+        Update: {
+          context_hash?: string
+          created_at?: string
+          evaluator_version?: string
+          failures?: Json
+          fixture_id?: string
+          id?: string
+          metadata?: Json
+          model_id?: string | null
+          organization_id?: string | null
+          output_hash?: string
+          prompt_version?: string
+          provider_id?: string | null
+          scores?: Json
+          strategy?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_reasoning_replays_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sam_reasoning_traces: {
+        Row: {
+          citations: Json
+          constitution_version: string | null
+          conversation_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          intent: string
+          invocation_id: string
+          message_id: string | null
+          model_id: string | null
+          organization_id: string
+          pipeline_version: string | null
+          prompt_version: string
+          provider_id: string | null
+          redaction_applied: boolean
+          retention_days: number
+          strategy: string
+          summary: Json | null
+          trace: Json
+        }
+        Insert: {
+          citations?: Json
+          constitution_version?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          intent: string
+          invocation_id: string
+          message_id?: string | null
+          model_id?: string | null
+          organization_id: string
+          pipeline_version?: string | null
+          prompt_version: string
+          provider_id?: string | null
+          redaction_applied?: boolean
+          retention_days?: number
+          strategy: string
+          summary?: Json | null
+          trace: Json
+        }
+        Update: {
+          citations?: Json
+          constitution_version?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          intent?: string
+          invocation_id?: string
+          message_id?: string | null
+          model_id?: string | null
+          organization_id?: string
+          pipeline_version?: string | null
+          prompt_version?: string
+          provider_id?: string | null
+          redaction_applied?: boolean
+          retention_days?: number
+          strategy?: string
+          summary?: Json | null
+          trace?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sam_reasoning_traces_invocation_id_fkey"
+            columns: ["invocation_id"]
+            isOneToOne: false
+            referencedRelation: "sam_invocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sam_reasoning_traces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sam_recommendation_events: {
         Row: {
           action: string
