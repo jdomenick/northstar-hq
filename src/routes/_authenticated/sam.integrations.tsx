@@ -14,6 +14,7 @@ import {
   type IntegrationStatus,
   type TestConnectionResult,
 } from "@/lib/integrations/dashboard.functions";
+import { CATEGORY_ORDER, CATEGORY_LABEL } from "@/lib/integrations/providers";
 
 export const Route = createFileRoute("/_authenticated/sam/integrations")({
   component: IntegrationsPage,
@@ -40,8 +41,10 @@ function IntegrationsPage() {
   const [connectError, setConnectError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<Record<string, TestConnectionResult>>({});
 
+  type TestableKey = "beehiiv" | "linkedin" | "stripe" | "supabase_self";
+  const testableKeys = new Set<TestableKey>(["beehiiv", "linkedin", "stripe", "supabase_self"]);
   const testMut = useMutation({
-    mutationFn: (key: "beehiiv" | "linkedin") =>
+    mutationFn: (key: TestableKey) =>
       testFn({ data: { organizationId: activeOrgId!, key } }),
     onSuccess: (result) => {
       setTestResult((prev) => ({ ...prev, [result.key]: result }));
@@ -78,13 +81,7 @@ function IntegrationsPage() {
   };
 
   const rows = rowsQ.data ?? [];
-  const groups: Array<{ key: IntegrationRow["category"]; label: string }> = [
-    { key: "publishing", label: "Publishing" },
-    { key: "sam", label: "SAM" },
-    { key: "knowledge", label: "Knowledge" },
-    { key: "workspace", label: "Workspace" },
-    { key: "roadmap", label: "Roadmap" },
-  ];
+  const groups = CATEGORY_ORDER.map((k) => ({ key: k, label: CATEGORY_LABEL[k] }));
 
   return (
     <div>
@@ -127,8 +124,8 @@ function IntegrationsPage() {
                           startMetaConnect(r.key === "instagram" ? "instagram" : "facebook")
                         }
                         onTest={() =>
-                          (r.key === "beehiiv" || r.key === "linkedin") &&
-                          testMut.mutate(r.key)
+                          testableKeys.has(r.key as TestableKey) &&
+                          testMut.mutate(r.key as TestableKey)
                         }
                         testResult={testResult[r.key] ?? null}
                       />
@@ -152,8 +149,13 @@ function statusLabel(s: IntegrationStatus): string {
   switch (s) {
     case "connected": return "Connected";
     case "action_needed": return "Action needed";
-    case "not_connected": return "Not connected";
-    case "not_built": return "Not built";
+    case "awaiting_credentials": return "Awaiting credentials";
+    case "awaiting_oauth_configuration": return "Awaiting OAuth setup";
+    case "awaiting_provider_approval": return "Awaiting provider approval";
+    case "ready_to_connect": return "Ready to connect";
+    case "authentication_failed": return "Authentication failed";
+    case "connection_error": return "Connection error";
+    case "not_configured": return "Not configured";
     case "unknown": return "Unknown";
   }
 }
@@ -161,9 +163,14 @@ function statusLabel(s: IntegrationStatus): string {
 function statusDot(s: IntegrationStatus): string {
   switch (s) {
     case "connected": return "bg-[oklch(0.72_0.14_155)]";
-    case "action_needed": return "bg-[oklch(0.75_0.15_75)]";
-    case "not_connected": return "bg-muted-foreground/60";
-    case "not_built": return "bg-muted-foreground/30";
+    case "action_needed":
+    case "awaiting_provider_approval":
+    case "awaiting_oauth_configuration": return "bg-[oklch(0.75_0.15_75)]";
+    case "awaiting_credentials":
+    case "not_configured":
+    case "ready_to_connect": return "bg-muted-foreground/60";
+    case "authentication_failed":
+    case "connection_error":
     case "unknown": return "bg-[oklch(0.5_0.18_27)]";
   }
 }
@@ -287,8 +294,10 @@ function IntegrationCard({
             {row.action.message}
           </div>
         ) : null}
-        {row.action.kind === "none" && row.status === "not_built" ? (
-          <span className="text-[11.5px] text-muted-foreground/70">On the roadmap</span>
+        {row.action.kind === "none" && (row.status === "ready_to_connect" || row.status === "awaiting_provider_approval") ? (
+          <span className="text-[11.5px] text-muted-foreground/70">
+            {row.externalStep ? "See details" : "Ready"}
+          </span>
         ) : null}
       </div>
     </div>
