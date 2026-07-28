@@ -61,6 +61,7 @@ import { Route as AuthenticatedSamIntegrationsRestEndpointsRouteImport } from '.
 import { Route as AuthenticatedSamContentLibraryRouteImport } from './routes/_authenticated/sam.content.library'
 import { Route as AuthenticatedSamContentCalendarRouteImport } from './routes/_authenticated/sam.content.calendar'
 import { Route as AuthenticatedLabsVenturesIdRouteImport } from './routes/_authenticated/labs.ventures.$id'
+import { Route as AuthenticatedLabsProposalsIdRouteImport } from './routes/_authenticated/labs.proposals.$id'
 import { Route as AuthenticatedLabsProjectsIdRouteImport } from './routes/_authenticated/labs.projects.$id'
 import { Route as AuthenticatedLabsKnowledgeIdRouteImport } from './routes/_authenticated/labs.knowledge.$id'
 import { Route as AuthenticatedLabsGoalsIdRouteImport } from './routes/_authenticated/labs.goals.$id'
@@ -359,6 +360,12 @@ const AuthenticatedLabsVenturesIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedLabsVenturesRoute,
   } as any)
+const AuthenticatedLabsProposalsIdRoute =
+  AuthenticatedLabsProposalsIdRouteImport.update({
+    id: '/labs/proposals/$id',
+    path: '/labs/proposals/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLabsProjectsIdRoute =
   AuthenticatedLabsProjectsIdRouteImport.update({
     id: '/$id',
@@ -475,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -540,6 +548,7 @@ export interface FileRoutesByTo {
   '/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -607,6 +616,7 @@ export interface FileRoutesById {
   '/_authenticated/labs/goals/$id': typeof AuthenticatedLabsGoalsIdRoute
   '/_authenticated/labs/knowledge/$id': typeof AuthenticatedLabsKnowledgeIdRoute
   '/_authenticated/labs/projects/$id': typeof AuthenticatedLabsProjectsIdRoute
+  '/_authenticated/labs/proposals/$id': typeof AuthenticatedLabsProposalsIdRoute
   '/_authenticated/labs/ventures/$id': typeof AuthenticatedLabsVenturesIdRoute
   '/_authenticated/sam/content/calendar': typeof AuthenticatedSamContentCalendarRoute
   '/_authenticated/sam/content/library': typeof AuthenticatedSamContentLibraryRoute
@@ -674,6 +684,7 @@ export interface FileRouteTypes {
     | '/labs/goals/$id'
     | '/labs/knowledge/$id'
     | '/labs/projects/$id'
+    | '/labs/proposals/$id'
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
@@ -739,6 +750,7 @@ export interface FileRouteTypes {
     | '/labs/goals/$id'
     | '/labs/knowledge/$id'
     | '/labs/projects/$id'
+    | '/labs/proposals/$id'
     | '/labs/ventures/$id'
     | '/sam/content/calendar'
     | '/sam/content/library'
@@ -805,6 +817,7 @@ export interface FileRouteTypes {
     | '/_authenticated/labs/goals/$id'
     | '/_authenticated/labs/knowledge/$id'
     | '/_authenticated/labs/projects/$id'
+    | '/_authenticated/labs/proposals/$id'
     | '/_authenticated/labs/ventures/$id'
     | '/_authenticated/sam/content/calendar'
     | '/_authenticated/sam/content/library'
@@ -1213,6 +1226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsVenturesIdRouteImport
       parentRoute: typeof AuthenticatedLabsVenturesRoute
     }
+    '/_authenticated/labs/proposals/$id': {
+      id: '/_authenticated/labs/proposals/$id'
+      path: '/labs/proposals/$id'
+      fullPath: '/labs/proposals/$id'
+      preLoaderRoute: typeof AuthenticatedLabsProposalsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/labs/projects/$id': {
       id: '/_authenticated/labs/projects/$id'
       path: '/$id'
@@ -1485,6 +1505,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsCommitmentsIdRoute: typeof AuthenticatedLabsCommitmentsIdRoute
+  AuthenticatedLabsProposalsIdRoute: typeof AuthenticatedLabsProposalsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
   AuthenticatedLabsProposalsIndexRoute: typeof AuthenticatedLabsProposalsIndexRoute
 }
@@ -1520,6 +1541,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsCommitmentsIdRoute: AuthenticatedLabsCommitmentsIdRoute,
+  AuthenticatedLabsProposalsIdRoute: AuthenticatedLabsProposalsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
   AuthenticatedLabsProposalsIndexRoute: AuthenticatedLabsProposalsIndexRoute,
 }
