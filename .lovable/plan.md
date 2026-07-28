@@ -1,62 +1,128 @@
+# Integrations Module - Production Foundation
 
-## Ground truth from the repo (must resolve before I write code)
+Everything is built so each provider becomes operational the moment credentials arrive - no additional UI work.
 
-The brief references "existing sam_objectives / work-item architecture", "existing autonomy/kill-switch architecture", and directives. Actual state:
+## Architecture (single source of truth)
 
-- **No `sam_objectives` table. No work-items table. No `sam_directives` table.** Verified via `\dt public.sam*`. The 20 sam_* tables cover invocations, memory, workflows, digests, health, recommendations, feedback, MCP - none of them are objectives or missions.
-- **`content_ops_autonomy` and `content_ops_kill_switches` exist but are scoped to Content Operations only.** There is no org-wide "Pause SAM / Emergency Stop" primitive.
-- **`automation_definitions` is empty** (0 rows), so there is no seeded proof automation to run.
-- `sam.functions.ts` / `askSam` is analysis-only. `operations/dispatch.server.ts` exists and can propose typed ops, but `askSam` never calls it.
-- `automation_jobs` + worker + `runWorkerTick` + `pg_cron` tick are real and working.
+```text
+src/lib/integrations/
+  providers.ts          registry: 17 providers, categories, capabilities, external steps
+  probes.server.ts      per-provider status probe (secrets, DB, HTTP)
+  dashboard.functions.ts  iterates registry → IntegrationRow[]
+  actions.functions.ts  connect / disconnect / test / retry / re-auth per provider
+  webhooks.functions.ts CRUD + delivery log for custom outbound webhooks
+  rest-endpoints.functions.ts  CRUD + test for Custom REST endpoints
+```
 
-So the acceptance tests cannot be met by "wiring existing systems". Roughly 60% of what the brief calls "existing" has to be built. I want to confirm the scope with you before I write a large multi-migration + multi-file change and then discover we disagree on shape.
+Every provider row returns one of these status values (never fabricated):
+`connected`, `awaiting_credentials`, `awaiting_oauth_configuration`,
+`awaiting_provider_approval`, `ready_to_connect`, `action_needed`,
+`authentication_failed`, `connection_error`, `not_configured`, `unknown`.
 
-## Proposed proof slice (one turn of code, then verify)
+## Providers covered
 
-Build the smallest end-to-end honest slice that satisfies acceptance tests 1-8 for one real path. No fake data, no fake completion.
+| Provider | Adapter | External step surfaced when blocked |
+|---|---|---|
+| Beehiiv | live (v0.2) | Awaiting API key / Publication ID |
+| LinkedIn | live (v0.1) | Ask Lovable to connect LinkedIn connector |
+| Facebook Page | live OAuth framework | Meta App ID/Secret + App Review for pages_manage_posts |
+| Instagram Business | live OAuth framework | FB Page linked to IG Business + App Review |
+| X (Twitter) | credential probe | Needs X API v2 OAuth 2.0 client + elevated access |
+| Reddit | credential probe | Needs Reddit script/web app credentials |
+| Google Business Profile | credential probe | Requires Google Cloud OAuth client + Business Profile API allow-list |
+| Google Ads | credential probe | Requires developer token + OAuth client (approval required) |
+| Gmail | App-User Connector shell | Ask Lovable to configure google_mail App User Connector |
+| Google Calendar | App-User Connector shell | Ask Lovable to configure google_calendar App User Connector |
+| Google Drive | App-User Connector shell | Ask Lovable to configure google_drive App User Connector |
+| Stripe | secret probe + live key/publishable key detection | Awaiting `STRIPE_SECRET_KEY` |
+| Supabase (this project) | self-probe | Always shows project ref + auth/db reachability |
+| SAM MCP Servers | existing panel + list rows | Manage from panel |
+| Website Sync | existing `integration_connections` count | Manage sources link |
+| Webhooks (outbound) | new table + CRUD + delivery log | Add endpoint |
+| Custom REST API | new table + CRUD + test | Add endpoint |
 
-### 1. Migrations (single migration)
-- `sam_directives` (id, organization_id, venture_id nullable, text, scope: permanent|temporary, priority int, status: active|paused|archived, starts_at, expires_at nullable, created_by, timestamps). RLS: members read/write own org. Audited via activity_events.
-- `sam_missions` (id, organization_id, venture_id nullable, title, description, status: draft|active|blocked|completed|cancelled, priority, source: chat|directive|manual, created_by, timestamps).
-- `sam_mission_work_items` (id, mission_id, organization_id, title, description, status: pending|running|blocked|completed|failed, automation_job_id nullable FK, artifact jsonb, timestamps).
-- `sam_org_autonomy` (organization_id PK, state: active|paused|emergency_stopped, reason, changed_by, changed_at). One row per org, upsert semantics.
-- Register one `automation_definition` row per org on demand: `sam_proof_mission`.
-- All tables: GRANT to authenticated + service_role, RLS scoped to org membership.
+## Database (one migration)
 
-### 2. Server layer
-- `src/lib/sam/directives/directives.functions.ts` - list/create/update/deactivate. Enforces org membership + `manage_sam` permission (owner/admin).
-- `src/lib/sam/missions/missions.functions.ts` - list/get/create mission + work items.
-- `src/lib/sam/autonomy/org-autonomy.functions.ts` - readState / pause / resume / emergencyStop / runProofMission. Emergency stop cancels queued jobs for org and requires a typed confirmation payload.
-- `src/lib/sam/context-builder.server.ts` extended to include active directives in SAM system prompt (constitution first, then company constitution, then active directives ordered by priority).
-- `sam.functions.ts::askSam` extended: after conversational answer, run `proposeOperationFromText`. If `status=ready` and operation is a mission-creating intent (createMission / runProofMission / setDirective), execute through a new `executeSamOperation()` that returns a structured `ActionReceipt { status, kind, ids, explanation, blockers }`. Attach receipt to the assistant message metadata as `action_receipt`. If autonomy = paused, receipt.status = blocked with reason.
-- Register `sam_proof_mission` handler in `src/lib/automation/jobs/`. It:
-  - Loads org + venture context, active directives.
-  - Calls Lovable AI Gateway to produce a **qualified-prospect research brief** grounded in org data (name, ventures, goals). If key missing, produces a deterministic templated brief from real org data. Either way, real artifact.
-  - Writes artifact to `sam_mission_work_items.artifact` (jsonb) and marks work item completed.
-  - Idempotent via `idempotency_key = 'proof:<mission_id>'`.
-  - Emits activity_events and sam_invocations rows for audit.
+```sql
+-- Custom outbound webhooks (from NorthStar → external)
+CREATE TABLE public.integration_webhooks (
+  id uuid PK, organization_id uuid, venture_id uuid NULL,
+  name text NOT NULL, target_url text NOT NULL,
+  secret_ciphertext text NULL, event_types text[] NOT NULL DEFAULT '{}',
+  enabled boolean NOT NULL DEFAULT true,
+  last_delivery_at timestamptz, last_status int, last_error text,
+  created_at, updated_at
+);
 
-### 3. UI
-- `/sam` masthead copy: remove "Read only" + false EmptyState line. Replace with: "SAM executes within your authority. When it lacks authority or information, it reports the blocker."
-- Directives drawer on `/sam` (mobile-first slide-over, desktop right rail): list active directives with priority chips, add/edit/deactivate for owners/admins. Every mutation confirms + audits.
-- Chat: when assistant message has `action_receipt`, render an inline receipt card under the message: status pill (Completed / Blocked / Failed / Ambiguous), created IDs as deep links, human explanation, "next step" if any. Truthful queued -> running -> completed transitions via 5-second poll on referenced mission id.
-- `/sam/control`: add a Founder Controls card with Start/Resume, Pause, Emergency Stop (typed confirmation "STOP"), Run Proof Mission. Shows current operating state + active mission summary. Deep-links to mission page, work-item job page, activity feed.
-- New route `/sam/missions/$id` showing mission, work items, linked jobs, artifact, audit trail.
+CREATE TABLE public.integration_webhook_deliveries (
+  id uuid PK, webhook_id uuid, event_type text, status_code int,
+  response_body text, error text, attempt int, delivered_at
+);
 
-### 4. Tests (vitest + node)
-- Directive persistence + org isolation.
-- Autonomy state transitions + emergency-stop cancels queued jobs.
-- `parseOperationProposal` + `executeSamOperation` for mission-creating intent returns structured receipt (ready / needs_fields / blocked).
-- Proof mission job handler: idempotent, produces artifact, transitions statuses, emits activity.
-- Truthful "blocked" when autonomy paused.
+-- Reusable Custom REST endpoints (SAM can call these)
+CREATE TABLE public.integration_rest_endpoints (
+  id uuid PK, organization_id uuid, venture_id uuid NULL,
+  name text, base_url text, method text, auth_type text,
+  auth_config_ciphertext text NULL, default_headers jsonb,
+  last_success_at, last_error_at, last_error text,
+  enabled boolean, created_at, updated_at
+);
+```
 
-### 5. Verification
-- typecheck (tsgo) + vite build.
-- Run new tests via existing `bunx vitest` path.
-- Live smoke: create a directive, ask SAM "focus on getting NorthStar its first 3 customers", verify mission row + linked work item + activity event; then "run SAM proof mission" and observe job queued -> running -> completed with artifact.
+All tables get GRANTs + RLS scoped to org members via `has_org_role`.
+Secrets stored encrypted using the same `APP_USER_CONNECTION_KEY_SECRET`
+AES-GCM helper already used for app-user connection keys (extract that
+helper into `src/lib/crypto/secrets.server.ts` for shared use).
 
-## Decision I need from you
+## UI
 
-Reply **"go"** and I execute this slice in one code pass (single migration + code + tests + build). Or say **"trim"** with what to drop. I will not proceed until you confirm, because if I invent a schema you disagree with, we throw away a lot of work.
+Single page `/sam/integrations` (already exists) becomes the foundation:
 
-Explicit non-goals for this pass (call out if you want any of them in): full CRM/pipeline integration, real prospect research from external sources, LinkedIn/X/Meta live posting, richer digest UI, permission editor, per-user directive scoping.
+1. Groups: Publishing · Communication · Commerce · Data · Automation · SAM · Roadmap
+2. Each card: dot + label + status label + headline + detail + identity + armed + last activity + last error + capability chips + primary action.
+3. Click card → right-side **Detail Drawer**:
+   - Full description, docs link
+   - Capability matrix (read / write / publish / sync / metrics / delete)
+   - Required scopes / permissions with checklist of granted vs missing
+   - Configuration section (env vars, connected accounts, endpoints)
+   - Activity log (last 20 events from `activity_events` or provider-specific table)
+   - Actions: Connect · Test · Retry · Re-authenticate · Disconnect · Copy request URL
+   - "What still needs to happen" (external step, in plain language)
+
+Two additional routes:
+- `/sam/integrations/webhooks` - list, add, edit, disable, delivery log per hook
+- `/sam/integrations/rest-endpoints` - list, add, test, edit, delete
+
+## Server functions (all `requireSupabaseAuth` + org membership check)
+
+- `listIntegrationsDashboard({ organizationId })` - iterates registry
+- `getIntegrationDetail({ organizationId, key })` - full detail + capability + activity + config
+- `testIntegrationConnection({ organizationId, key })` - already exists for Beehiiv/LinkedIn, extend to X, Reddit, Stripe, Supabase, Custom REST
+- `retryIntegrationConnection({ organizationId, key })` - re-runs probe + clears last_error
+- `reauthenticateIntegration({ organizationId, key })` - returns fresh OAuth URL or the "ask Lovable" instruction
+- `listWebhooks`, `createWebhook`, `updateWebhook`, `deleteWebhook`, `listWebhookDeliveries`, `sendTestWebhook`
+- `listRestEndpoints`, `createRestEndpoint`, `updateRestEndpoint`, `deleteRestEndpoint`, `testRestEndpoint`
+
+## Safety rules enforced everywhere
+
+- No fabricated `connected` states - status derives from real probes only.
+- No secret values in UI - only redacted names and configured-yes/no.
+- All writes go through `has_org_role(_, member)` policies.
+- Encrypted-at-rest for webhook secrets and REST auth configs.
+- Activity log entries created for every connect / test / retry / disconnect.
+
+## Delivery order (one execution)
+
+1. Migration + GRANTs + RLS + crypto helper extraction.
+2. `providers.ts` registry with all 17 entries.
+3. `probes.server.ts` per-provider probes.
+4. Rewrite `dashboard.functions.ts` to iterate registry.
+5. Add `getIntegrationDetail`, `retryIntegrationConnection`, `reauthenticateIntegration`, webhook + REST server fns.
+6. UI: detail drawer on existing page, two new sub-pages for Webhooks and REST.
+7. Typecheck, build, targeted unit tests on probes and CRUD fns.
+
+## Truthful non-completions
+
+- Facebook/Instagram publish requires Meta App Review for `pages_manage_posts` / `instagram_content_publish` - surfaced as "Awaiting Provider Approval" with the exact scopes required.
+- X, Reddit, Google Business Profile, Google Ads - each requires the customer's own developer account and OAuth client; adapter shells accept credentials but are marked "Awaiting Credentials" until keys arrive.
+- Gmail/Calendar/Drive use App-User Connectors (per-user OAuth) - shells wired for `connector_app_user--connect_client`; UI shows "Ask Lovable to configure App User Connector client".
