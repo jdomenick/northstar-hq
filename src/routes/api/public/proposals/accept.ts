@@ -18,8 +18,8 @@ export const Route = createFileRoute("/api/public/proposals/accept")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { hashToken } = await import("@/lib/proposals/token.server");
           const { clientIp, buildPublicPayload } = await import("@/lib/proposals/public.server");
-          const ip = clientIp(request);
-          const ua = request.headers.get("user-agent") ?? null;
+          const ip = clientIp(request) ?? "";
+          const ua = request.headers.get("user-agent") ?? "";
 
           const { data, error } = await supabaseAdmin.rpc("nsl_proposal_accept", {
             _token_hash: hashToken(parsed.data.token),
