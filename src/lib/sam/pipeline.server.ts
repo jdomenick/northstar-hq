@@ -5,15 +5,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { buildContext, serializeContext, type AssembledContext } from "./context-builder.server";
 import { classifyIntent, type SamIntent } from "./intent";
-import { selectProvider } from "./providers/registry.server";
 import { buildSystemPrompt, PROMPT_VERSION } from "./constitution";
 import { getCompanyConstitution } from "./company-constitution.server";
-import { SamResponseSchema, type SamResponse } from "./schema";
+import { type SamResponse } from "./schema";
 import { computeConfidence, type ConfidenceObject } from "./confidence";
 import { verifyCitations, citationHref } from "./citations";
 import { writeAudit } from "./audit.server";
 import { SamError, toSamError } from "@/lib/errors";
 import { LIMITS } from "@/lib/constants";
+import { runStrategy } from "./reasoning/strategies/dispatch.server";
+import { buildExplainableSummary, type ReasoningTrace, type ExplainableSummary } from "./reasoning/trace";
+import type { StrategyId } from "./reasoning/trace";
 
 export interface RunPipelineInput {
   orgId: string;
@@ -39,6 +41,10 @@ export interface PipelineResult {
   provider: { id: string; modelId: string };
   usage: { inputTokens?: number; outputTokens?: number; latencyMs: number };
   hrefs: Record<string, string | null>;
+  strategy: StrategyId;
+  strategyReason: string;
+  trace: ReasoningTrace;
+  summary: ExplainableSummary;
 }
 
 export async function runPipeline(
@@ -65,10 +71,8 @@ export async function runPipeline(
     throw new SamError("context_assembly_failed", (e as Error).message);
   }
 
-  // 7. Reasoning  -  single-pass structured call through PAL
-  const provider = selectProvider(intent);
-  const meta = provider.getModelMetadata();
-
+  // 7. Reasoning  -  strategy dispatcher (deterministic router selects
+  //    single_pass, plan_then_critique, multi_actor, or deterministic_only).
   const companyConstitution = await getCompanyConstitution(input.orgId);
   const system = buildSystemPrompt({
     orgName: context.org?.name ?? "your organization",
@@ -80,44 +84,33 @@ export async function runPipeline(
 
   const contextBlock = serializeContext(context);
   const trimmedHistory = input.history.slice(-LIMITS.sam.maxHistoryMessages);
-  const messages = [
-    ...trimmedHistory.map((m) => ({ role: m.role, content: m.content })),
-    {
-      role: "user" as const,
-      content: [
-        `INTENT: ${intent}`,
-        contextBlock,
-        "",
-        "USER QUESTION:",
-        input.message,
-      ].join("\n"),
-    },
-  ];
+  const history = trimmedHistory.map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
+  }));
 
-  let providerResult;
+  let dispatch;
   try {
-    providerResult = await provider.generateStructuredResponse<SamResponse>({
-      promptVersion: PROMPT_VERSION,
+    dispatch = await runStrategy({
+      orgId: input.orgId,
+      intent,
+      message: input.message,
       system,
-      messages,
-      responseSchema: SamResponseSchema,
-      metadata: { orgId: input.orgId, intent },
-      maxOutputTokens: 2048,
+      contextBlock,
+      context,
+      history,
     });
   } catch (e) {
     throw toSamError(e);
   }
 
-  // 8. Validate structured response
-  const parsed = SamResponseSchema.safeParse(providerResult.content);
-  if (!parsed.success) {
-    throw new SamError("invalid_structured_response");
-  }
-  const response = parsed.data;
+  const response = dispatch.response;
+  const trace = dispatch.trace;
 
   // 9-10. Citation verification (RLS-backed) + href resolution
   const verifiedCitations = verifyCitations(response, context);
   response.citations = verifiedCitations;
+  trace.source_citations = verifiedCitations;
   const hrefs: Record<string, string | null> = {};
   for (const c of verifiedCitations) {
     hrefs[`${c.entity_type}:${c.entity_id}`] = citationHref(c.entity_type, c.entity_id);
@@ -126,16 +119,34 @@ export async function runPipeline(
   // 11. Deterministic confidence  -  NorthStar Labs owns the score
   const confidence = computeConfidence(response, context);
 
+  const summary = buildExplainableSummary(trace, {
+    recommendations: response.recommendations,
+    risks: response.risks,
+    missing_information: response.missing_information,
+    next_question: response.next_question,
+  });
+
+  const providerMeta = dispatch.provider ?? { id: "deterministic", modelId: "n/a" };
+
   return {
     response,
     confidence,
     intent,
     context,
-    provider: { id: meta.providerId, modelId: meta.modelId },
-    usage: providerResult.usage,
+    provider: { id: providerMeta.id, modelId: providerMeta.modelId },
+    usage: dispatch.usage,
     hrefs,
+    strategy: dispatch.decision.strategy,
+    strategyReason: dispatch.decision.reason,
+    trace,
+    summary,
   };
 }
+
+// Silence unused-import warning when PROMPT_VERSION is not directly referenced
+// in this file after refactor  -  keep the constant exported through this module
+// for downstream consumers that still import it via pipeline.server.
+export { PROMPT_VERSION };
 
 // Convenience audit wrapper  -  pipeline callers hand us the message id after
 // persistence so the invocation row can link back.
