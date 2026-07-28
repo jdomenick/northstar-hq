@@ -15,11 +15,15 @@ export const Route = createFileRoute("/api/public/proposals/view")({
           const proposal = await loadByToken(supabaseAdmin, parsed.data.token);
 
           const now = new Date().toISOString();
-          const updates: Record<string, unknown> = {};
-          if (!proposal.viewed_at) updates.viewed_at = now;
-          if (proposal.status === "sent") updates.status = "viewed";
-          if (Object.keys(updates).length > 0) {
-            await supabaseAdmin.from("nsl_proposals").update(updates).eq("id", proposal.id);
+          const firstView = !proposal.viewed_at;
+          const needsStatus = proposal.status === "sent";
+          if (firstView || needsStatus) {
+            await supabaseAdmin.from("nsl_proposals").update({
+              ...(firstView ? { viewed_at: now } : {}),
+              ...(needsStatus ? { status: "viewed" as const } : {}),
+            }).eq("id", proposal.id);
+          }
+          if (firstView) {
             await supabaseAdmin.from("nsl_proposal_activity").insert({
               organization_id: proposal.organization_id,
               proposal_id: proposal.id,

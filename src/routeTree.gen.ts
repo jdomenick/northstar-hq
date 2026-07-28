@@ -46,6 +46,7 @@ import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
+import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
@@ -267,6 +268,11 @@ const AuthenticatedLabsAccountabilityRoute =
     path: '/labs/accountability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
+  id: '/api/public/proposals/view',
+  path: '/api/public/proposals/view',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
   id: '/api/public/automation/tick',
   path: '/api/public/automation/tick',
@@ -452,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -512,6 +519,7 @@ export interface FileRoutesByTo {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -574,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -636,6 +645,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/view'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -696,6 +706,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/view'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/proposals/view'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -773,6 +785,7 @@ export interface RootRouteChildren {
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
+  ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
   ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
@@ -1040,6 +1053,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/labs/accountability'
       preLoaderRoute: typeof AuthenticatedLabsAccountabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/proposals/view': {
+      id: '/api/public/proposals/view'
+      path: '/api/public/proposals/view'
+      fullPath: '/api/public/proposals/view'
+      preLoaderRoute: typeof ApiPublicProposalsViewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/automation/tick': {
       id: '/api/public/automation/tick'
@@ -1443,6 +1463,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
+  ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
   ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
