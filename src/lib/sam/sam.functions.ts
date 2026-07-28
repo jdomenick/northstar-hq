@@ -195,7 +195,7 @@ export const askSam = createServerFn({ method: "POST" })
       reasons: result.confidence.reasons.slice(0, 4),
       method: result.confidence.method,
     };
-    const metadata: Record<string, unknown> = JSON.parse(
+    const metadata = JSON.parse(
       JSON.stringify({
         intent: result.intent,
         confidence: confidenceSummary,
@@ -211,7 +211,7 @@ export const askSam = createServerFn({ method: "POST" })
         strategy_reason: result.strategyReason,
         explainable_summary: result.summary,
       }),
-    );
+    ) as Record<string, unknown>;
 
     // 7b. Action routing: attempt to execute an operational intent BEFORE
     // we persist the assistant message so its receipt goes into metadata.
@@ -305,7 +305,7 @@ export const askSam = createServerFn({ method: "POST" })
         metadata.audit_invocation_id = auditInvocationId;
         await supabase
           .from("conversation_messages")
-          .update({ metadata })
+          .update({ metadata: metadata as never })
           .eq("id", samMessageId);
       }
     } catch (e) {
