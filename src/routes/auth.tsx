@@ -17,6 +17,10 @@ export const Route = createFileRoute("/auth")({
 
 type Mode = "signin" | "signup";
 
+// Public operator signup is disabled unless explicitly enabled by configuration.
+// Internal users are provisioned through invitation instead.
+const PUBLIC_SIGNUP_ENABLED = import.meta.env.VITE_ALLOW_PUBLIC_SIGNUP === "true";
+
 function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +39,7 @@ function AuthPage() {
     setSubmitting(true);
     try {
       if (mode === "signup") {
+        if (!PUBLIC_SIGNUP_ENABLED) throw new Error("Account creation is by invitation only.");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -132,13 +137,17 @@ function AuthPage() {
         </form>
 
         <div className="mt-8 flex items-center justify-between text-[12.5px] text-muted-foreground">
-          <button
-            type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="hover:text-foreground"
-          >
-            {mode === "signin" ? "Create an account" : "I already have an account"}
-          </button>
+          {PUBLIC_SIGNUP_ENABLED ? (
+            <button
+              type="button"
+              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              className="hover:text-foreground"
+            >
+              {mode === "signin" ? "Create an account" : "I already have an account"}
+            </button>
+          ) : (
+            <span>Access is by invitation only.</span>
+          )}
           {mode === "signin" && (
             <Link to="/auth/forgot" className="hover:text-foreground">
               Forgot password
