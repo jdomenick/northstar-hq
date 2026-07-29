@@ -1,7 +1,7 @@
 // Invoice + refund operations. All operations are idempotent.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getStripe, stripeErrorMessage } from "./stripe.server";
+import { getStripe, isStripeLive, stripeErrorMessage } from "./stripe.server";
 import { ensureBillingCustomer } from "./customers.server";
 import { recordBillingEvent } from "./events.server";
 import {
@@ -181,6 +181,7 @@ async function createFinalizedInvoice(
         : null,
       created_by: args.actor_id,
       metadata: {},
+      livemode: isStripeLive(),
     })
     .select("*")
     .maybeSingle();
