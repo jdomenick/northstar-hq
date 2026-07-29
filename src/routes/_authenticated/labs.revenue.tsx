@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Users, FileText, Share2, ArrowRight, Clock, ShieldAlert } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
