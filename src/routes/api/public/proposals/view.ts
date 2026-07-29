@@ -41,9 +41,8 @@ export const Route = createFileRoute("/api/public/proposals/view")({
           const payload = await buildPublicPayload(supabaseAdmin, proposal.id);
           return Response.json(payload);
         } catch (e) {
-          const msg = e instanceof Error ? e.message : "error";
-          const status = ["not_found", "expired", "not_available", "invalid_token"].includes(msg) ? 404 : 500;
-          return new Response(msg, { status });
+          console.error("[proposals/view]", e);
+          return new Response("unavailable", { status: 404 });
         }
       },
     },

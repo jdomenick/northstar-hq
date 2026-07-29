@@ -51,6 +51,7 @@ import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_a
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
+import { Route as ApiPublicProposalsStatusRouteImport } from './routes/api/public/proposals/status'
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
 import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
@@ -303,6 +304,12 @@ const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
   path: '/api/public/proposals/view',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProposalsStatusRoute =
+  ApiPublicProposalsStatusRouteImport.update({
+    id: '/api/public/proposals/status',
+    path: '/api/public/proposals/status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicProposalsPdfRoute = ApiPublicProposalsPdfRouteImport.update({
   id: '/api/public/proposals/pdf',
   path: '/api/public/proposals/pdf',
@@ -517,6 +524,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
@@ -586,6 +594,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
@@ -657,6 +666,7 @@ export interface FileRoutesById {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
@@ -728,6 +738,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals/'
@@ -797,6 +808,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals'
@@ -867,6 +879,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/_authenticated/labs/proposals/'
@@ -890,6 +903,7 @@ export interface RootRouteChildren {
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
   ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
+  ApiPublicProposalsStatusRoute: typeof ApiPublicProposalsStatusRoute
   ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -1193,6 +1207,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/proposals/view'
       fullPath: '/api/public/proposals/view'
       preLoaderRoute: typeof ApiPublicProposalsViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/status': {
+      id: '/api/public/proposals/status'
+      path: '/api/public/proposals/status'
+      fullPath: '/api/public/proposals/status'
+      preLoaderRoute: typeof ApiPublicProposalsStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/proposals/pdf': {
@@ -1635,6 +1656,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
   ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
+  ApiPublicProposalsStatusRoute: ApiPublicProposalsStatusRoute,
   ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
