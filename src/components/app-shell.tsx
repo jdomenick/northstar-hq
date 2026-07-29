@@ -52,7 +52,7 @@ import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
   to:
-    | "/labs/"
+    | "/labs"
     | "/labs/mission-control"
     | "/labs/revenue"
     | "/labs/proposals"
@@ -63,7 +63,7 @@ type NavItem = {
     | "/labs/knowledge"
     | "/labs/documents"
     | "/labs/accountability"
-    | "/sam/"
+    | "/sam"
     | "/sam/control"
     | "/sam/memory"
     | "/sam/content"
@@ -80,7 +80,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "NorthStar Labs",
     items: [
-      { to: "/labs/", label: "The Brief", icon: CommandIcon, exact: true },
+      { to: "/labs", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
       { to: "/labs/revenue", label: "Revenue", icon: DollarSign },
       { to: "/labs/proposals", label: "Proposals", icon: FileText },
@@ -96,7 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "SAM",
     items: [
-      { to: "/sam/", label: "Ask SAM", icon: Sparkles },
+      { to: "/sam", label: "Ask SAM", icon: Sparkles },
       { to: "/sam/control", label: "Control", icon: Gauge },
       { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
       { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
