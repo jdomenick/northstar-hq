@@ -58,7 +58,7 @@ export async function requireOrgMember(supabase: SB, organizationId: string, use
 /* ------------------------------ projections ----------------------------- */
 
 const DOC_FIELDS =
-  "id, title, instructions, visibility, status, is_required, storage_path, file_name, file_size, file_type, uploaded_at, reviewed_at, revision_note, onboarding_item_id, created_at";
+  "id, title, instructions, visibility, status, is_required, storage_path, file_name, file_size, file_type, uploaded_at, uploaded_by, requested_by, reviewed_at, revision_note, onboarding_item_id, created_at";
 const ITEM_FIELDS =
   "id, title, item_type, owner, instructions, is_required, requires_review, requires_document, due_at, status, client_response, revision_note, blocked_reason, sort_order, submitted_at, completed_at, reviewed_at";
 
@@ -70,6 +70,11 @@ function toDocument(row: Database["public"]["Tables"]["client_documents"]["Row"]
     visibility: row.visibility,
     status: row.status,
     is_required: row.is_required,
+    // Truthful origin flag: the client either created the row, or filled a
+    // request that an operator opened. No user ids are exposed to the client.
+    uploaded_by_client:
+      row.visibility === "client_uploaded" ||
+      (row.uploaded_by !== null && row.uploaded_by !== row.requested_by),
     storage_path: row.storage_path,
     file_name: row.file_name,
     file_size: row.file_size,

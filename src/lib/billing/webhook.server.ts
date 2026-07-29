@@ -6,6 +6,10 @@ import type { Stripe } from "stripe";
 import type { Database } from "@/integrations/supabase/types";
 import { recordBillingEvent } from "./events.server";
 import { getStripe, isStripeLive } from "./stripe.server";
+import {
+  buildPaymentReceivedEvent,
+  emitClientLifecycleEvent,
+} from "@/lib/client-workspace/lifecycle-events";
 
 export type WebhookResult =
   | { kind: "already_processed" }
@@ -124,6 +128,85 @@ async function syncInvoice(
   supabase: SupabaseClient<Database>,
   invoice: Stripe.Invoice,
 ): Promise<void> {
+  return syncInvoiceImpl(supabase, invoice);
+}
+
+type LocalInvoice = Database["public"]["Tables"]["billing_invoices"]["Row"];
+
+/**
+ * Client-safe "payment received" activity entry.
+ *
+ * Preconditions are all satisfied by the caller: signature verified, livemode
+ * matched, invoice reconciled against our ledger, status paid. Here we only
+ * resolve the client relationship and write an entry containing purpose,
+ * amount, paid date, and proposal number. No Stripe identifiers, no internal
+ * record ids, no reconciliation metadata.
+ */
+async function emitClientPaymentEvent(
+  supabase: SupabaseClient<Database>,
+  local: LocalInvoice,
+  paidCents: number,
+): Promise<void> {
+  if (!local.client_id || !local.organization_id) return;
+
+  // Confirm the invoice is paid in our own ledger before telling the client.
+  const { data: confirmed } = await supabase
+    .from("billing_invoices")
+    .select("id, status, paid_at, client_id, organization_id, proposal_id, type, currency")
+    .eq("id", local.id)
+    .eq("organization_id", local.organization_id)
+    .maybeSingle();
+  if (!confirmed || confirmed.status !== "paid" || !confirmed.client_id) return;
+
+  // Confirm the client belongs to the same organization as the invoice.
+  const { data: client } = await supabase
+    .from("revenue_clients")
+    .select("id")
+    .eq("id", confirmed.client_id)
+    .eq("organization_id", confirmed.organization_id)
+    .maybeSingle();
+  if (!client) return;
+
+  let proposalNumber: string | null = null;
+  if (confirmed.proposal_id) {
+    const { data: proposal } = await supabase
+      .from("nsl_proposals")
+      .select("proposal_number, client_id")
+      .eq("id", confirmed.proposal_id)
+      .eq("organization_id", confirmed.organization_id)
+      .maybeSingle();
+    // Only surface the proposal when it really belongs to this client.
+    if (proposal && proposal.client_id === confirmed.client_id) {
+      proposalNumber = proposal.proposal_number ?? null;
+    }
+  }
+
+  const event = buildPaymentReceivedEvent({
+    invoice_id: confirmed.id,
+    invoice_type: confirmed.type,
+    amount_paid_cents: paidCents,
+    currency: confirmed.currency,
+    paid_at: confirmed.paid_at ?? new Date().toISOString(),
+    proposal_number: proposalNumber,
+  });
+
+  const outcome = await emitClientLifecycleEvent(supabase as never, {
+    organization_id: confirmed.organization_id,
+    client_id: confirmed.client_id,
+    invoice_id: confirmed.id,
+    event,
+  });
+  if (outcome === "failed") {
+    // Never fail the webhook for a feed entry; the payment itself reconciled.
+    // eslint-disable-next-line no-console
+    console.error("[client workspace] payment_received event insert failed");
+  }
+}
+
+async function syncInvoiceImpl(
+  supabase: SupabaseClient<Database>,
+  invoice: Stripe.Invoice,
+): Promise<void> {
   if (!invoice.id) return;
   const { data: local } = await supabase
     .from("billing_invoices")
@@ -195,6 +278,11 @@ async function syncInvoice(
         livemode: Boolean(source.livemode ?? local.livemode ?? false),
       });
     }
+
+    // Client-facing activity. Emitted only after the local invoice is
+    // confirmed paid and the org/client relationship is resolved from our own
+    // ledger, never from the Stripe payload. Deduped by (client, invoice).
+    await emitClientPaymentEvent(supabase, local, paidCents);
 
     if (local.type === "setup_deposit") {
       await recordBillingEvent(supabase, {

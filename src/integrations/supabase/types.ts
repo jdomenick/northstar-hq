@@ -1944,6 +1944,7 @@ export type Database = {
           occurred_at: string
           onboarding_item_id: string | null
           organization_id: string
+          source_key: string | null
           title: string
         }
         Insert: {
@@ -1958,6 +1959,7 @@ export type Database = {
           occurred_at?: string
           onboarding_item_id?: string | null
           organization_id: string
+          source_key?: string | null
           title: string
         }
         Update: {
@@ -1972,6 +1974,7 @@ export type Database = {
           occurred_at?: string
           onboarding_item_id?: string | null
           organization_id?: string
+          source_key?: string | null
           title?: string
         }
         Relationships: [
