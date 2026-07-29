@@ -81,9 +81,21 @@ export function ClientWorkspace({
               {data.company.name}
             </div>
           </div>
-          <nav className="flex items-center gap-4 text-[11px] uppercase tracking-[0.18em]">
+          <nav className="flex flex-wrap items-center gap-4 text-[11px] uppercase tracking-[0.18em]">
             <ClientNavLink to="/client" active={pathname === "/client"}>
               Overview
+            </ClientNavLink>
+            <ClientNavLink to="/client/onboarding" active={pathname === "/client/onboarding"}>
+              Onboarding
+            </ClientNavLink>
+            <ClientNavLink to="/client/documents" active={pathname === "/client/documents"}>
+              Documents
+            </ClientNavLink>
+            <ClientNavLink to="/client/billing" active={pathname === "/client/billing"}>
+              Billing
+            </ClientNavLink>
+            <ClientNavLink to="/client/company" active={pathname === "/client/company"}>
+              Company
             </ClientNavLink>
             <ClientNavLink to="/client/profile" active={pathname === "/client/profile"}>
               Profile
