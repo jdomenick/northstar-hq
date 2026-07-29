@@ -322,11 +322,9 @@ export async function processStripeEvent(
   // Mode isolation: a live app must reject test events and vice versa. This
   // prevents cross-contamination even if webhook secrets were misconfigured.
   if (Boolean(event.livemode) !== isStripeLive()) {
-    return {
-      kind: "failed",
-      retryable: true,
-      message: `mode_mismatch: event livemode=${event.livemode} app livemode=${isStripeLive()}`,
-    };
+    // 200-drop: acknowledge so Stripe stops retrying, but never touch our
+    // ledger. The event was meant for the other mode's endpoint.
+    return { kind: "already_processed" };
   }
   if (!HANDLED_EVENTS.has(event.type)) {
     // Persist for observability but don't retry.
