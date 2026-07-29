@@ -7,7 +7,7 @@ import { Copy, CreditCard, ExternalLink, RefreshCw, Repeat, Send, Undo2, Wallet 
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { NextStepBanner, deriveLifecycle } from "@/components/client-lifecycle";
+import { deriveLifecycle } from "@/components/client-lifecycle";
 import {
   getBillingOverviewFn,
   getBillableProposalsFn,
