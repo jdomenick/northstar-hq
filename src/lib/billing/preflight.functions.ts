@@ -51,7 +51,7 @@ export const stripePreflightFn = createServerFn({ method: "POST" })
     const { getStripe } = await import("./stripe.server");
     const stripe = getStripe();
 
-    const account = await stripe.accounts.retrieve();
+    const account = await stripe.accounts.retrieve("");
     const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
     const targetUrl = "https://northstar-labs.lovable.app/api/public/stripe/webhook";
     const matching: EndpointSummary[] = endpoints.data
