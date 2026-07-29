@@ -1,7 +1,7 @@
 // Recurring subscription activation. Idempotent per proposal.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getStripe, stripeErrorMessage } from "./stripe.server";
+import { getStripe, isStripeLive, stripeErrorMessage } from "./stripe.server";
 import { ensureBillingCustomer } from "./customers.server";
 import { recordBillingEvent } from "./events.server";
 import { buildIdempotencyKey, DEFAULT_CURRENCY, normalizeCurrency } from "./money";
@@ -133,6 +133,7 @@ export async function activateRecurringBilling(
           ? new Date(item.current_period_end * 1000).toISOString()
           : null,
         created_by: input.actor_id ?? null,
+        livemode: isStripeLive(),
       })
       .select("*")
       .maybeSingle();

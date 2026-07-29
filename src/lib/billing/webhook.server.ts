@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Stripe } from "stripe";
 import type { Database } from "@/integrations/supabase/types";
 import { recordBillingEvent } from "./events.server";
-import { getStripe } from "./stripe.server";
+import { getStripe, isStripeLive } from "./stripe.server";
 
 export type WebhookResult =
   | { kind: "already_processed" }
@@ -76,6 +76,7 @@ async function claimEvent(
       attempt_count: 1,
       received_at: new Date().toISOString(),
       payload: event as never,
+      livemode: Boolean(event.livemode),
     });
     if (error) {
       // Concurrent insert; treat as already claimed by another worker.
@@ -191,6 +192,7 @@ async function syncInvoice(
         currency: local.currency,
         status: "succeeded" as never,
         paid_at: new Date().toISOString(),
+        livemode: Boolean(source.livemode ?? local.livemode ?? false),
       });
     }
 
@@ -317,6 +319,13 @@ export async function processStripeEvent(
   supabase: SupabaseClient<Database>,
   event: Stripe.Event,
 ): Promise<WebhookResult> {
+  // Mode isolation: a live app must reject test events and vice versa. This
+  // prevents cross-contamination even if webhook secrets were misconfigured.
+  if (Boolean(event.livemode) !== isStripeLive()) {
+    // 200-drop: acknowledge so Stripe stops retrying, but never touch our
+    // ledger. The event was meant for the other mode's endpoint.
+    return { kind: "already_processed" };
+  }
   if (!HANDLED_EVENTS.has(event.type)) {
     // Persist for observability but don't retry.
     const { data: existing } = await supabase
@@ -332,6 +341,7 @@ export async function processStripeEvent(
         received_at: new Date().toISOString(),
         processed_at: new Date().toISOString(),
         payload: event as never,
+        livemode: Boolean(event.livemode),
       });
     }
     return { kind: "already_processed" };
