@@ -372,10 +372,6 @@ function ReturnButton({ id, returnFn, onDone }: { id: string; returnFn: any; onD
   );
 }
 
-function CopyLinkButton({ onCopy }: { onCopy: () => void }) {
-  return <Button size="sm" variant="outline" onClick={onCopy}><Copy className="mr-2 h-4 w-4" /> Copy public link</Button>;
-}
-
 function CommentForm({ id, addFn, onDone }: { id: string; addFn: any; onDone: () => void }) {
   const [txt, setTxt] = useState("");
   return (
