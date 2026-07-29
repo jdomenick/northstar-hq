@@ -231,7 +231,14 @@ function SamPage() {
     try {
       const res = await fetch("/api/generate-image", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(await (async () => {
+            const { data } = await supabase.auth.getSession();
+            const t = data.session?.access_token;
+            return t ? { Authorization: `Bearer ${t}` } : {};
+          })()),
+        },
         body: JSON.stringify({ prompt }),
       });
       if (!res.ok) {
