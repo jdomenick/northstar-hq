@@ -51,51 +51,76 @@ export function deriveLifecycle(input: LifecycleInput): LifecycleState {
   const { proposalStatus, depositStatus, finalStatus, subscriptionStatus } = input;
   const recurring = Number(input.recurringFeeCents ?? 0);
   const paid = (s?: string | null) => s === "paid";
+  // Without a recurring fee the engagement genuinely ends at "Delivery ready".
+  const lastRelevantIndex = recurring > 0 ? 8 : 7;
+  const base = { lastRelevantIndex, recurringPending: false, activationNeedsAttention: false };
 
   if (proposalStatus === "declined") {
-    return { currentIndex: 4, nextStep: "Client declined. Supersede this proposal and issue a revised version.", complete: false };
+    return { ...base, currentIndex: 4, nextStep: "Client declined. Supersede this proposal and issue a revised version.", complete: false };
   }
   if (proposalStatus === "expired" || proposalStatus === "superseded" || proposalStatus === "cancelled") {
-    return { currentIndex: 3, nextStep: "This proposal is no longer live. Generate a replacement to continue.", complete: false };
+    return { ...base, currentIndex: 3, nextStep: "This proposal is no longer live. Generate a replacement to continue.", complete: false };
   }
   if (proposalStatus === "draft") {
-    return { currentIndex: 1, nextStep: "Fill in the investment figures, then submit for review.", complete: false };
+    return { ...base, currentIndex: 1, nextStep: "Fill in the investment figures, then submit for review.", complete: false };
   }
   if (proposalStatus === "internal_review") {
-    return { currentIndex: 2, nextStep: "Approve the proposal to unlock sending.", complete: false };
+    return { ...base, currentIndex: 2, nextStep: "Approve the proposal to unlock sending.", complete: false };
   }
   if (proposalStatus === "approved" || proposalStatus === "ready_to_send") {
-    return { currentIndex: 3, nextStep: "Send it. You get a secure client link to share.", complete: false };
+    return { ...base, currentIndex: 3, nextStep: "Send it. You get a secure client link to share.", complete: false };
   }
   if (proposalStatus === "sent" || proposalStatus === "viewed") {
-    return { currentIndex: 4, nextStep: "Waiting on the client to sign. Copy the link again if they lost it.", complete: false };
+    return { ...base, currentIndex: 4, nextStep: "Waiting on the client to sign. Copy the link again if they lost it.", complete: false };
   }
   // Accepted from here down.
   if (!depositStatus) {
-    return { currentIndex: 5, nextStep: "Start billing to create and send the 50 percent deposit invoice.", complete: false };
+    return { ...base, currentIndex: 5, nextStep: "Start billing to create and send the 50 percent deposit invoice.", complete: false };
   }
   if (!paid(depositStatus)) {
-    return { currentIndex: 5, nextStep: "Deposit invoice is open. Share the payment link or resend the email.", complete: false };
+    return { ...base, currentIndex: 5, nextStep: "Deposit invoice is open. Share the payment link or resend the email.", complete: false };
   }
   if (!finalStatus) {
-    return { currentIndex: 6, nextStep: "Deposit cleared. Generate the final balance invoice.", complete: false };
+    return { ...base, currentIndex: 6, nextStep: "Deposit cleared. Generate the final balance invoice.", complete: false };
   }
   if (!paid(finalStatus)) {
-    return { currentIndex: 6, nextStep: "Balance invoice is open. Share the payment link or resend the email.", complete: false };
+    return { ...base, currentIndex: 6, nextStep: "Balance invoice is open. Share the payment link or resend the email.", complete: false };
   }
+
+  // Setup is paid in full. Delivery activation is the next real thing.
+  if (!input.deliveryProjectId) {
+    if (input.activationError) {
+      return {
+        ...base,
+        currentIndex: 7,
+        activationNeedsAttention: true,
+        nextStep: `Activation needs attention: ${input.activationError}`,
+        complete: false,
+      };
+    }
+    return { ...base, currentIndex: 7, nextStep: "Setup is paid in full. Creating the delivery project.", complete: false };
+  }
+
   if (recurring <= 0) {
-    return { currentIndex: 7, nextStep: "Setup is paid in full. No recurring fee on this engagement.", complete: true };
+    return { ...base, currentIndex: 7, nextStep: "Delivery is ready to start. No recurring fee on this engagement.", complete: true };
   }
   if (subscriptionStatus === "active" || subscriptionStatus === "trialing") {
-    return { currentIndex: 7, nextStep: "Recurring billing is live. Nothing is waiting on you.", complete: true };
+    return { ...base, currentIndex: 8, nextStep: "Delivery is running and recurring billing is live. Nothing is waiting on you.", complete: true };
   }
-  return { currentIndex: 7, nextStep: "Balance cleared. Activate the recurring subscription.", complete: false };
+  return {
+    ...base,
+    currentIndex: 8,
+    recurringPending: true,
+    nextStep: "Delivery is ready to start. Recurring billing is still pending: activate the subscription.",
+    complete: false,
+  };
 }
 
 export function LifecycleRail({ state, className }: { state: LifecycleState; className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center gap-x-1.5 gap-y-2", className)}>
       {LIFECYCLE_STEPS.map((label, i) => {
+        if (i > state.lastRelevantIndex) return null;
         const done = state.complete ? true : i < state.currentIndex;
         const current = !state.complete && i === state.currentIndex;
         return (
@@ -104,14 +129,15 @@ export function LifecycleRail({ state, className }: { state: LifecycleState; cla
               className={cn(
                 "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium",
                 done && "border-primary/30 bg-primary/10 text-primary",
-                current && "border-foreground/40 bg-foreground text-background",
+                current && !state.activationNeedsAttention && "border-foreground/40 bg-foreground text-background",
+                current && state.activationNeedsAttention && "border-destructive/40 bg-destructive/10 text-destructive",
                 !done && !current && "border-foreground/15 text-foreground/45",
               )}
             >
               {done && <Check className="h-3 w-3" />}
               {label}
             </span>
-            {i < LIFECYCLE_STEPS.length - 1 && <span aria-hidden className="h-px w-3 bg-foreground/15" />}
+            {i < state.lastRelevantIndex && <span aria-hidden className="h-px w-3 bg-foreground/15" />}
           </div>
         );
       })}
