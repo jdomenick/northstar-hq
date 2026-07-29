@@ -10,6 +10,8 @@ const input = z.object({
   proposal_id: z.string().uuid(),
 });
 
+const proposalOnly = z.object({ proposal_id: z.string().uuid() });
+
 async function requireExecutive(
   supabase: SupabaseClient<Database>,
   organization_id: string,
@@ -53,4 +55,73 @@ export const getDeliveryProjectFn = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
     return { project: project ?? null };
+  });
+
+/**
+ * Everything the lifecycle rail needs for one engagement: setup invoice
+ * statuses, subscription status, the delivery project, and the real reason
+ * activation has not happened yet. Read-only, RLS-scoped to the caller's org.
+ */
+export const getEngagementStatusFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => proposalOnly.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: proposal } = await context.supabase
+      .from("nsl_proposals")
+      .select("id, organization_id, status, recurring_fee_cents")
+      .eq("id", data.proposal_id)
+      .maybeSingle();
+    if (!proposal) throw new Error("Proposal not found");
+    const orgId = proposal.organization_id;
+
+    const [invoicesRes, subRes, projectRes] = await Promise.all([
+      context.supabase
+        .from("billing_invoices")
+        .select("id, type, status, hosted_invoice_url")
+        .eq("organization_id", orgId)
+        .eq("proposal_id", proposal.id),
+      context.supabase
+        .from("billing_subscriptions")
+        .select("id, status")
+        .eq("organization_id", orgId)
+        .eq("proposal_id", proposal.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      context.supabase
+        .from("projects")
+        .select("id, name, status")
+        .eq("organization_id", orgId)
+        .eq("proposal_id", proposal.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    const invoices = (invoicesRes.data ?? []).filter((i) => i.status !== "void");
+    const deposit = invoices.find((i) => i.type === "setup_deposit") ?? null;
+    const final = invoices.find((i) => i.type === "setup_final") ?? null;
+
+    // Only surface an activation problem once setup is genuinely paid.
+    let activationError: string | null = null;
+    if (!projectRes.data && deposit?.status === "paid" && final?.status === "paid") {
+      const { evaluateDeliveryActivation } = await import("./activation.server");
+      const evaluation = await evaluateDeliveryActivation(context.supabase, {
+        proposal_id: proposal.id,
+        organization_id: orgId,
+      });
+      if (evaluation.status === "blocked") activationError = evaluation.message;
+      if (evaluation.status === "failed") activationError = evaluation.message;
+    }
+
+    return {
+      organizationId: orgId,
+      recurringFeeCents: Number(proposal.recurring_fee_cents ?? 0),
+      depositStatus: deposit?.status ?? null,
+      finalStatus: final?.status ?? null,
+      subscriptionStatus: subRes.data?.status ?? null,
+      project: projectRes.data ?? null,
+      activationError,
+    };
   });
