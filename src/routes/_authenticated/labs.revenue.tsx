@@ -308,7 +308,7 @@ function ClientAccessDialog({ orgId, clientId, clientName }: { orgId: string; cl
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Client access , {clientName}</DialogTitle>
+          <DialogTitle>Client access: {clientName}</DialogTitle>
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto pr-1">
           {open && <ClientUsersPanel organizationId={orgId} clientId={clientId} />}
