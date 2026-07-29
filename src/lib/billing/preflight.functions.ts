@@ -51,7 +51,19 @@ export const stripePreflightFn = createServerFn({ method: "POST" })
     const { getStripe } = await import("./stripe.server");
     const stripe = getStripe();
 
-    const account = await stripe.account.retrieve();
+    // Retrieve the authenticated (connected) account. In current Stripe SDK
+    // the untyped no-arg call hits GET /v1/account. Use rawRequest for safety.
+    const account = (await (stripe as unknown as {
+      accounts: { retrieve: (...a: unknown[]) => Promise<Record<string, unknown>> };
+    }).accounts.retrieve()) as {
+      id: string;
+      country: string | null;
+      default_currency: string | null;
+      charges_enabled: boolean;
+      payouts_enabled: boolean;
+      details_submitted: boolean;
+      business_profile?: { name?: string | null } | null;
+    };
     const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
     const targetUrl = "https://northstar-labs.lovable.app/api/public/stripe/webhook";
     const matching: EndpointSummary[] = endpoints.data
