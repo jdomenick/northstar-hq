@@ -89,6 +89,7 @@ function BillingPage() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["billing-overview"] });
     qc.invalidateQueries({ queryKey: ["billing-billable"] });
+    qc.invalidateQueries({ queryKey: ["delivery-projects"] });
   };
 
   const startMut = useMutation({
@@ -113,6 +114,17 @@ function BillingPage() {
     mutationFn: (invoice_id: string) =>
       refundFn({ data: { organization_id: activeOrgId!, invoice_id } }),
     onSuccess: () => { toast.success("Refund issued through Stripe."); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const retryActivationMut = useMutation({
+    mutationFn: (proposalId: string) =>
+      retryActivationFn({ data: { organization_id: activeOrgId!, proposal_id: proposalId } }),
+    onSuccess: (res) => {
+      if (res.status === "created") toast.success("Delivery project created. Client is now active.");
+      else if (res.status === "already_active") toast.success("Delivery project already exists.");
+      else toast.error(res.message);
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const resendMut = useMutation({
@@ -186,7 +198,7 @@ function BillingPage() {
             ) : (
               <Badge variant="outline" className="border-primary/30 text-primary">Stripe connected</Badge>
             )}
-            <Button size="sm" variant="outline" onClick={() => { overviewQ.refetch(); billableQ.refetch(); }}>
+            <Button size="sm" variant="outline" onClick={() => { overviewQ.refetch(); billableQ.refetch(); deliveryQ.refetch(); }}>
               <RefreshCw className="mr-2 h-3.5 w-3.5" /> Refresh
             </Button>
           </div>
@@ -228,7 +240,10 @@ function BillingPage() {
                   const pair = invoicesByProposal.get(p.id) ?? {};
                   const depositPaid = pair.deposit?.status === "paid";
                   const finalPaid = pair.final?.status === "paid";
+                  const deliveryProject = (deliveryQ.data ?? []).find((d) => d.proposal_id === p.id) ?? null;
                   const life = deriveLifecycle({
+                    deliveryProjectId: deliveryProject?.id ?? null,
+                    activationError: depositPaid && finalPaid && !deliveryProject ? "Delivery project was not created." : null,
                     proposalStatus: p.status,
                     depositStatus: pair.deposit?.status,
                     finalStatus: pair.final?.status,
@@ -290,6 +305,18 @@ function BillingPage() {
                           {finalPaid && Number(p.recurring_fee_cents ?? 0) > 0 && !subsByProposal.get(p.id) && (
                             <Button size="sm" onClick={() => activateMut.mutate(p.id)} disabled={activateMut.isPending}>
                               Activate subscription
+                            </Button>
+                          )}
+                          {deliveryProject && (
+                            <Link to="/labs/projects/$id" params={{ id: deliveryProject.id }}>
+                              <Button size="sm" variant="outline">
+                                <FolderKanban className="mr-1 h-3 w-3" /> Open project
+                              </Button>
+                            </Link>
+                          )}
+                          {depositPaid && finalPaid && !deliveryProject && (
+                            <Button size="sm" variant="destructive" onClick={() => retryActivationMut.mutate(p.id)} disabled={retryActivationMut.isPending}>
+                              <RefreshCw className="mr-1 h-3 w-3" /> Retry activation
                             </Button>
                           )}
                           {life.complete && <span className="text-xs text-primary">Live</span>}
