@@ -323,7 +323,7 @@ export async function loadClientWorkspace(supabase: SB, userId: string): Promise
       .order("created_at", { ascending: false }),
     supabaseAdmin
       .from("projects")
-      .select("client_title, name, status, progress_percentage, client_next_action")
+      .select("client_title, status, progress_percentage, client_next_action")
       .eq("client_id", acct.client_id)
       .eq("organization_id", acct.organization_id)
       .eq("client_visible", true)
