@@ -34,6 +34,7 @@ import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
+import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsFounderActivationRouteImport } from './routes/_authenticated/settings.founder-activation'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
@@ -210,6 +211,11 @@ const ProposalTokenPaymentReturnRoute =
     path: '/payment-return',
     getParentRoute: () => ProposalTokenRoute,
   } as any)
+const ClientInviteTokenRoute = ClientInviteTokenRouteImport.update({
+  id: '/client/invite/$token',
+  path: '/client/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -529,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
@@ -602,6 +609,7 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
@@ -678,6 +686,7 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
@@ -754,6 +763,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs/'
     | '/sam/'
@@ -827,6 +837,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs'
     | '/sam'
@@ -902,6 +913,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/founder-activation'
     | '/_authenticated/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
@@ -947,6 +959,7 @@ export interface RootRouteChildren {
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientLoginRoute: typeof ClientLoginRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
+  ClientInviteTokenRoute: typeof ClientInviteTokenRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicClientInvitationRoute: typeof ApiPublicClientInvitationRoute
@@ -1139,6 +1152,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/proposal/$token/payment-return'
       preLoaderRoute: typeof ProposalTokenPaymentReturnRouteImport
       parentRoute: typeof ProposalTokenRoute
+    }
+    '/client/invite/$token': {
+      id: '/client/invite/$token'
+      path: '/client/invite/$token'
+      fullPath: '/client/invite/$token'
+      preLoaderRoute: typeof ClientInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/integrations': {
       id: '/_authenticated/settings/integrations'
@@ -1744,6 +1764,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientLoginRoute: ClientLoginRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
+  ClientInviteTokenRoute: ClientInviteTokenRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicClientInvitationRoute: ApiPublicClientInvitationRoute,
