@@ -25,6 +25,7 @@ import { submitResponseFeedback } from "@/lib/sam/learning/learning.functions";
 import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
 import { LIMITS } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SectionLabel } from "@/components/editorial";
 import { DirectivesDrawer } from "@/components/sam/directives-drawer";
@@ -229,9 +230,13 @@ function SamPage() {
     setImagePending(true);
     setInput("");
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const headers = new Headers({ "Content-Type": "application/json" });
+      const accessToken = sessionData.session?.access_token;
+      if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
       const res = await fetch("/api/generate-image", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ prompt }),
       });
       if (!res.ok) {

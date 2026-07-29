@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/command";
 import { useNavigate } from "@tanstack/react-router";
 import { useGlobalSearch, type SearchHit } from "@/lib/data-hooks";
-import { can } from "@/lib/permissions";
+import { can, type Role } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
@@ -73,6 +73,8 @@ type NavItem = {
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
+  /** Executive-only surfaces are hidden from viewers and members. */
+  financial?: boolean;
 };
 
 type NavGroup = { heading: string; items: NavItem[] };
@@ -83,9 +85,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/labs", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-      { to: "/labs/revenue", label: "Revenue", icon: DollarSign },
-      { to: "/labs/proposals", label: "Proposals", icon: FileText },
-      { to: "/labs/billing", label: "Billing", icon: DollarSign },
+      { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
+      { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
+      { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
       { to: "/labs/projects", label: "Projects", icon: FolderKanban },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
@@ -113,7 +115,13 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+function visibleGroups(role: Role | undefined | null): NavGroup[] {
+  const allowFinancial = can.viewFinancials(role);
+  return NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => allowFinancial || !i.financial),
+  })).filter((g) => g.items.length > 0);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -137,6 +145,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const searchQ = useGlobalSearch(activeOrgId, debouncedQuery);
   const canWrite = can.writeContent(activeMembership?.role);
+  const navGroups = visibleGroups(activeMembership?.role);
+  const navItems = navGroups.flatMap((g) => g.items);
   const results = searchQ.data;
   const hasQuery = debouncedQuery.length >= 2;
 
@@ -206,7 +216,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-2" aria-label="Primary">
-          {NAV_GROUPS.map((group, gi) => (
+          {navGroups.map((group, gi) => (
             <div key={group.heading} className={cn(gi > 0 && "mt-6")}>
               {!collapsed && (
                 <div className="mb-2 px-2.5 text-[9.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground/70">
@@ -288,7 +298,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="font-display text-[20px] font-semibold text-sidebar-accent-foreground">NorthStar Labs</div>
             </div>
             <nav className="mt-4">
-              {NAV_GROUPS.map((group, gi) => (
+              {navGroups.map((group, gi) => (
                 <div key={group.heading} className={cn(gi > 0 && "mt-5")}>
                   <div className="mb-1.5 px-2.5 text-[9.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground/70">
                     {group.heading}
@@ -433,7 +443,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
 
           <CommandGroup heading="Navigate">
-            {NAV.map((item) => (
+            {navItems.map((item) => (
               <CommandItem
                 key={item.to}
                 value={`nav-${item.label}`}

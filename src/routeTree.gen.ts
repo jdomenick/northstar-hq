@@ -29,8 +29,10 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authenticated/content-ops'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
+import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token.index'
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
+import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsFounderActivationRouteImport } from './routes/_authenticated/settings.founder-activation'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
@@ -51,6 +53,7 @@ import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_a
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
+import { Route as ApiPublicProposalsStatusRouteImport } from './routes/api/public/proposals/status'
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
 import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
@@ -179,6 +182,11 @@ const AuthenticatedAccountabilityRoute =
     path: '/accountability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ProposalTokenIndexRoute = ProposalTokenIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProposalTokenRoute,
+} as any)
 const AuthenticatedSamIndexRoute = AuthenticatedSamIndexRouteImport.update({
   id: '/sam/',
   path: '/sam/',
@@ -189,6 +197,12 @@ const AuthenticatedLabsIndexRoute = AuthenticatedLabsIndexRouteImport.update({
   path: '/labs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ProposalTokenPaymentReturnRoute =
+  ProposalTokenPaymentReturnRouteImport.update({
+    id: '/payment-return',
+    path: '/payment-return',
+    getParentRoute: () => ProposalTokenRoute,
+  } as any)
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -303,6 +317,12 @@ const ApiPublicProposalsViewRoute = ApiPublicProposalsViewRouteImport.update({
   path: '/api/public/proposals/view',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProposalsStatusRoute =
+  ApiPublicProposalsStatusRouteImport.update({
+    id: '/api/public/proposals/status',
+    path: '/api/public/proposals/status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicProposalsPdfRoute = ApiPublicProposalsPdfRouteImport.update({
   id: '/api/public/proposals/pdf',
   path: '/api/public/proposals/pdf',
@@ -477,7 +497,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
+  '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -495,8 +515,10 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token/': typeof ProposalTokenIndexRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -517,6 +539,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
@@ -546,7 +569,6 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -564,8 +586,10 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token': typeof ProposalTokenIndexRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -586,6 +610,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
@@ -617,7 +642,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
+  '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -635,8 +660,10 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token/': typeof ProposalTokenIndexRoute
   '/_authenticated/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/_authenticated/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/_authenticated/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -657,6 +684,7 @@ export interface FileRoutesById {
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
+  '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
@@ -706,8 +734,10 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/proposal/$token/payment-return'
     | '/labs/'
     | '/sam/'
+    | '/proposal/$token/'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -728,6 +758,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals/'
@@ -757,7 +788,6 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
-    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -775,8 +805,10 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/proposal/$token/payment-return'
     | '/labs'
     | '/sam'
+    | '/proposal/$token'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -797,6 +829,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals'
@@ -845,8 +878,10 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/founder-activation'
     | '/_authenticated/settings/integrations'
+    | '/proposal/$token/payment-return'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
+    | '/proposal/$token/'
     | '/_authenticated/labs/commitments/$id'
     | '/_authenticated/labs/decisions/$id'
     | '/_authenticated/labs/documents/$id'
@@ -867,6 +902,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
+    | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/_authenticated/labs/proposals/'
@@ -884,12 +920,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
-  ProposalTokenRoute: typeof ProposalTokenRoute
+  ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
   ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
+  ApiPublicProposalsStatusRoute: typeof ApiPublicProposalsStatusRoute
   ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
@@ -1041,6 +1078,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/proposal/$token/': {
+      id: '/proposal/$token/'
+      path: '/'
+      fullPath: '/proposal/$token/'
+      preLoaderRoute: typeof ProposalTokenIndexRouteImport
+      parentRoute: typeof ProposalTokenRoute
+    }
     '/_authenticated/sam/': {
       id: '/_authenticated/sam/'
       path: '/sam'
@@ -1054,6 +1098,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/labs/'
       preLoaderRoute: typeof AuthenticatedLabsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/proposal/$token/payment-return': {
+      id: '/proposal/$token/payment-return'
+      path: '/payment-return'
+      fullPath: '/proposal/$token/payment-return'
+      preLoaderRoute: typeof ProposalTokenPaymentReturnRouteImport
+      parentRoute: typeof ProposalTokenRoute
     }
     '/_authenticated/settings/integrations': {
       id: '/_authenticated/settings/integrations'
@@ -1193,6 +1244,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/proposals/view'
       fullPath: '/api/public/proposals/view'
       preLoaderRoute: typeof ApiPublicProposalsViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposals/status': {
+      id: '/api/public/proposals/status'
+      path: '/api/public/proposals/status'
+      fullPath: '/api/public/proposals/status'
+      preLoaderRoute: typeof ApiPublicProposalsStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/proposals/pdf': {
@@ -1623,18 +1681,33 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ProposalTokenRouteChildren {
+  ProposalTokenPaymentReturnRoute: typeof ProposalTokenPaymentReturnRoute
+  ProposalTokenIndexRoute: typeof ProposalTokenIndexRoute
+}
+
+const ProposalTokenRouteChildren: ProposalTokenRouteChildren = {
+  ProposalTokenPaymentReturnRoute: ProposalTokenPaymentReturnRoute,
+  ProposalTokenIndexRoute: ProposalTokenIndexRoute,
+}
+
+const ProposalTokenRouteWithChildren = ProposalTokenRoute._addFileChildren(
+  ProposalTokenRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
-  ProposalTokenRoute: ProposalTokenRoute,
+  ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
   ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
+  ApiPublicProposalsStatusRoute: ApiPublicProposalsStatusRoute,
   ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,

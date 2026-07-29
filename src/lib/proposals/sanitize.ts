@@ -2,6 +2,7 @@
 // (comments, activity, hashed tokens, audit metadata, internal identifiers).
 
 import type { Database } from "@/integrations/supabase/types";
+import type { PublicBilling, ClientNextStep } from "./client-billing";
 
 type Row = Database["public"]["Tables"]["nsl_proposals"]["Row"];
 
@@ -32,6 +33,9 @@ export interface PublicProposal {
   locked: boolean;
   client_name: string;
   prepared_date: string;
+  contact_email: string | null;
+  billing: PublicBilling;
+  next_step: ClientNextStep | null;
   acceptance?: {
     signer_name: string;
     signer_email: string;
@@ -45,6 +49,7 @@ export function sanitizeProposal(
   row: Row,
   clientName: string,
   acceptance?: PublicProposal["acceptance"],
+  extras?: { billing?: PublicBilling; next_step?: ClientNextStep | null; contact_email?: string | null },
 ): PublicProposal {
   return {
     proposal_number: row.proposal_number,
@@ -73,6 +78,9 @@ export function sanitizeProposal(
     locked: row.locked_at != null,
     client_name: clientName,
     prepared_date: row.created_at,
+    contact_email: extras?.contact_email ?? null,
+    billing: extras?.billing ?? { invoices: [], subscription: null },
+    next_step: extras?.next_step ?? null,
     acceptance: acceptance ?? null,
   };
 }

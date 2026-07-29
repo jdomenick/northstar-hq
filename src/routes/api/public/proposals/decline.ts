@@ -41,9 +41,8 @@ export const Route = createFileRoute("/api/public/proposals/decline")({
           });
           return Response.json({ ok: true });
         } catch (e) {
-          const msg = e instanceof Error ? e.message : "error";
-          const status = ["not_found", "expired", "not_available"].includes(msg) ? 404 : 500;
-          return new Response(msg, { status });
+          console.error("[proposals/decline]", e);
+          return new Response("unavailable", { status: 404 });
         }
       },
     },

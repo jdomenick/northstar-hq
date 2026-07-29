@@ -30,16 +30,16 @@ export const Route = createFileRoute("/api/public/proposals/accept")({
             _user_agent: ua,
           });
           if (error) {
-            const msg = error.message ?? "accept_failed";
-            const status = /not_found|expired|not_available|invalid/i.test(msg) ? 404 : 400;
-            return new Response(msg, { status });
+            console.error("[proposals/accept]", error);
+            return new Response("accept_failed", { status: 400 });
           }
           const row = Array.isArray(data) ? data[0] : data;
           if (!row?.proposal_id) return new Response("accept_failed", { status: 500 });
           const payload = await buildPublicPayload(supabaseAdmin, row.proposal_id);
           return Response.json({ ...payload, idempotent: row.idempotent });
         } catch (e) {
-          return new Response(e instanceof Error ? e.message : "error", { status: 500 });
+          console.error("[proposals/accept]", e);
+          return new Response("accept_failed", { status: 500 });
         }
       },
     },
