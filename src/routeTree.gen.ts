@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as ClientProfileRouteImport } from './routes/client.profile'
+import { Route as ClientOnboardingRouteImport } from './routes/client.onboarding'
 import { Route as ClientLoginRouteImport } from './routes/client.login'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
@@ -118,6 +119,11 @@ const ProposalTokenRoute = ProposalTokenRouteImport.update({
 const ClientProfileRoute = ClientProfileRouteImport.update({
   id: '/client/profile',
   path: '/client/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientOnboardingRoute = ClientOnboardingRouteImport.update({
+  id: '/client/onboarding',
+  path: '/client/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientLoginRoute = ClientLoginRouteImport.update({
@@ -529,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
@@ -606,6 +613,7 @@ export interface FileRoutesByTo {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/client': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
@@ -684,6 +692,7 @@ export interface FileRoutesById {
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
@@ -763,6 +772,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/proposal/$token'
     | '/client/'
@@ -840,6 +850,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/client'
     | '/labs/accountability'
@@ -917,6 +928,7 @@ export interface FileRouteTypes {
     | '/auth/forgot'
     | '/auth/reset'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/proposal/$token'
     | '/client/'
@@ -982,6 +994,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientLoginRoute: typeof ClientLoginRoute
+  ClientOnboardingRoute: typeof ClientOnboardingRoute
   ClientProfileRoute: typeof ClientProfileRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ClientIndexRoute: typeof ClientIndexRoute
@@ -1051,6 +1064,13 @@ declare module '@tanstack/react-router' {
       path: '/client/profile'
       fullPath: '/client/profile'
       preLoaderRoute: typeof ClientProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/onboarding': {
+      id: '/client/onboarding'
+      path: '/client/onboarding'
+      fullPath: '/client/onboarding'
+      preLoaderRoute: typeof ClientOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/client/login': {
@@ -1803,6 +1823,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientLoginRoute: ClientLoginRoute,
+  ClientOnboardingRoute: ClientOnboardingRoute,
   ClientProfileRoute: ClientProfileRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ClientIndexRoute: ClientIndexRoute,
