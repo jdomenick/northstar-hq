@@ -5007,8 +5007,10 @@ export type Database = {
       projects: {
         Row: {
           blocker_summary: string | null
+          client_id: string | null
           created_at: string
           created_by: string | null
+          created_source: string
           deadline: string | null
           deleted_at: string | null
           desired_outcome: string | null
@@ -5019,8 +5021,11 @@ export type Database = {
           objective: string | null
           organization_id: string
           owner_user_id: string | null
+          pipeline_id: string | null
           priority: Database["public"]["Enums"]["priority_level"]
           progress_percentage: number
+          proposal_id: string | null
+          proposal_version: number | null
           risk_summary: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
@@ -5029,8 +5034,10 @@ export type Database = {
         }
         Insert: {
           blocker_summary?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
+          created_source?: string
           deadline?: string | null
           deleted_at?: string | null
           desired_outcome?: string | null
@@ -5041,8 +5048,11 @@ export type Database = {
           objective?: string | null
           organization_id: string
           owner_user_id?: string | null
+          pipeline_id?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           progress_percentage?: number
+          proposal_id?: string | null
+          proposal_version?: number | null
           risk_summary?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -5051,8 +5061,10 @@ export type Database = {
         }
         Update: {
           blocker_summary?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
+          created_source?: string
           deadline?: string | null
           deleted_at?: string | null
           desired_outcome?: string | null
@@ -5063,8 +5075,11 @@ export type Database = {
           objective?: string | null
           organization_id?: string
           owner_user_id?: string | null
+          pipeline_id?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           progress_percentage?: number
+          proposal_id?: string | null
+          proposal_version?: number | null
           risk_summary?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -5072,6 +5087,13 @@ export type Database = {
           venture_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_goal_id_fkey"
             columns: ["goal_id"]
@@ -5084,6 +5106,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
             referencedColumns: ["id"]
           },
           {
@@ -5208,6 +5244,9 @@ export type Database = {
       }
       revenue_clients: {
         Row: {
+          activated_at: string | null
+          activation_project_id: string | null
+          activation_proposal_id: string | null
           churned_at: string | null
           created_at: string
           created_by: string | null
@@ -5222,6 +5261,9 @@ export type Database = {
           venture_id: string | null
         }
         Insert: {
+          activated_at?: string | null
+          activation_project_id?: string | null
+          activation_proposal_id?: string | null
           churned_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -5236,6 +5278,9 @@ export type Database = {
           venture_id?: string | null
         }
         Update: {
+          activated_at?: string | null
+          activation_project_id?: string | null
+          activation_proposal_id?: string | null
           churned_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -5250,6 +5295,20 @@ export type Database = {
           venture_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "revenue_clients_activation_project_id_fkey"
+            columns: ["activation_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_clients_activation_proposal_id_fkey"
+            columns: ["activation_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "revenue_clients_organization_id_fkey"
             columns: ["organization_id"]
@@ -9399,6 +9458,9 @@ export type Database = {
         | "subscription_canceled"
         | "recurring_billing_active"
         | "refund_issued"
+        | "delivery_project_created"
+        | "client_activated"
+        | "delivery_ready_to_start"
       billing_invoice_status:
         | "draft"
         | "open"
@@ -9890,6 +9952,9 @@ export const Constants = {
         "subscription_canceled",
         "recurring_billing_active",
         "refund_issued",
+        "delivery_project_created",
+        "client_activated",
+        "delivery_ready_to_start",
       ],
       billing_invoice_status: [
         "draft",
