@@ -57,6 +57,7 @@ import { Route as ApiPublicProposalsStatusRouteImport } from './routes/api/publi
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
 import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
+import { Route as ApiPublicClientInvitationRouteImport } from './routes/api/public/client/invitation'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
@@ -340,6 +341,12 @@ const ApiPublicProposalsAcceptRoute =
     path: '/api/public/proposals/accept',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicClientInvitationRoute =
+  ApiPublicClientInvitationRouteImport.update({
+    id: '/api/public/client/invitation',
+    path: '/api/public/client/invitation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
   id: '/api/public/automation/tick',
   path: '/api/public/automation/tick',
@@ -536,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -607,6 +615,7 @@ export interface FileRoutesByTo {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -681,6 +690,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -755,6 +765,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -826,6 +837,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -899,6 +911,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -923,6 +936,7 @@ export interface RootRouteChildren {
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
+  ApiPublicClientInvitationRoute: typeof ApiPublicClientInvitationRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
   ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
@@ -1272,6 +1286,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/proposals/accept'
       fullPath: '/api/public/proposals/accept'
       preLoaderRoute: typeof ApiPublicProposalsAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/invitation': {
+      id: '/api/public/client/invitation'
+      path: '/api/public/client/invitation'
+      fullPath: '/api/public/client/invitation'
+      preLoaderRoute: typeof ApiPublicClientInvitationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/automation/tick': {
@@ -1704,6 +1725,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
+  ApiPublicClientInvitationRoute: ApiPublicClientInvitationRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
   ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,
