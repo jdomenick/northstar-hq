@@ -1557,6 +1557,202 @@ export type Database = {
           },
         ]
       }
+      client_company_profiles: {
+        Row: {
+          address_line1: string
+          address_line2: string
+          billing_contact_email: string
+          billing_contact_name: string
+          billing_contact_phone: string
+          business_hours: string
+          city: string
+          client_id: string
+          country: string
+          created_at: string
+          id: string
+          legal_business_name: string
+          operating_name: string
+          organization_id: string
+          postal_code: string
+          preferred_communication_method: string
+          primary_contact_email: string
+          primary_contact_name: string
+          primary_contact_phone: string
+          primary_email: string
+          primary_phone: string
+          region: string
+          service_area: string
+          updated_at: string
+          updated_by: string | null
+          website_url: string
+        }
+        Insert: {
+          address_line1?: string
+          address_line2?: string
+          billing_contact_email?: string
+          billing_contact_name?: string
+          billing_contact_phone?: string
+          business_hours?: string
+          city?: string
+          client_id: string
+          country?: string
+          created_at?: string
+          id?: string
+          legal_business_name?: string
+          operating_name?: string
+          organization_id: string
+          postal_code?: string
+          preferred_communication_method?: string
+          primary_contact_email?: string
+          primary_contact_name?: string
+          primary_contact_phone?: string
+          primary_email?: string
+          primary_phone?: string
+          region?: string
+          service_area?: string
+          updated_at?: string
+          updated_by?: string | null
+          website_url?: string
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string
+          billing_contact_email?: string
+          billing_contact_name?: string
+          billing_contact_phone?: string
+          business_hours?: string
+          city?: string
+          client_id?: string
+          country?: string
+          created_at?: string
+          id?: string
+          legal_business_name?: string
+          operating_name?: string
+          organization_id?: string
+          postal_code?: string
+          preferred_communication_method?: string
+          primary_contact_email?: string
+          primary_contact_name?: string
+          primary_contact_phone?: string
+          primary_email?: string
+          primary_phone?: string
+          region?: string
+          service_area?: string
+          updated_at?: string
+          updated_by?: string | null
+          website_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_company_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_company_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          client_id: string
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          instructions: string
+          is_required: boolean
+          onboarding_item_id: string | null
+          organization_id: string
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          revision_note: string
+          status: Database["public"]["Enums"]["client_document_status"]
+          storage_path: string | null
+          title: string
+          updated_at: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+          visibility: Database["public"]["Enums"]["client_document_visibility"]
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          instructions?: string
+          is_required?: boolean
+          onboarding_item_id?: string | null
+          organization_id: string
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revision_note?: string
+          status?: Database["public"]["Enums"]["client_document_status"]
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          visibility?: Database["public"]["Enums"]["client_document_visibility"]
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          instructions?: string
+          is_required?: boolean
+          onboarding_item_id?: string | null
+          organization_id?: string
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revision_note?: string
+          status?: Database["public"]["Enums"]["client_document_status"]
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          visibility?: Database["public"]["Enums"]["client_document_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_onboarding_item_id_fkey"
+            columns: ["onboarding_item_id"]
+            isOneToOne: false
+            referencedRelation: "client_onboarding_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invitations: {
         Row: {
           accepted_account_id: string | null
@@ -1629,6 +1825,186 @@ export type Database = {
           },
           {
             foreignKeyName: "client_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_onboarding_items: {
+        Row: {
+          blocked_reason: string
+          client_id: string
+          client_response: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          id: string
+          instructions: string
+          is_required: boolean
+          item_type: Database["public"]["Enums"]["client_onboarding_item_type"]
+          organization_id: string
+          owner: Database["public"]["Enums"]["client_onboarding_owner"]
+          requires_document: boolean
+          requires_review: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          revision_note: string
+          sort_order: number
+          status: Database["public"]["Enums"]["client_onboarding_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          blocked_reason?: string
+          client_id: string
+          client_response?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          instructions?: string
+          is_required?: boolean
+          item_type?: Database["public"]["Enums"]["client_onboarding_item_type"]
+          organization_id: string
+          owner?: Database["public"]["Enums"]["client_onboarding_owner"]
+          requires_document?: boolean
+          requires_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revision_note?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["client_onboarding_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          blocked_reason?: string
+          client_id?: string
+          client_response?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          instructions?: string
+          is_required?: boolean
+          item_type?: Database["public"]["Enums"]["client_onboarding_item_type"]
+          organization_id?: string
+          owner?: Database["public"]["Enums"]["client_onboarding_owner"]
+          requires_document?: boolean
+          requires_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revision_note?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["client_onboarding_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_onboarding_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_onboarding_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_workspace_events: {
+        Row: {
+          body: string
+          client_id: string
+          created_at: string
+          document_id: string | null
+          event_type: string
+          id: string
+          invoice_id: string | null
+          is_notice: boolean
+          occurred_at: string
+          onboarding_item_id: string | null
+          organization_id: string
+          title: string
+        }
+        Insert: {
+          body?: string
+          client_id: string
+          created_at?: string
+          document_id?: string | null
+          event_type: string
+          id?: string
+          invoice_id?: string | null
+          is_notice?: boolean
+          occurred_at?: string
+          onboarding_item_id?: string | null
+          organization_id: string
+          title: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          created_at?: string
+          document_id?: string | null
+          event_type?: string
+          id?: string
+          invoice_id?: string | null
+          is_notice?: boolean
+          occurred_at?: string
+          onboarding_item_id?: string | null
+          organization_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_workspace_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workspace_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workspace_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workspace_events_onboarding_item_id_fkey"
+            columns: ["onboarding_item_id"]
+            isOneToOne: false
+            referencedRelation: "client_onboarding_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workspace_events_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -9716,6 +10092,36 @@ export type Database = {
       cashflow_direction: "inflow" | "outflow"
       client_account_role: "client_admin" | "client_user"
       client_account_status: "active" | "deactivated"
+      client_document_status:
+        | "requested"
+        | "uploaded"
+        | "needs_revision"
+        | "approved"
+        | "archived"
+      client_document_visibility:
+        | "internal_only"
+        | "client_visible"
+        | "client_uploaded"
+      client_onboarding_item_type:
+        | "company_information"
+        | "contact_information"
+        | "service_area"
+        | "business_hours"
+        | "brand_assets"
+        | "system_access"
+        | "existing_software"
+        | "required_document"
+        | "approval"
+        | "other"
+      client_onboarding_owner: "client" | "northstar"
+      client_onboarding_status:
+        | "not_started"
+        | "in_progress"
+        | "submitted"
+        | "needs_revision"
+        | "approved"
+        | "blocked"
+        | "not_applicable"
       client_status: "active" | "paused" | "churned" | "onboarding"
       commitment_status:
         | "open"
@@ -10218,6 +10624,40 @@ export const Constants = {
       cashflow_direction: ["inflow", "outflow"],
       client_account_role: ["client_admin", "client_user"],
       client_account_status: ["active", "deactivated"],
+      client_document_status: [
+        "requested",
+        "uploaded",
+        "needs_revision",
+        "approved",
+        "archived",
+      ],
+      client_document_visibility: [
+        "internal_only",
+        "client_visible",
+        "client_uploaded",
+      ],
+      client_onboarding_item_type: [
+        "company_information",
+        "contact_information",
+        "service_area",
+        "business_hours",
+        "brand_assets",
+        "system_access",
+        "existing_software",
+        "required_document",
+        "approval",
+        "other",
+      ],
+      client_onboarding_owner: ["client", "northstar"],
+      client_onboarding_status: [
+        "not_started",
+        "in_progress",
+        "submitted",
+        "needs_revision",
+        "approved",
+        "blocked",
+        "not_applicable",
+      ],
       client_status: ["active", "paused", "churned", "onboarding"],
       commitment_status: [
         "open",
