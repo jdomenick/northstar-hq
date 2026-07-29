@@ -16,6 +16,21 @@ export type BillingInvoiceRow = Database["public"]["Tables"]["billing_invoices"]
 
 type InvoiceType = "setup_deposit" | "setup_final";
 
+/** Latest signer email for a proposal, if any. */
+async function latestSignerEmail(
+  supabase: SupabaseClient<Database>,
+  proposalId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("nsl_proposal_signatures")
+    .select("signer_email, signed_at")
+    .eq("proposal_id", proposalId)
+    .order("signed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.signer_email ?? null;
+}
+
 /** Load the proposal and verify it is a valid billing source. */
 async function loadAcceptedLockedProposal(
   supabase: SupabaseClient<Database>,
@@ -88,10 +103,35 @@ async function createFinalizedInvoice(
     args.type,
   );
 
-  // 1. Invoice item.
+  // Order matters on newer Stripe API versions: create the empty draft
+  // invoice first, then attach the line item to it explicitly, then
+  // finalize. Relying on pending-item auto-attach produces $0 invoices
+  // on API version 2026-06-24 and later.
+  const draft = await stripe.invoices.create(
+    {
+      customer: args.stripe_customer_id,
+      collection_method: "send_invoice",
+      days_until_due: 14,
+      auto_advance: false,
+      description: args.description,
+      pending_invoice_items_behavior: "exclude",
+      metadata: {
+        organization_id: args.organization_id,
+        client_id: args.client_id,
+        proposal_id: args.proposal_id,
+        proposal_version: String(args.proposal_version),
+        proposal_number: args.proposal_number,
+        invoice_type: args.type,
+      },
+    },
+    { idempotencyKey: `${baseKey}:invoice` },
+  );
+  if (!draft.id) throw new Error("Stripe did not return an invoice id");
+
   await stripe.invoiceItems.create(
     {
       customer: args.stripe_customer_id,
+      invoice: draft.id,
       amount: args.amount_cents,
       currency: args.currency.toLowerCase(),
       description: args.description,
@@ -104,31 +144,15 @@ async function createFinalizedInvoice(
     { idempotencyKey: `${baseKey}:item` },
   );
 
-  // 2. Draft invoice (send_invoice collection).
-  const draft = await stripe.invoices.create(
-    {
-      customer: args.stripe_customer_id,
-      collection_method: "send_invoice",
-      days_until_due: 14,
-      auto_advance: false,
-      description: args.description,
-      metadata: {
-        organization_id: args.organization_id,
-        client_id: args.client_id,
-        proposal_id: args.proposal_id,
-        proposal_version: String(args.proposal_version),
-        proposal_number: args.proposal_number,
-        invoice_type: args.type,
-      },
-    },
-    { idempotencyKey: `${baseKey}:invoice` },
-  );
-
-  // 3. Finalize so hosted URL/PDF are guaranteed.
-  if (!draft.id) throw new Error("Stripe did not return an invoice id");
   const finalized = await stripe.invoices.finalizeInvoice(draft.id, undefined, {
     idempotencyKey: `${baseKey}:finalize`,
   });
+
+  if (finalized.total !== args.amount_cents) {
+    throw new Error(
+      `Stripe invoice total mismatch (expected ${args.amount_cents}, got ${finalized.total})`,
+    );
+  }
 
   if (!finalized.hosted_invoice_url || !finalized.invoice_pdf) {
     throw new Error("Stripe finalized invoice without a hosted URL");
@@ -219,6 +243,7 @@ export async function startBillingFromProposal(
     organization_id: input.organization_id,
     client_id: proposal.client_id,
     actor_id: input.actor_id ?? null,
+    email: await latestSignerEmail(supabase, proposal.id),
   });
 
   return createFinalizedInvoice(supabase, {
@@ -257,6 +282,7 @@ export async function generateFinalSetupInvoice(
     organization_id: input.organization_id,
     client_id: proposal.client_id,
     actor_id: input.actor_id ?? null,
+    email: await latestSignerEmail(supabase, proposal.id),
   });
 
   return createFinalizedInvoice(supabase, {

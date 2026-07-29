@@ -57,6 +57,16 @@ export async function activateRecurringBilling(
     organization_id: proposal.organization_id,
     client_id: proposal.client_id,
     actor_id: input.actor_id ?? null,
+    email: await (async () => {
+      const { data } = await supabase
+        .from("nsl_proposal_signatures")
+        .select("signer_email, signed_at")
+        .eq("proposal_id", proposal.id)
+        .order("signed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.signer_email ?? null;
+    })(),
   });
 
   const stripe = getStripe();

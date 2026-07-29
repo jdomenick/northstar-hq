@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Stripe } from "stripe";
 import type { Database } from "@/integrations/supabase/types";
 import { recordBillingEvent } from "./events.server";
+import { getStripe } from "./stripe.server";
 
 export type WebhookResult =
   | { kind: "already_processed" }
@@ -130,10 +131,24 @@ async function syncInvoice(
     .maybeSingle();
   if (!local) return; // unknown invoice — not ours
 
-  const status = toInvoiceStatus(invoice.status);
-  const paidCents = Number(invoice.amount_paid ?? 0);
-  const hosted = invoice.hosted_invoice_url ?? local.hosted_invoice_url;
-  const pdf = invoice.invoice_pdf ?? local.invoice_pdf_url;
+  // Event snapshots can lag or omit amount_paid/hosted URLs; re-fetch from
+  // Stripe when the event says "paid" or the snapshot is incomplete so the
+  // ledger reflects real state rather than an in-flight partial payload.
+  let source: Stripe.Invoice = invoice;
+  const snapshotAmount = Number(invoice.amount_paid ?? 0);
+  const needsRefresh =
+    invoice.status === "paid" && (snapshotAmount <= 0 || !invoice.hosted_invoice_url);
+  if (needsRefresh) {
+    try {
+      source = await getStripe().invoices.retrieve(invoice.id);
+    } catch {
+      // Fall back to snapshot; will still mark paid but amount may be 0.
+    }
+  }
+  const status = toInvoiceStatus(source.status);
+  const paidCents = Number(source.amount_paid ?? 0);
+  const hosted = source.hosted_invoice_url ?? local.hosted_invoice_url;
+  const pdf = source.invoice_pdf ?? local.invoice_pdf_url;
 
   await supabase
     .from("billing_invoices")
@@ -150,13 +165,13 @@ async function syncInvoice(
     .eq("id", local.id);
 
   // On paid: create payment row + emit readiness events.
-  if (invoice.status === "paid" && paidCents > 0) {
+  if (source.status === "paid" && paidCents > 0) {
     const chargeId: string | null = null;
     const piId =
-      typeof (invoice as unknown as { payment_intent?: string | { id: string } })
+      typeof (source as unknown as { payment_intent?: string | { id: string } })
         .payment_intent === "string"
-        ? ((invoice as unknown as { payment_intent: string }).payment_intent)
-        : ((invoice as unknown as { payment_intent?: { id: string } }).payment_intent?.id ??
+        ? ((source as unknown as { payment_intent: string }).payment_intent)
+        : ((source as unknown as { payment_intent?: { id: string } }).payment_intent?.id ??
           null);
 
     // Upsert-guard: check if a payment for this invoice/charge already exists.
@@ -218,7 +233,7 @@ async function syncInvoice(
     }
   }
 
-  if (invoice.status === "open" && invoice.attempted && invoice.next_payment_attempt === null) {
+  if (source.status === "open" && source.attempted && source.next_payment_attempt === null) {
     await recordBillingEvent(supabase, {
       organization_id: local.organization_id,
       client_id: local.client_id,

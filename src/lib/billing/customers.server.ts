@@ -9,7 +9,12 @@ export type BillingCustomerRow = Database["public"]["Tables"]["billing_customers
 
 export async function ensureBillingCustomer(
   supabase: SupabaseClient<Database>,
-  input: { organization_id: string; client_id: string; actor_id?: string | null },
+  input: {
+    organization_id: string;
+    client_id: string;
+    actor_id?: string | null;
+    email?: string | null;
+  },
 ): Promise<BillingCustomerRow> {
   // 1. Return existing row if present.
   const existing = await supabase
@@ -18,7 +23,26 @@ export async function ensureBillingCustomer(
     .eq("organization_id", input.organization_id)
     .eq("client_id", input.client_id)
     .maybeSingle();
-  if (existing.data) return existing.data;
+  if (existing.data) {
+    // Back-fill email on the Stripe customer + local row if we just learned it.
+    if (input.email && !existing.data.email) {
+      try {
+        await getStripe().customers.update(existing.data.stripe_customer_id, {
+          email: input.email,
+        });
+      } catch (err) {
+        throw new Error(`Failed to update Stripe customer email: ${stripeErrorMessage(err)}`);
+      }
+      const patched = await supabase
+        .from("billing_customers")
+        .update({ email: input.email })
+        .eq("id", existing.data.id)
+        .select("*")
+        .maybeSingle();
+      if (patched.data) return patched.data;
+    }
+    return existing.data;
+  }
 
   // 2. Load client for email/name metadata.
   const clientRes = await supabase
@@ -44,6 +68,7 @@ export async function ensureBillingCustomer(
     stripeCustomer = await stripe.customers.create(
       {
         name: client.name,
+        ...(input.email ? { email: input.email } : {}),
         metadata: {
           organization_id: input.organization_id,
           client_id: input.client_id,
@@ -63,7 +88,7 @@ export async function ensureBillingCustomer(
       organization_id: input.organization_id,
       client_id: input.client_id,
       stripe_customer_id: stripeCustomer.id,
-      email: null,
+      email: input.email ?? null,
       name: client.name,
       created_by: input.actor_id ?? null,
     })
