@@ -1,8 +1,11 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/lib/auth-context";
 import { useOrg } from "@/lib/org-context";
+import { getMyClientContextFn } from "@/lib/client-identity/identity.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -14,6 +17,17 @@ function AuthenticatedLayout() {
   const { loading: orgLoading, memberships } = useOrg();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const getClientContext = useServerFn(getMyClientContextFn);
+
+  // A signed-in client account has no operator membership. Send it to the
+  // client workspace instead of the operator onboarding flow.
+  const noMemberships = !loading && Boolean(user) && !orgLoading && memberships.length === 0;
+  const { data: clientContext } = useQuery({
+    queryKey: ["client-context", user?.id],
+    queryFn: () => getClientContext(),
+    enabled: noMemberships,
+    retry: false,
+  });
 
   useEffect(() => {
     if (loading) return;
@@ -21,10 +35,14 @@ function AuthenticatedLayout() {
       navigate({ to: "/auth", replace: true });
       return;
     }
+    if (clientContext) {
+      navigate({ to: "/client", replace: true });
+      return;
+    }
     if (!orgLoading && memberships.length === 0 && pathname !== "/onboarding") {
       navigate({ to: "/onboarding", replace: true });
     }
-  }, [loading, user, orgLoading, memberships, pathname, navigate]);
+  }, [loading, user, orgLoading, memberships, pathname, navigate, clientContext]);
 
   if (loading || !user) {
     return <FullscreenLoader label="Preparing NorthStar Labs" />;

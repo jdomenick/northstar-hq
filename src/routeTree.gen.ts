@@ -13,7 +13,10 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
+import { Route as ClientProfileRouteImport } from './routes/client.profile'
+import { Route as ClientLoginRouteImport } from './routes/client.login'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -33,6 +36,7 @@ import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
+import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsFounderActivationRouteImport } from './routes/_authenticated/settings.founder-activation'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
@@ -57,6 +61,7 @@ import { Route as ApiPublicProposalsStatusRouteImport } from './routes/api/publi
 import { Route as ApiPublicProposalsPdfRouteImport } from './routes/api/public/proposals/pdf'
 import { Route as ApiPublicProposalsDeclineRouteImport } from './routes/api/public/proposals/decline'
 import { Route as ApiPublicProposalsAcceptRouteImport } from './routes/api/public/proposals/accept'
+import { Route as ApiPublicClientInvitationRouteImport } from './routes/api/public/client/invitation'
 import { Route as ApiPublicAutomationTickRouteImport } from './routes/api/public/automation/tick'
 import { Route as ApiPublicAutomationSchedulerRouteImport } from './routes/api/public/automation/scheduler'
 import { Route as AuthenticatedSettingsIntegrationsNewRouteImport } from './routes/_authenticated/settings.integrations.new'
@@ -100,9 +105,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientIndexRoute = ClientIndexRouteImport.update({
+  id: '/client/',
+  path: '/client/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProposalTokenRoute = ProposalTokenRouteImport.update({
   id: '/proposal/$token',
   path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientProfileRoute = ClientProfileRouteImport.update({
+  id: '/client/profile',
+  path: '/client/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientLoginRoute = ClientLoginRouteImport.update({
+  id: '/client/login',
+  path: '/client/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -203,6 +223,11 @@ const ProposalTokenPaymentReturnRoute =
     path: '/payment-return',
     getParentRoute: () => ProposalTokenRoute,
   } as any)
+const ClientInviteTokenRoute = ClientInviteTokenRouteImport.update({
+  id: '/client/invite/$token',
+  path: '/client/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -338,6 +363,12 @@ const ApiPublicProposalsAcceptRoute =
   ApiPublicProposalsAcceptRouteImport.update({
     id: '/api/public/proposals/accept',
     path: '/api/public/proposals/accept',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicClientInvitationRoute =
+  ApiPublicClientInvitationRouteImport.update({
+    id: '/api/public/client/invitation',
+    path: '/api/public/client/invitation',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicAutomationTickRoute = ApiPublicAutomationTickRouteImport.update({
@@ -497,7 +528,10 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
+  '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
+  '/client/': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -515,6 +549,7 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
@@ -536,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -569,6 +605,9 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
+  '/client/profile': typeof ClientProfileRoute
+  '/client': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -586,6 +625,7 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
@@ -607,6 +647,7 @@ export interface FileRoutesByTo {
   '/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -642,7 +683,10 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
+  '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
+  '/client/': typeof ClientIndexRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -660,6 +704,7 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
@@ -681,6 +726,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations/new': typeof AuthenticatedSettingsIntegrationsNewRoute
   '/api/public/automation/scheduler': typeof ApiPublicAutomationSchedulerRoute
   '/api/public/automation/tick': typeof ApiPublicAutomationTickRoute
+  '/api/public/client/invitation': typeof ApiPublicClientInvitationRoute
   '/api/public/proposals/accept': typeof ApiPublicProposalsAcceptRoute
   '/api/public/proposals/decline': typeof ApiPublicProposalsDeclineRoute
   '/api/public/proposals/pdf': typeof ApiPublicProposalsPdfRoute
@@ -716,7 +762,10 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
+    | '/client/profile'
     | '/proposal/$token'
+    | '/client/'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -734,6 +783,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs/'
     | '/sam/'
@@ -755,6 +805,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -788,6 +839,9 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
+    | '/client/profile'
+    | '/client'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -805,6 +859,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs'
     | '/sam'
@@ -826,6 +881,7 @@ export interface FileRouteTypes {
     | '/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -860,7 +916,10 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
+    | '/client/profile'
     | '/proposal/$token'
+    | '/client/'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
@@ -878,6 +937,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/founder-activation'
     | '/_authenticated/settings/integrations'
+    | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
@@ -899,6 +959,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations/new'
     | '/api/public/automation/scheduler'
     | '/api/public/automation/tick'
+    | '/api/public/client/invitation'
     | '/api/public/proposals/accept'
     | '/api/public/proposals/decline'
     | '/api/public/proposals/pdf'
@@ -920,9 +981,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ClientLoginRoute: typeof ClientLoginRoute
+  ClientProfileRoute: typeof ClientProfileRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
+  ClientIndexRoute: typeof ClientIndexRoute
+  ClientInviteTokenRoute: typeof ClientInviteTokenRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
+  ApiPublicClientInvitationRoute: typeof ApiPublicClientInvitationRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
   ApiPublicProposalsDeclineRoute: typeof ApiPublicProposalsDeclineRoute
   ApiPublicProposalsPdfRoute: typeof ApiPublicProposalsPdfRoute
@@ -966,11 +1032,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client/': {
+      id: '/client/'
+      path: '/client'
+      fullPath: '/client/'
+      preLoaderRoute: typeof ClientIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proposal/$token': {
       id: '/proposal/$token'
       path: '/proposal/$token'
       fullPath: '/proposal/$token'
       preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/profile': {
+      id: '/client/profile'
+      path: '/client/profile'
+      fullPath: '/client/profile'
+      preLoaderRoute: typeof ClientProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/login': {
+      id: '/client/login'
+      path: '/client/login'
+      fullPath: '/client/login'
+      preLoaderRoute: typeof ClientLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1105,6 +1192,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/proposal/$token/payment-return'
       preLoaderRoute: typeof ProposalTokenPaymentReturnRouteImport
       parentRoute: typeof ProposalTokenRoute
+    }
+    '/client/invite/$token': {
+      id: '/client/invite/$token'
+      path: '/client/invite/$token'
+      fullPath: '/client/invite/$token'
+      preLoaderRoute: typeof ClientInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/integrations': {
       id: '/_authenticated/settings/integrations'
@@ -1272,6 +1366,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/proposals/accept'
       fullPath: '/api/public/proposals/accept'
       preLoaderRoute: typeof ApiPublicProposalsAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/invitation': {
+      id: '/api/public/client/invitation'
+      path: '/api/public/client/invitation'
+      fullPath: '/api/public/client/invitation'
+      preLoaderRoute: typeof ApiPublicClientInvitationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/automation/tick': {
@@ -1701,9 +1802,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ClientLoginRoute: ClientLoginRoute,
+  ClientProfileRoute: ClientProfileRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
+  ClientIndexRoute: ClientIndexRoute,
+  ClientInviteTokenRoute: ClientInviteTokenRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
+  ApiPublicClientInvitationRoute: ApiPublicClientInvitationRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
   ApiPublicProposalsDeclineRoute: ApiPublicProposalsDeclineRoute,
   ApiPublicProposalsPdfRoute: ApiPublicProposalsPdfRoute,

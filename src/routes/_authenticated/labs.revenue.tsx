@@ -24,6 +24,7 @@ import {
 import {
   useAdvanceStage, useDealTimeline, useDealTasks,
 } from "@/lib/mission-control/revenue-machine";
+import { ClientUsersPanel } from "@/components/client-users-panel";
 
 export const Route = createFileRoute("/_authenticated/labs/revenue")({
   component: RevenuePage,
@@ -282,7 +283,10 @@ function ClientList({ orgId, clients }: { orgId: string | null; clients: ReturnT
                 {c.notes && <div className="mt-0.5 text-[11.5px] text-foreground/60 truncate">{c.notes}</div>}
               </div>
               <Badge variant="outline" className="text-[10px] uppercase">{c.status}</Badge>
-              <div className="font-display text-[16px] tabular-nums">{formatMoney(c.mrr_cents ?? 0, { compact: true })}<span className="text-[10px] text-foreground/50">/mo</span></div>
+              <div className="flex items-center gap-3">
+                <div className="font-display text-[16px] tabular-nums">{formatMoney(c.mrr_cents ?? 0, { compact: true })}<span className="text-[10px] text-foreground/50">/mo</span></div>
+                {orgId && <ClientAccessDialog orgId={orgId} clientId={c.id} clientName={c.name} />}
+              </div>
             </li>
           ))}
         </ul>
@@ -292,6 +296,29 @@ function ClientList({ orgId, clients }: { orgId: string | null; clients: ReturnT
 }
 
 function ProposalList({ orgId, proposals }: { orgId: string | null; proposals: ReturnType<typeof useProposals>["data"] extends infer T ? NonNullable<T> : never }) {
+  return <ProposalListInner orgId={orgId} proposals={proposals} />;
+}
+
+function ClientAccessDialog({ orgId, clientId, clientName }: { orgId: string; clientId: string; clientName: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="text-[11px] uppercase tracking-[0.14em]">Access</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Client access: {clientName}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[70vh] overflow-y-auto pr-1">
+          {open && <ClientUsersPanel organizationId={orgId} clientId={clientId} />}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ProposalListInner({ orgId, proposals }: { orgId: string | null; proposals: ReturnType<typeof useProposals>["data"] extends infer T ? NonNullable<T> : never }) {
   const create = useCreateProposal(orgId);
   const [open, setOpen] = useState(false);
   return (

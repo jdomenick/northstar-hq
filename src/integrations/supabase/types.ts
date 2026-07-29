@@ -1420,6 +1420,222 @@ export type Database = {
         }
         Relationships: []
       }
+      client_accounts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          invited_by: string | null
+          last_login_at: string | null
+          last_name: string
+          organization_id: string
+          phone: string | null
+          preferred_contact_method: string
+          role: Database["public"]["Enums"]["client_account_role"]
+          status: Database["public"]["Enums"]["client_account_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email: string
+          first_name?: string
+          id?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          last_name?: string
+          organization_id: string
+          phone?: string | null
+          preferred_contact_method?: string
+          role?: Database["public"]["Enums"]["client_account_role"]
+          status?: Database["public"]["Enums"]["client_account_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          last_name?: string
+          organization_id?: string
+          phone?: string | null
+          preferred_contact_method?: string
+          role?: Database["public"]["Enums"]["client_account_role"]
+          status?: Database["public"]["Enums"]["client_account_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_audit_events: {
+        Row: {
+          actor_id: string | null
+          actor_type: string
+          client_account_id: string | null
+          client_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          invitation_id: string | null
+          metadata: Json
+          organization_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_type?: string
+          client_account_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          organization_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_type?: string
+          client_account_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_audit_events_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: false
+            referencedRelation: "client_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_audit_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_audit_events_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "client_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invitations: {
+        Row: {
+          accepted_account_id: string | null
+          accepted_at: string | null
+          client_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          invited_by: string | null
+          last_name: string
+          organization_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          role: Database["public"]["Enums"]["client_account_role"]
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_account_id?: string | null
+          accepted_at?: string | null
+          client_id: string
+          created_at?: string
+          email: string
+          expires_at: string
+          first_name?: string
+          id?: string
+          invited_by?: string | null
+          last_name?: string
+          organization_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: Database["public"]["Enums"]["client_account_role"]
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_account_id?: string | null
+          accepted_at?: string | null
+          client_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          first_name?: string
+          id?: string
+          invited_by?: string | null
+          last_name?: string
+          organization_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: Database["public"]["Enums"]["client_account_role"]
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invitations_accepted_account_id_fkey"
+            columns: ["accepted_account_id"]
+            isOneToOne: false
+            referencedRelation: "client_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commitments: {
         Row: {
           completed_at: string | null
@@ -9410,6 +9626,8 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      client_account_client_id: { Args: { _user: string }; Returns: string }
+      client_account_org_id: { Args: { _user: string }; Returns: string }
       has_org_role: {
         Args: {
           _min: Database["public"]["Enums"]["org_role"]
@@ -9418,6 +9636,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_client_account: { Args: { _user: string }; Returns: boolean }
       is_org_member: { Args: { _org: string; _user: string }; Returns: boolean }
       is_org_owner: { Args: { _org: string; _user: string }; Returns: boolean }
       nsl_proposal_accept: {
@@ -9495,6 +9714,8 @@ export type Database = {
         | "processed"
         | "failed"
       cashflow_direction: "inflow" | "outflow"
+      client_account_role: "client_admin" | "client_user"
+      client_account_status: "active" | "deactivated"
       client_status: "active" | "paused" | "churned" | "onboarding"
       commitment_status:
         | "open"
@@ -9995,6 +10216,8 @@ export const Constants = {
         "failed",
       ],
       cashflow_direction: ["inflow", "outflow"],
+      client_account_role: ["client_admin", "client_user"],
+      client_account_status: ["active", "deactivated"],
       client_status: ["active", "paused", "churned", "onboarding"],
       commitment_status: [
         "open",
