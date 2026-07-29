@@ -147,5 +147,11 @@ export const getBillableProposalsFn = createServerFn({ method: "GET" })
       .eq("status", "accepted")
       .not("locked_at", "is", null);
     if (error) throw error;
-    return proposals ?? [];
+    const rows = proposals ?? [];
+    const clientIds = Array.from(new Set(rows.map((r) => r.client_id).filter(Boolean)));
+    const clients = clientIds.length
+      ? await context.supabase.from("revenue_clients").select("id, name").in("id", clientIds)
+      : { data: [] as Array<{ id: string; name: string }> };
+    const names = new Map((clients.data ?? []).map((c) => [c.id, c.name] as const));
+    return rows.map((r) => ({ ...r, client_name: names.get(r.client_id) ?? "Unknown client" }));
   });

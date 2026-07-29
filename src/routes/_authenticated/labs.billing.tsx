@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CreditCard, ExternalLink, RefreshCw, Repeat, Send, Undo2, Wallet } from "lucide-react";
+import { Copy, CreditCard, ExternalLink, RefreshCw, Repeat, Send, Undo2, Wallet } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { deriveLifecycle } from "@/components/client-lifecycle";
 import {
   getBillingOverviewFn,
   getBillableProposalsFn,
@@ -143,6 +144,21 @@ function BillingPage() {
     return m;
   }, [overview]);
 
+  const subsByProposal = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const s of overview?.subscriptions ?? []) {
+      if (s.proposal_id) m.set(s.proposal_id, s.status);
+    }
+    return m;
+  }, [overview]);
+
+  const copy = (url: string) => {
+    navigator.clipboard?.writeText(url).then(
+      () => toast.success("Payment link copied. Send it to your client."),
+      () => toast.error("Could not copy the link."),
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -178,33 +194,53 @@ function BillingPage() {
 
         {/* Accepted proposals ready to bill */}
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Accepted proposals</h2>
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">Engagements</h2>
           <div className="overflow-hidden rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 text-left">Proposal</th>
+                  <th className="px-4 py-3 text-left">Client</th>
                   <th className="px-4 py-3 text-right">Setup</th>
                   <th className="px-4 py-3 text-right">Monthly</th>
                   <th className="px-4 py-3 text-left">Deposit</th>
-                  <th className="px-4 py-3 text-left">Final</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3 text-left">Balance</th>
+                  <th className="px-4 py-3 text-left">Next step</th>
+                  <th className="px-4 py-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {proposals.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                    No accepted proposals yet.
+                  <tr><td colSpan={7} className="px-4 py-10 text-center">
+                    <div className="text-sm text-muted-foreground">Nothing to bill yet. Billing starts the moment a client signs a proposal.</div>
+                    <Link to="/labs/proposals" className="mt-3 inline-block">
+                      <Button size="sm" variant="outline">Go to proposals</Button>
+                    </Link>
                   </td></tr>
                 ) : proposals.map((p) => {
                   const pair = invoicesByProposal.get(p.id) ?? {};
                   const depositPaid = pair.deposit?.status === "paid";
                   const finalPaid = pair.final?.status === "paid";
+                  const life = deriveLifecycle({
+                    proposalStatus: p.status,
+                    depositStatus: pair.deposit?.status,
+                    finalStatus: pair.final?.status,
+                    subscriptionStatus: subsByProposal.get(p.id),
+                    recurringFeeCents: Number(p.recurring_fee_cents ?? 0),
+                  });
+                  const openInvoice = pair.deposit && pair.deposit.status === "open"
+                    ? pair.deposit
+                    : pair.final && pair.final.status === "open" ? pair.final : null;
                   return (
                     <tr key={p.id} className="hover:bg-muted/30">
                       <td className="px-4 py-3">
-                        <div className="font-medium">{p.title ?? p.proposal_number}</div>
-                        <div className="text-xs text-muted-foreground">{p.proposal_number} · v{p.version}</div>
+                        <div className="font-medium">{p.client_name}</div>
+                        <Link
+                          to="/labs/proposals/$id"
+                          params={{ id: p.id }}
+                          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                        >
+                          {p.proposal_number} · v{p.version}
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">{money(Number(p.setup_fee_cents ?? 0))}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{money(Number(p.recurring_fee_cents ?? 0))}</td>
@@ -218,6 +254,7 @@ function BillingPage() {
                           <Badge variant="outline" className={statusTone(pair.final.status)}>{pair.final.status}</Badge>
                         ) : <span className="text-xs text-muted-foreground">Not generated</span>}
                       </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{life.nextStep}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap justify-end gap-2">
                           {!pair.deposit && (
@@ -225,16 +262,29 @@ function BillingPage() {
                               Start billing
                             </Button>
                           )}
+                          {openInvoice?.hosted_invoice_url && (
+                            <>
+                              <Button size="sm" onClick={() => copy(openInvoice.hosted_invoice_url!)}>
+                                <Copy className="mr-1 h-3 w-3" /> Payment link
+                              </Button>
+                              {openInvoice.collection_method === "send_invoice" && (
+                                <Button size="sm" variant="outline" onClick={() => resendMut.mutate(openInvoice.id)} disabled={resendMut.isPending}>
+                                  <Send className="mr-1 h-3 w-3" /> Resend
+                                </Button>
+                              )}
+                            </>
+                          )}
                           {depositPaid && !pair.final && (
-                            <Button size="sm" variant="outline" onClick={() => finalMut.mutate(p.id)} disabled={finalMut.isPending}>
-                              Generate final
+                            <Button size="sm" onClick={() => finalMut.mutate(p.id)} disabled={finalMut.isPending}>
+                              Generate balance invoice
                             </Button>
                           )}
-                          {finalPaid && Number(p.recurring_fee_cents ?? 0) > 0 && (
-                            <Button size="sm" variant="outline" onClick={() => activateMut.mutate(p.id)} disabled={activateMut.isPending}>
+                          {finalPaid && Number(p.recurring_fee_cents ?? 0) > 0 && !subsByProposal.get(p.id) && (
+                            <Button size="sm" onClick={() => activateMut.mutate(p.id)} disabled={activateMut.isPending}>
                               Activate subscription
                             </Button>
                           )}
+                          {life.complete && <span className="text-xs text-primary">Live</span>}
                         </div>
                       </td>
                     </tr>

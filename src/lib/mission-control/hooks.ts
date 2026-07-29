@@ -295,12 +295,17 @@ export function useCreateClient(orgId: string | null) {
     mutationFn: async (input: Partial<RevenueClient> & { name: string }) => {
       if (!orgId) throw new Error("No active organization");
       const uid = await currentUserId();
-      const { error } = await supabase.from("revenue_clients").insert({
-        organization_id: orgId,
-        created_by: uid,
-        ...input,
-      });
+      const { data, error } = await supabase
+        .from("revenue_clients")
+        .insert({
+          organization_id: orgId,
+          created_by: uid,
+          ...input,
+        })
+        .select("*")
+        .single();
       if (error) throw error;
+      return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["revenue.clients", orgId] }),
   });

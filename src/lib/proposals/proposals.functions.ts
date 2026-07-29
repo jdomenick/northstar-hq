@@ -394,6 +394,45 @@ export const addComment = createServerFn({ method: "POST" })
 
 /* ------------------------- billing handoff (truth) ------------------------- */
 
+/**
+ * Re-issue the client-facing secure link. The raw token is only ever returned
+ * once (at send time) because we store a hash, so recovering a lost link means
+ * minting a new token. The previous link stops working immediately.
+ */
+export const reissueProposalLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { proposalId: string; expiresInDays?: number }) =>
+    z.object({ proposalId: z.string().uuid(), expiresInDays: z.number().int().min(1).max(90).optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertOrgRole, logProposalActivity } = await import("./proposals.server");
+    const { generateToken } = await import("./token.server");
+    const { data: p, error } = await context.supabase
+      .from("nsl_proposals").select("*").eq("id", data.proposalId).maybeSingle();
+    if (error) throw error;
+    if (!p) throw new Error("proposal_not_found");
+    await assertOrgRole(context.supabase, context.userId, p.organization_id, "executive");
+    if (!["sent", "viewed"].includes(p.status)) throw new Error("link_only_available_while_awaiting_response");
+
+    const { token, hash } = generateToken();
+    const days = data.expiresInDays ?? 30;
+    const expiresAt = new Date(Date.now() + days * 86_400_000);
+    const { error: uErr } = await context.supabase
+      .from("nsl_proposals")
+      .update({ public_token_hash: hash, public_token_expires_at: expiresAt.toISOString() })
+      .eq("id", p.id);
+    if (uErr) throw uErr;
+
+    await logProposalActivity(context.supabase, {
+      organizationId: p.organization_id,
+      proposalId: p.id,
+      action: "link_reissued",
+      actorId: context.userId,
+      metadata: { expires_at: expiresAt.toISOString() },
+    });
+    return { token, expiresAt: expiresAt.toISOString() };
+  });
+
 export const prepareBillingHandoff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { proposalId: string }) => z.object({ proposalId: z.string().uuid() }).parse(d))
