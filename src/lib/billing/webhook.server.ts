@@ -192,6 +192,7 @@ async function syncInvoice(
         currency: local.currency,
         status: "succeeded" as never,
         paid_at: new Date().toISOString(),
+        livemode: Boolean(source.livemode ?? local.livemode ?? false),
       });
     }
 
