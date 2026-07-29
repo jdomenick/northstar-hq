@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ChevronLeft, Send, CheckCircle2, RotateCcw, Copy, Download, MessageSquare, Archive, Eye } from "lucide-react";
+import { ChevronLeft, Send, CheckCircle2, RotateCcw, Copy, Download, MessageSquare, Archive, Eye, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { formatMoney } from "@/lib/mission-control/hooks";
+import { LifecycleRail, NextStepBanner, deriveLifecycle } from "@/components/client-lifecycle";
 import {
   getProposal, updateProposalDraft, submitForReview, approveProposal, returnProposalToDraft,
-  sendProposal, markSuperseded, listComments, addComment, prepareBillingHandoff,
+  sendProposal, markSuperseded, listComments, addComment, reissueProposalLink,
 } from "@/lib/proposals/proposals.functions";
 import { SECTIONS } from "@/lib/proposals/content";
 
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/labs/proposals/$id")({
 function ProposalDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
+  const nav = useNavigate();
   const getFn = useServerFn(getProposal);
   const updateFn = useServerFn(updateProposalDraft);
   const submitFn = useServerFn(submitForReview);
@@ -34,7 +36,7 @@ function ProposalDetail() {
   const supersedeFn = useServerFn(markSuperseded);
   const commentsFn = useServerFn(listComments);
   const addCommentFn = useServerFn(addComment);
-  const billingFn = useServerFn(prepareBillingHandoff);
+  const reissueFn = useServerFn(reissueProposalLink);
 
   const q = useQuery({
     queryKey: ["nsl-proposal", id],
@@ -52,16 +54,32 @@ function ProposalDetail() {
 
   const [publicLink, setPublicLink] = useState<string | null>(null);
 
+  const copyLink = (url: string) => {
+    navigator.clipboard?.writeText(url).catch(() => {});
+  };
+
   const doSend = useMutation({
     mutationFn: () => sendFn({ data: { proposalId: id } }),
     onSuccess: (res) => {
       const url = `${window.location.origin}/proposal/${res.token}`;
       setPublicLink(url);
-      navigator.clipboard?.writeText(url).catch(() => {});
+      copyLink(url);
       toast.success("Sent. Public link copied to clipboard.");
       invalidate();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Send failed"),
+  });
+
+  const doReissue = useMutation({
+    mutationFn: () => reissueFn({ data: { proposalId: id } }),
+    onSuccess: (res) => {
+      const url = `${window.location.origin}/proposal/${res.token}`;
+      setPublicLink(url);
+      copyLink(url);
+      toast.success("New client link copied. The previous link no longer works.");
+      invalidate();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not issue a link"),
   });
 
   const proposal = q.data?.proposal;
@@ -74,6 +92,49 @@ function ProposalDetail() {
   if (!proposal) return <div className="p-10 text-sm text-foreground/60">Proposal not found.</div>;
 
   const editable = ["draft", "internal_review", "approved", "ready_to_send"].includes(proposal.status) && !proposal.locked_at;
+  const lifecycle = deriveLifecycle({
+    proposalStatus: proposal.status,
+    recurringFeeCents: Number(proposal.recurring_fee_cents ?? 0),
+  });
+
+  const primaryAction = (() => {
+    if (proposal.status === "draft") {
+      return (
+        <Button size="sm" onClick={() => submitFn({ data: { proposalId: id } }).then(() => { toast.success("Submitted for review"); invalidate(); }).catch((e) => toast.error(e.message))}>
+          Submit for review <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    }
+    if (proposal.status === "internal_review") {
+      return (
+        <Button size="sm" onClick={() => approveFn({ data: { proposalId: id } }).then(() => { toast.success("Approved"); invalidate(); }).catch((e) => toast.error(e.message))}>
+          <CheckCircle2 className="mr-2 h-4 w-4" /> Approve
+        </Button>
+      );
+    }
+    if (proposal.status === "approved" || proposal.status === "ready_to_send") {
+      return (
+        <Button size="sm" onClick={() => doSend.mutate()} disabled={doSend.isPending}>
+          <Send className="mr-2 h-4 w-4" /> Send to client
+        </Button>
+      );
+    }
+    if (proposal.status === "sent" || proposal.status === "viewed") {
+      return (
+        <Button size="sm" onClick={() => (publicLink ? (copyLink(publicLink), toast.success("Client link copied.")) : doReissue.mutate())} disabled={doReissue.isPending}>
+          <Copy className="mr-2 h-4 w-4" /> {publicLink ? "Copy client link" : "Issue new client link"}
+        </Button>
+      );
+    }
+    if (proposal.status === "accepted") {
+      return (
+        <Button size="sm" onClick={() => nav({ to: "/labs/billing" })}>
+          Go to billing <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    }
+    return null;
+  })();
 
   return (
     <div className="min-h-screen">
@@ -89,25 +150,19 @@ function ProposalDetail() {
               <p className="mt-1 text-sm text-foreground/70">{client?.name} · v{proposal.version} · <Badge variant="outline">{proposal.status.replace(/_/g, " ")}</Badge></p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {proposal.status === "draft" && (
-                <Button size="sm" variant="outline" onClick={() => submitFn({ data: { proposalId: id } }).then(() => { toast.success("Submitted for review"); invalidate(); }).catch((e) => toast.error(e.message))}>Submit for review</Button>
-              )}
+              {primaryAction}
               {proposal.status === "internal_review" && (
-                <>
-                  <Button size="sm" onClick={() => approveFn({ data: { proposalId: id } }).then(() => { toast.success("Approved"); invalidate(); }).catch((e) => toast.error(e.message))}><CheckCircle2 className="mr-2 h-4 w-4" /> Approve</Button>
-                  <ReturnButton id={id} returnFn={returnFn} onDone={invalidate} />
-                </>
+                <ReturnButton id={id} returnFn={returnFn} onDone={invalidate} />
               )}
-              {(proposal.status === "approved" || proposal.status === "ready_to_send") && (
-                <Button size="sm" onClick={() => doSend.mutate()} disabled={doSend.isPending}><Send className="mr-2 h-4 w-4" /> Send</Button>
+              {publicLink && (
+                <a href={publicLink} target="_blank" rel="noreferrer">
+                  <Button size="sm" variant="outline"><Eye className="mr-2 h-4 w-4" /> Preview client view</Button>
+                </a>
               )}
-              {(proposal.status === "sent" || proposal.status === "viewed" || proposal.status === "accepted") && proposal.public_token_expires_at && (
-                <CopyLinkButton onCopy={() => toast.success("Public link is available after sending; regenerate by superseding.")} />
-              )}
-              {proposal.status === "accepted" && (
-                <Button size="sm" variant="outline" onClick={() => billingFn({ data: { proposalId: id } }).then((r) => toast.success(`Billing: ${r.status}`)).catch((e) => toast.error(e.message))}>
-                  Prepare billing
-                </Button>
+              {publicLink && (
+                <a href={`/api/public/proposals/pdf?token=${encodeURIComponent(publicLink.split("/proposal/")[1] ?? "")}`} target="_blank" rel="noreferrer">
+                  <Button size="sm" variant="outline"><Download className="mr-2 h-4 w-4" /> PDF</Button>
+                </a>
               )}
               {["sent", "viewed", "approved", "ready_to_send", "declined"].includes(proposal.status) && (
                 <Button size="sm" variant="ghost" onClick={() => {
@@ -117,6 +172,8 @@ function ProposalDetail() {
               )}
             </div>
           </div>
+          <LifecycleRail state={lifecycle} className="mt-4" />
+          <NextStepBanner state={lifecycle} className="mt-3" />
           {publicLink && (
             <div className="mt-3 rounded border border-primary/30 bg-primary/5 p-3 text-xs">
               <div className="mb-1 font-medium">Secure client link (copied):</div>
