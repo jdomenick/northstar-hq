@@ -13,6 +13,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -98,6 +99,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposalTokenRoute = ProposalTokenRouteImport.update({
+  id: '/proposal/$token',
+  path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthResetRoute = AuthResetRouteImport.update({
   id: '/reset',
   path: '/reset',
@@ -176,9 +182,9 @@ const AuthenticatedAccountabilityRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ProposalTokenIndexRoute = ProposalTokenIndexRouteImport.update({
-  id: '/proposal/$token/',
-  path: '/proposal/$token/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProposalTokenRoute,
 } as any)
 const AuthenticatedSamIndexRoute = AuthenticatedSamIndexRouteImport.update({
   id: '/sam/',
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -626,6 +633,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -698,6 +706,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -839,6 +848,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/proposal/$token'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
@@ -897,7 +907,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
-  ProposalTokenIndexRoute: typeof ProposalTokenIndexRoute
+  ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
@@ -941,6 +951,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposal/$token': {
+      id: '/proposal/$token'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token'
+      preLoaderRoute: typeof ProposalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1050,10 +1067,10 @@ declare module '@tanstack/react-router' {
     }
     '/proposal/$token/': {
       id: '/proposal/$token/'
-      path: '/proposal/$token'
+      path: '/'
       fullPath: '/proposal/$token/'
       preLoaderRoute: typeof ProposalTokenIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProposalTokenRoute
     }
     '/_authenticated/sam/': {
       id: '/_authenticated/sam/'
@@ -1644,13 +1661,25 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ProposalTokenRouteChildren {
+  ProposalTokenIndexRoute: typeof ProposalTokenIndexRoute
+}
+
+const ProposalTokenRouteChildren: ProposalTokenRouteChildren = {
+  ProposalTokenIndexRoute: ProposalTokenIndexRoute,
+}
+
+const ProposalTokenRouteWithChildren = ProposalTokenRoute._addFileChildren(
+  ProposalTokenRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
-  ProposalTokenIndexRoute: ProposalTokenIndexRoute,
+  ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,
