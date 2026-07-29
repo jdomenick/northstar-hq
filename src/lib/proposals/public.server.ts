@@ -7,8 +7,89 @@ import type { Database } from "@/integrations/supabase/types";
 import { hashToken } from "./token.server";
 import { isPubliclyActionable, isTerminal } from "./transitions";
 import { sanitizeProposal, type PublicProposal } from "./sanitize";
+import {
+  deriveNextStep,
+  INVOICE_LABEL,
+  type PublicBilling,
+  type PublicInvoice,
+  type PublicInvoicePurpose,
+} from "./client-billing";
 
 type DB = SupabaseClient<Database>;
+
+function toPurpose(t: string): PublicInvoicePurpose {
+  return t === "setup_deposit" || t === "setup_final" || t === "recurring" ? t : "other";
+}
+
+/**
+ * Resolves billing strictly from the already-token-verified proposal id.
+ * No client-supplied identifier is ever used here.
+ */
+export async function buildPublicBilling(admin: DB, proposalId: string): Promise<PublicBilling> {
+  const [{ data: invoices }, { data: subs }] = await Promise.all([
+    admin
+      .from("billing_invoices")
+      .select(
+        "id, type, status, amount_cents, amount_paid_cents, currency, due_at, paid_at, hosted_invoice_url, invoice_pdf_url, created_at",
+      )
+      .eq("proposal_id", proposalId)
+      .order("created_at", { ascending: true }),
+    admin
+      .from("billing_subscriptions")
+      .select("status, amount_cents, currency, interval, current_period_end, created_at")
+      .eq("proposal_id", proposalId)
+      .order("created_at", { ascending: false })
+      .limit(1),
+  ]);
+
+  const rows = (invoices ?? []).filter((i) => i.status !== "void" && i.status !== "draft");
+  const ids = rows.map((r) => r.id);
+  const receipts = new Map<string, string>();
+  if (ids.length) {
+    const { data: payments } = await admin
+      .from("billing_payments")
+      .select("invoice_id, receipt_url, status")
+      .in("invoice_id", ids)
+      .eq("status", "succeeded");
+    for (const p of payments ?? []) {
+      if (p.receipt_url && !receipts.has(p.invoice_id)) receipts.set(p.invoice_id, p.receipt_url);
+    }
+  }
+
+  const list: PublicInvoice[] = rows.map((r) => {
+    const purpose = toPurpose(r.type);
+    const paid = Number(r.amount_paid_cents ?? 0);
+    const total = Number(r.amount_cents ?? 0);
+    const open = r.status === "open" || r.status === "past_due";
+    return {
+      purpose,
+      label: INVOICE_LABEL[purpose],
+      status: r.status,
+      amount_cents: total,
+      amount_paid_cents: paid,
+      amount_remaining_cents: Math.max(0, total - paid),
+      currency: r.currency ?? "usd",
+      due_at: r.due_at,
+      paid_at: r.paid_at,
+      payment_url: open ? (r.hosted_invoice_url ?? null) : null,
+      receipt_url: receipts.get(r.id) ?? (r.status === "paid" ? (r.invoice_pdf_url ?? r.hosted_invoice_url ?? null) : null),
+    };
+  });
+
+  const s = (subs ?? [])[0];
+  return {
+    invoices: list,
+    subscription: s
+      ? {
+          status: s.status,
+          amount_cents: Number(s.amount_cents ?? 0),
+          currency: s.currency ?? "usd",
+          interval: s.interval ?? "month",
+          current_period_end: s.current_period_end,
+        }
+      : null,
+  };
+}
 
 export async function loadByToken(admin: DB, token: string) {
   if (!token || token.length < 8 || token.length > 128) throw new Error("invalid_token");
@@ -38,6 +119,10 @@ export async function buildPublicPayload(
     admin.from("revenue_clients").select("id, name").eq("id", p.client_id).maybeSingle(),
     admin.from("nsl_proposal_signatures").select("*").eq("proposal_id", p.id).maybeSingle(),
   ]);
+  const accepted = p.status === "accepted";
+  const billing = accepted
+    ? await buildPublicBilling(admin, p.id)
+    : { invoices: [], subscription: null };
   return sanitizeProposal(
     p,
     client?.name ?? "Client",
@@ -50,6 +135,11 @@ export async function buildPublicPayload(
           proposal_version: sig.proposal_version,
         }
       : null,
+    {
+      billing,
+      next_step: accepted ? deriveNextStep(billing, Number(p.recurring_fee_cents ?? 0)) : null,
+      contact_email: process.env.NSL_CONTACT_EMAIL ?? null,
+    },
   );
 }
 
