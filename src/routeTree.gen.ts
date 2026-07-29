@@ -89,6 +89,7 @@ import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicOauthMetaAuthorizeRouteImport } from './routes/api/public/oauth/meta/authorize'
 import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/api/public/media/meta-delivery.$token'
 import { Route as AuthenticatedSamContentEditorIdRouteImport } from './routes/_authenticated/sam.content.editor.$id'
+import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from './routes/_authenticated/labs.clients.$clientId.workspace'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -532,6 +533,12 @@ const AuthenticatedSamContentEditorIdRoute =
     path: '/editor/$id',
     getParentRoute: () => AuthenticatedSamContentRoute,
   } as any)
+const AuthenticatedLabsClientsClientIdWorkspaceRoute =
+  AuthenticatedLabsClientsClientIdWorkspaceRouteImport.update({
+    id: '/labs/clients/$clientId/workspace',
+    path: '/labs/clients/$clientId/workspace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -607,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
+  '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -687,6 +695,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
+  '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -770,6 +779,7 @@ export interface FileRoutesById {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
+  '/_authenticated/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -853,6 +863,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals/'
+    | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -933,6 +944,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals'
+    | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -1015,6 +1027,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/_authenticated/labs/proposals/'
+    | '/_authenticated/labs/clients/$clientId/workspace'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -1616,6 +1629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSamContentEditorIdRouteImport
       parentRoute: typeof AuthenticatedSamContentRoute
     }
+    '/_authenticated/labs/clients/$clientId/workspace': {
+      id: '/_authenticated/labs/clients/$clientId/workspace'
+      path: '/labs/clients/$clientId/workspace'
+      fullPath: '/labs/clients/$clientId/workspace'
+      preLoaderRoute: typeof AuthenticatedLabsClientsClientIdWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1808,6 +1828,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsProposalsIdRoute: typeof AuthenticatedLabsProposalsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
   AuthenticatedLabsProposalsIndexRoute: typeof AuthenticatedLabsProposalsIndexRoute
+  AuthenticatedLabsClientsClientIdWorkspaceRoute: typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1845,6 +1866,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsProposalsIdRoute: AuthenticatedLabsProposalsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
   AuthenticatedLabsProposalsIndexRoute: AuthenticatedLabsProposalsIndexRoute,
+  AuthenticatedLabsClientsClientIdWorkspaceRoute:
+    AuthenticatedLabsClientsClientIdWorkspaceRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
