@@ -60,7 +60,7 @@ export async function buildPublicBilling(admin: DB, proposalId: string): Promise
     const purpose = toPurpose(r.type);
     const paid = Number(r.amount_paid_cents ?? 0);
     const total = Number(r.amount_cents ?? 0);
-    const open = r.status === "open" || r.status === "past_due";
+    const open = r.status === "open";
     return {
       purpose,
       label: INVOICE_LABEL[purpose],

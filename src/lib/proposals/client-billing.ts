@@ -45,7 +45,7 @@ export const INVOICE_LABEL: Record<PublicInvoicePurpose, string> = {
 };
 
 function isOpen(i: PublicInvoice) {
-  return i.status === "open" || i.status === "past_due";
+  return i.status === "open";
 }
 
 function isPaid(i: PublicInvoice) {
