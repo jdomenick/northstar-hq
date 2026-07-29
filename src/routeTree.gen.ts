@@ -18,6 +18,7 @@ import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as ClientProfileRouteImport } from './routes/client.profile'
 import { Route as ClientOnboardingRouteImport } from './routes/client.onboarding'
 import { Route as ClientLoginRouteImport } from './routes/client.login'
+import { Route as ClientDocumentsRouteImport } from './routes/client.documents'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -129,6 +130,11 @@ const ClientOnboardingRoute = ClientOnboardingRouteImport.update({
 const ClientLoginRoute = ClientLoginRouteImport.update({
   id: '/client/login',
   path: '/client/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientDocumentsRoute = ClientDocumentsRouteImport.update({
+  id: '/client/documents',
+  path: '/client/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -534,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
@@ -612,6 +619,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
@@ -691,6 +699,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
@@ -771,6 +780,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
     | '/client/profile'
@@ -849,6 +859,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
     | '/client/profile'
@@ -927,6 +938,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
     | '/client/profile'
@@ -993,6 +1005,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ClientDocumentsRoute: typeof ClientDocumentsRoute
   ClientLoginRoute: typeof ClientLoginRoute
   ClientOnboardingRoute: typeof ClientOnboardingRoute
   ClientProfileRoute: typeof ClientProfileRoute
@@ -1078,6 +1091,13 @@ declare module '@tanstack/react-router' {
       path: '/client/login'
       fullPath: '/client/login'
       preLoaderRoute: typeof ClientLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/documents': {
+      id: '/client/documents'
+      path: '/client/documents'
+      fullPath: '/client/documents'
+      preLoaderRoute: typeof ClientDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1822,6 +1842,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ClientDocumentsRoute: ClientDocumentsRoute,
   ClientLoginRoute: ClientLoginRoute,
   ClientOnboardingRoute: ClientOnboardingRoute,
   ClientProfileRoute: ClientProfileRoute,
