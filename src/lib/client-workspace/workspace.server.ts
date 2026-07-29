@@ -323,9 +323,10 @@ export async function loadClientWorkspace(supabase: SB, userId: string): Promise
       .order("created_at", { ascending: false }),
     supabaseAdmin
       .from("projects")
-      .select("name, status, progress_percentage, next_action")
+      .select("client_title, status, progress_percentage, client_next_action")
       .eq("client_id", acct.client_id)
       .eq("organization_id", acct.organization_id)
+      .eq("client_visible", true)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -350,10 +351,10 @@ export async function loadClientWorkspace(supabase: SB, userId: string): Promise
 
   const delivery: DeliveryView | null = projectRes.data
     ? {
-        name: projectRes.data.name,
+        name: projectRes.data.client_title?.trim() || "Your implementation",
         status: projectRes.data.status,
         progress_percentage: projectRes.data.progress_percentage,
-        next_action: projectRes.data.next_action,
+        next_action: projectRes.data.client_next_action?.trim() || null,
       }
     : null;
 

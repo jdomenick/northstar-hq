@@ -22,7 +22,7 @@ function AuthenticatedLayout() {
   // A signed-in client account has no operator membership. Send it to the
   // client workspace instead of the operator onboarding flow.
   const noMemberships = !loading && Boolean(user) && !orgLoading && memberships.length === 0;
-  const { data: clientContext } = useQuery({
+  const { data: clientContext, isFetched: clientChecked } = useQuery({
     queryKey: ["client-context", user?.id],
     queryFn: () => getClientContext(),
     enabled: noMemberships,
@@ -39,10 +39,13 @@ function AuthenticatedLayout() {
       navigate({ to: "/client", replace: true });
       return;
     }
+    // Never send a signed-in account to operator onboarding before we know
+    // whether it is a client account.
+    if (noMemberships && !clientChecked) return;
     if (!orgLoading && memberships.length === 0 && pathname !== "/onboarding") {
       navigate({ to: "/onboarding", replace: true });
     }
-  }, [loading, user, orgLoading, memberships, pathname, navigate, clientContext]);
+  }, [loading, user, orgLoading, memberships, pathname, navigate, clientContext, noMemberships, clientChecked]);
 
   if (loading || !user) {
     return <FullscreenLoader label="Preparing NorthStar Labs" />;
