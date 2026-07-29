@@ -296,6 +296,29 @@ function ClientList({ orgId, clients }: { orgId: string | null; clients: ReturnT
 }
 
 function ProposalList({ orgId, proposals }: { orgId: string | null; proposals: ReturnType<typeof useProposals>["data"] extends infer T ? NonNullable<T> : never }) {
+  return <ProposalListInner orgId={orgId} proposals={proposals} />;
+}
+
+function ClientAccessDialog({ orgId, clientId, clientName }: { orgId: string; clientId: string; clientName: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="text-[11px] uppercase tracking-[0.14em]">Access</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Client access , {clientName}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[70vh] overflow-y-auto pr-1">
+          {open && <ClientUsersPanel organizationId={orgId} clientId={clientId} />}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ProposalListInner({ orgId, proposals }: { orgId: string | null; proposals: ReturnType<typeof useProposals>["data"] extends infer T ? NonNullable<T> : never }) {
   const create = useCreateProposal(orgId);
   const [open, setOpen] = useState(false);
   return (
