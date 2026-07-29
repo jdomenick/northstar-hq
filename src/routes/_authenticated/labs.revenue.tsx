@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Users, FileText, Share2, ArrowRight, Clock, ShieldAlert } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
@@ -286,6 +286,13 @@ function ClientList({ orgId, clients }: { orgId: string | null; clients: ReturnT
               <div className="flex items-center gap-3">
                 <div className="font-display text-[16px] tabular-nums">{formatMoney(c.mrr_cents ?? 0, { compact: true })}<span className="text-[10px] text-foreground/50">/mo</span></div>
                 {orgId && <ClientAccessDialog orgId={orgId} clientId={c.id} clientName={c.name} />}
+                <Link
+                  to="/labs/clients/$clientId/workspace"
+                  params={{ clientId: c.id }}
+                  className="text-[11px] uppercase tracking-[0.14em] text-foreground/60 hover:text-foreground"
+                >
+                  Workspace
+                </Link>
               </div>
             </li>
           ))}

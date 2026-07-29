@@ -16,7 +16,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as ClientProfileRouteImport } from './routes/client.profile'
+import { Route as ClientOnboardingRouteImport } from './routes/client.onboarding'
 import { Route as ClientLoginRouteImport } from './routes/client.login'
+import { Route as ClientDocumentsRouteImport } from './routes/client.documents'
+import { Route as ClientCompanyRouteImport } from './routes/client.company'
+import { Route as ClientBillingRouteImport } from './routes/client.billing'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -85,6 +89,7 @@ import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicOauthMetaAuthorizeRouteImport } from './routes/api/public/oauth/meta/authorize'
 import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/api/public/media/meta-delivery.$token'
 import { Route as AuthenticatedSamContentEditorIdRouteImport } from './routes/_authenticated/sam.content.editor.$id'
+import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from './routes/_authenticated/labs.clients.$clientId.workspace'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -120,9 +125,29 @@ const ClientProfileRoute = ClientProfileRouteImport.update({
   path: '/client/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientOnboardingRoute = ClientOnboardingRouteImport.update({
+  id: '/client/onboarding',
+  path: '/client/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientLoginRoute = ClientLoginRouteImport.update({
   id: '/client/login',
   path: '/client/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientDocumentsRoute = ClientDocumentsRouteImport.update({
+  id: '/client/documents',
+  path: '/client/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientCompanyRoute = ClientCompanyRouteImport.update({
+  id: '/client/company',
+  path: '/client/company',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientBillingRoute = ClientBillingRouteImport.update({
+  id: '/client/billing',
+  path: '/client/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -508,6 +533,12 @@ const AuthenticatedSamContentEditorIdRoute =
     path: '/editor/$id',
     getParentRoute: () => AuthenticatedSamContentRoute,
   } as any)
+const AuthenticatedLabsClientsClientIdWorkspaceRoute =
+  AuthenticatedLabsClientsClientIdWorkspaceRouteImport.update({
+    id: '/labs/clients/$clientId/workspace',
+    path: '/labs/clients/$clientId/workspace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -528,7 +559,11 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/billing': typeof ClientBillingRoute
+  '/client/company': typeof ClientCompanyRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
@@ -579,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
+  '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -605,7 +641,11 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/billing': typeof ClientBillingRoute
+  '/client/company': typeof ClientCompanyRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/client': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
@@ -655,6 +695,7 @@ export interface FileRoutesByTo {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
+  '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -683,7 +724,11 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/billing': typeof ClientBillingRoute
+  '/client/company': typeof ClientCompanyRoute
+  '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
+  '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
@@ -734,6 +779,7 @@ export interface FileRoutesById {
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
+  '/_authenticated/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
   '/api/public/media/meta-delivery/$token': typeof ApiPublicMediaMetaDeliveryTokenRoute
   '/api/public/oauth/meta/authorize': typeof ApiPublicOauthMetaAuthorizeRoute
@@ -762,7 +808,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/billing'
+    | '/client/company'
+    | '/client/documents'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/proposal/$token'
     | '/client/'
@@ -813,6 +863,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals/'
+    | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -839,7 +890,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/billing'
+    | '/client/company'
+    | '/client/documents'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/client'
     | '/labs/accountability'
@@ -889,6 +944,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/labs/proposals'
+    | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -916,7 +972,11 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/billing'
+    | '/client/company'
+    | '/client/documents'
     | '/client/login'
+    | '/client/onboarding'
     | '/client/profile'
     | '/proposal/$token'
     | '/client/'
@@ -967,6 +1027,7 @@ export interface FileRouteTypes {
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
     | '/_authenticated/labs/proposals/'
+    | '/_authenticated/labs/clients/$clientId/workspace'
     | '/_authenticated/sam/content/editor/$id'
     | '/api/public/media/meta-delivery/$token'
     | '/api/public/oauth/meta/authorize'
@@ -981,7 +1042,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ClientBillingRoute: typeof ClientBillingRoute
+  ClientCompanyRoute: typeof ClientCompanyRoute
+  ClientDocumentsRoute: typeof ClientDocumentsRoute
   ClientLoginRoute: typeof ClientLoginRoute
+  ClientOnboardingRoute: typeof ClientOnboardingRoute
   ClientProfileRoute: typeof ClientProfileRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ClientIndexRoute: typeof ClientIndexRoute
@@ -1053,11 +1118,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client/onboarding': {
+      id: '/client/onboarding'
+      path: '/client/onboarding'
+      fullPath: '/client/onboarding'
+      preLoaderRoute: typeof ClientOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/client/login': {
       id: '/client/login'
       path: '/client/login'
       fullPath: '/client/login'
       preLoaderRoute: typeof ClientLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/documents': {
+      id: '/client/documents'
+      path: '/client/documents'
+      fullPath: '/client/documents'
+      preLoaderRoute: typeof ClientDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/company': {
+      id: '/client/company'
+      path: '/client/company'
+      fullPath: '/client/company'
+      preLoaderRoute: typeof ClientCompanyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/billing': {
+      id: '/client/billing'
+      path: '/client/billing'
+      fullPath: '/client/billing'
+      preLoaderRoute: typeof ClientBillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1536,6 +1629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSamContentEditorIdRouteImport
       parentRoute: typeof AuthenticatedSamContentRoute
     }
+    '/_authenticated/labs/clients/$clientId/workspace': {
+      id: '/_authenticated/labs/clients/$clientId/workspace'
+      path: '/labs/clients/$clientId/workspace'
+      fullPath: '/labs/clients/$clientId/workspace'
+      preLoaderRoute: typeof AuthenticatedLabsClientsClientIdWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1728,6 +1828,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLabsProposalsIdRoute: typeof AuthenticatedLabsProposalsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
   AuthenticatedLabsProposalsIndexRoute: typeof AuthenticatedLabsProposalsIndexRoute
+  AuthenticatedLabsClientsClientIdWorkspaceRoute: typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1765,6 +1866,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLabsProposalsIdRoute: AuthenticatedLabsProposalsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
   AuthenticatedLabsProposalsIndexRoute: AuthenticatedLabsProposalsIndexRoute,
+  AuthenticatedLabsClientsClientIdWorkspaceRoute:
+    AuthenticatedLabsClientsClientIdWorkspaceRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1802,7 +1905,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ClientBillingRoute: ClientBillingRoute,
+  ClientCompanyRoute: ClientCompanyRoute,
+  ClientDocumentsRoute: ClientDocumentsRoute,
   ClientLoginRoute: ClientLoginRoute,
+  ClientOnboardingRoute: ClientOnboardingRoute,
   ClientProfileRoute: ClientProfileRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ClientIndexRoute: ClientIndexRoute,
