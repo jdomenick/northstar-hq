@@ -6,7 +6,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/labs/operator")({
   beforeLoad: () => {
-    throw redirect({ to: "/sam/", replace: true });
+    throw redirect({ to: "/sam", replace: true });
   },
   component: () => null,
 });
