@@ -20,6 +20,12 @@ export type ActivationBlockedReason =
   | "final_invoice_unpaid"
   | "billing_reconciliation_failed";
 
+export type ActivationEvaluation =
+  | { status: "ready"; clientId: string; recurringPending: boolean }
+  | { status: "already_active"; projectId: string; clientId: string; recurringPending: boolean }
+  | { status: "blocked"; reason: ActivationBlockedReason; message: string }
+  | { status: "failed"; message: string };
+
 export type ActivationResult =
   | { status: "created"; projectId: string; clientId: string; recurringPending: boolean }
   | { status: "already_active"; projectId: string; clientId: string; recurringPending: boolean }
@@ -65,7 +71,7 @@ function truncate(value: string | null | undefined, max: number): string | null 
  */
 export async function activateClientDeliveryFromBilling(
   supabase: SupabaseClient<Database>,
-  input: { proposal_id: string; organization_id?: string; actor_id?: string | null },
+  input: { proposal_id: string; organization_id?: string; actor_id?: string | null; dryRun?: boolean },
 ): Promise<ActivationResult> {
   try {
     // 1. Proposal must be accepted, locked, and signed.
@@ -148,6 +154,15 @@ export async function activateClientDeliveryFromBilling(
       .maybeSingle();
     if (cErr) throw cErr;
     if (!client) return blocked("client_mismatch");
+
+    if (input.dryRun) {
+      return {
+        status: "created",
+        projectId: "",
+        clientId,
+        recurringPending: recurring > 0 && !(await hasLiveSubscription(supabase, orgId, proposal.id)),
+      };
+    }
 
     // 5. Create the delivery project. Unique index is the real guard.
     const insert = await supabase
@@ -279,4 +294,19 @@ async function hasLiveSubscription(
     .limit(1)
     .maybeSingle();
   return Boolean(data);
+}
+
+/**
+ * Read-only evaluation of the same conditions. Used by the UI to explain why
+ * activation has not happened yet. Writes nothing.
+ */
+export async function evaluateDeliveryActivation(
+  supabase: SupabaseClient<Database>,
+  input: { proposal_id: string; organization_id?: string },
+): Promise<ActivationEvaluation> {
+  const result = await activateClientDeliveryFromBilling(supabase, { ...input, dryRun: true });
+  if (result.status === "created") {
+    return { status: "ready", clientId: result.clientId, recurringPending: result.recurringPending };
+  }
+  return result;
 }
