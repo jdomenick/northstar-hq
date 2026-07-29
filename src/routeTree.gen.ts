@@ -19,6 +19,7 @@ import { Route as ClientProfileRouteImport } from './routes/client.profile'
 import { Route as ClientOnboardingRouteImport } from './routes/client.onboarding'
 import { Route as ClientLoginRouteImport } from './routes/client.login'
 import { Route as ClientDocumentsRouteImport } from './routes/client.documents'
+import { Route as ClientDeliveryRouteImport } from './routes/client.delivery'
 import { Route as ClientCompanyRouteImport } from './routes/client.company'
 import { Route as ClientBillingRouteImport } from './routes/client.billing'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
@@ -138,6 +139,11 @@ const ClientLoginRoute = ClientLoginRouteImport.update({
 const ClientDocumentsRoute = ClientDocumentsRouteImport.update({
   id: '/client/documents',
   path: '/client/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientDeliveryRoute = ClientDeliveryRouteImport.update({
+  id: '/client/delivery',
+  path: '/client/delivery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientCompanyRoute = ClientCompanyRouteImport.update({
@@ -561,6 +567,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/client/billing': typeof ClientBillingRoute
   '/client/company': typeof ClientCompanyRoute
+  '/client/delivery': typeof ClientDeliveryRoute
   '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
@@ -643,6 +650,7 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/client/billing': typeof ClientBillingRoute
   '/client/company': typeof ClientCompanyRoute
+  '/client/delivery': typeof ClientDeliveryRoute
   '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
@@ -726,6 +734,7 @@ export interface FileRoutesById {
   '/auth/reset': typeof AuthResetRoute
   '/client/billing': typeof ClientBillingRoute
   '/client/company': typeof ClientCompanyRoute
+  '/client/delivery': typeof ClientDeliveryRoute
   '/client/documents': typeof ClientDocumentsRoute
   '/client/login': typeof ClientLoginRoute
   '/client/onboarding': typeof ClientOnboardingRoute
@@ -810,6 +819,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/client/billing'
     | '/client/company'
+    | '/client/delivery'
     | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
@@ -892,6 +902,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/client/billing'
     | '/client/company'
+    | '/client/delivery'
     | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
@@ -974,6 +985,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/client/billing'
     | '/client/company'
+    | '/client/delivery'
     | '/client/documents'
     | '/client/login'
     | '/client/onboarding'
@@ -1044,6 +1056,7 @@ export interface RootRouteChildren {
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientBillingRoute: typeof ClientBillingRoute
   ClientCompanyRoute: typeof ClientCompanyRoute
+  ClientDeliveryRoute: typeof ClientDeliveryRoute
   ClientDocumentsRoute: typeof ClientDocumentsRoute
   ClientLoginRoute: typeof ClientLoginRoute
   ClientOnboardingRoute: typeof ClientOnboardingRoute
@@ -1137,6 +1150,13 @@ declare module '@tanstack/react-router' {
       path: '/client/documents'
       fullPath: '/client/documents'
       preLoaderRoute: typeof ClientDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/delivery': {
+      id: '/client/delivery'
+      path: '/client/delivery'
+      fullPath: '/client/delivery'
+      preLoaderRoute: typeof ClientDeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/client/company': {
@@ -1907,6 +1927,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientBillingRoute: ClientBillingRoute,
   ClientCompanyRoute: ClientCompanyRoute,
+  ClientDeliveryRoute: ClientDeliveryRoute,
   ClientDocumentsRoute: ClientDocumentsRoute,
   ClientLoginRoute: ClientLoginRoute,
   ClientOnboardingRoute: ClientOnboardingRoute,
@@ -1932,13 +1953,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -27,6 +27,7 @@ import {
   type ClientDocument,
   type OnboardingItem,
 } from "@/lib/client-workspace/types";
+import { OperatorDeliveryAdmin } from "@/components/operator-delivery-admin";
 
 export const Route = createFileRoute("/_authenticated/labs/clients/$clientId/workspace")({
   component: OperatorWorkspacePage,
@@ -86,6 +87,8 @@ function OperatorWorkspacePage() {
       />
 
       <NoticeAdmin orgId={activeOrgId} clientId={clientId} onChanged={refresh} />
+
+      <OperatorDeliveryAdmin orgId={activeOrgId} clientId={clientId} />
 
       <section>
         <h2 className="text-[11px] uppercase tracking-[0.2em] text-foreground/55">Client-visible activity</h2>

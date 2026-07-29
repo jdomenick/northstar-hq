@@ -1,4 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ClientWorkspace } from "@/components/client-shell";
 import { roleLabel } from "@/lib/client-identity/types";
 import {
@@ -10,6 +12,8 @@ import {
   useClientWorkspace,
 } from "@/components/client-workspace-ui";
 import { formatMoney, onboardingProgress } from "@/lib/client-workspace/types";
+import { getClientDeliveryFn } from "@/lib/delivery/delivery.functions";
+import type { ClientDeliveryView } from "@/lib/delivery/client-delivery";
 
 export const Route = createFileRoute("/client/")({
   ssr: false,
@@ -49,6 +53,12 @@ function Overview({
   email: string;
 }) {
   const { data, isLoading, isError } = useClientWorkspace();
+  const loadDelivery = useServerFn(getClientDeliveryFn);
+  const delivery = useQuery<ClientDeliveryView>({
+    queryKey: ["client-delivery"],
+    queryFn: () => loadDelivery(),
+    retry: false,
+  });
 
   if (isLoading) return <LoadingRows />;
   if (isError || !data) {
@@ -65,6 +75,13 @@ function Overview({
         : data.next_step.action === "onboarding"
           ? "/client/onboarding"
           : null;
+  const deliveryValue = delivery.isLoading
+    ? "Loading"
+    : !delivery.data?.project
+      ? "Not started"
+      : delivery.data.progress.percent === null
+        ? delivery.data.project.stage_label
+        : `${delivery.data.progress.complete} of ${delivery.data.progress.total} milestones`;
 
   return (
     <div className="space-y-10">
@@ -105,15 +122,28 @@ function Overview({
               : "Nothing due"
           }
         />
-        <Cell
-          label="Implementation"
-          value={
-            data.delivery
-              ? `${data.delivery.progress_percentage}% complete`
-              : "Not started"
-          }
-        />
+        <Cell label="Implementation" value={deliveryValue} />
       </dl>
+
+      {delivery.data?.project ? (
+        <section className="border border-foreground/12 p-5">
+          <div className="text-[10px] font-medium uppercase tracking-[0.26em] text-foreground/55">
+            Delivery
+          </div>
+          <h2 className="mt-3 font-display text-[20px] leading-tight text-foreground">
+            {delivery.data.next_step.headline}
+          </h2>
+          <p className="mt-2 text-[13.5px] leading-[1.7] text-foreground/70">
+            {delivery.data.next_step.detail}
+          </p>
+          <Link
+            to="/client/delivery"
+            className="mt-4 inline-block text-[12px] underline underline-offset-4 text-foreground/75 hover:text-foreground"
+          >
+            View delivery status
+          </Link>
+        </section>
+      ) : null}
 
       {data.notices.length > 0 ? (
         <section>

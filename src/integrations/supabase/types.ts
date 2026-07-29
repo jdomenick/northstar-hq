@@ -1659,74 +1659,180 @@ export type Database = {
           },
         ]
       }
-      client_documents: {
+      client_delivery_milestones: {
         Row: {
           client_id: string
+          client_visible: boolean
+          completed_at: string | null
           created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          organization_id: string
+          project_id: string
+          requires_client_action: boolean
+          sort_order: number
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_visible?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          organization_id: string
+          project_id: string
+          requires_client_action?: boolean
+          sort_order?: number
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_visible?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          organization_id?: string
+          project_id?: string
+          requires_client_action?: boolean
+          sort_order?: number
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_delivery_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_delivery_milestones_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_delivery_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string
+          created_at: string
+          deliverable_status: string
           file_name: string | null
           file_size: number | null
           file_type: string | null
           id: string
           instructions: string
+          is_deliverable: boolean
           is_required: boolean
+          milestone_id: string | null
           onboarding_item_id: string | null
           organization_id: string
+          project_id: string | null
           requested_by: string | null
+          requires_client_review: boolean
           reviewed_at: string | null
           reviewed_by: string | null
           revision_note: string
+          revision_reason: string
+          shared_at: string | null
           status: Database["public"]["Enums"]["client_document_status"]
           storage_path: string | null
           title: string
           updated_at: string
           uploaded_at: string | null
           uploaded_by: string | null
+          version_label: string
           visibility: Database["public"]["Enums"]["client_document_visibility"]
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           client_id: string
           created_at?: string
+          deliverable_status?: string
           file_name?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
           instructions?: string
+          is_deliverable?: boolean
           is_required?: boolean
+          milestone_id?: string | null
           onboarding_item_id?: string | null
           organization_id: string
+          project_id?: string | null
           requested_by?: string | null
+          requires_client_review?: boolean
           reviewed_at?: string | null
           reviewed_by?: string | null
           revision_note?: string
+          revision_reason?: string
+          shared_at?: string | null
           status?: Database["public"]["Enums"]["client_document_status"]
           storage_path?: string | null
           title: string
           updated_at?: string
           uploaded_at?: string | null
           uploaded_by?: string | null
+          version_label?: string
           visibility?: Database["public"]["Enums"]["client_document_visibility"]
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           client_id?: string
           created_at?: string
+          deliverable_status?: string
           file_name?: string | null
           file_size?: number | null
           file_type?: string | null
           id?: string
           instructions?: string
+          is_deliverable?: boolean
           is_required?: boolean
+          milestone_id?: string | null
           onboarding_item_id?: string | null
           organization_id?: string
+          project_id?: string | null
           requested_by?: string | null
+          requires_client_review?: boolean
           reviewed_at?: string | null
           reviewed_by?: string | null
           revision_note?: string
+          revision_reason?: string
+          shared_at?: string | null
           status?: Database["public"]["Enums"]["client_document_status"]
           storage_path?: string | null
           title?: string
           updated_at?: string
           uploaded_at?: string | null
           uploaded_by?: string | null
+          version_label?: string
           visibility?: Database["public"]["Enums"]["client_document_visibility"]
         }
         Relationships: [
@@ -1735,6 +1841,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "client_delivery_milestones"
             referencedColumns: ["id"]
           },
           {
@@ -1749,6 +1862,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -5602,7 +5722,15 @@ export type Database = {
       projects: {
         Row: {
           blocker_summary: string | null
+          client_delivery_completed_at: string | null
+          client_delivery_started_at: string | null
           client_id: string | null
+          client_next_action: string
+          client_stage: string
+          client_stage_label: string
+          client_summary: string
+          client_title: string
+          client_visible: boolean
           created_at: string
           created_by: string | null
           created_source: string
@@ -5629,7 +5757,15 @@ export type Database = {
         }
         Insert: {
           blocker_summary?: string | null
+          client_delivery_completed_at?: string | null
+          client_delivery_started_at?: string | null
           client_id?: string | null
+          client_next_action?: string
+          client_stage?: string
+          client_stage_label?: string
+          client_summary?: string
+          client_title?: string
+          client_visible?: boolean
           created_at?: string
           created_by?: string | null
           created_source?: string
@@ -5656,7 +5792,15 @@ export type Database = {
         }
         Update: {
           blocker_summary?: string | null
+          client_delivery_completed_at?: string | null
+          client_delivery_started_at?: string | null
           client_id?: string | null
+          client_next_action?: string
+          client_stage?: string
+          client_stage_label?: string
+          client_summary?: string
+          client_title?: string
+          client_visible?: boolean
           created_at?: string
           created_by?: string | null
           created_source?: string
