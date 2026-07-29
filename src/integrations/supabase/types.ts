@@ -955,6 +955,7 @@ export type Database = {
           created_by: string | null
           email: string | null
           id: string
+          livemode: boolean
           metadata: Json
           name: string | null
           organization_id: string
@@ -967,6 +968,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          livemode?: boolean
           metadata?: Json
           name?: string | null
           organization_id: string
@@ -979,6 +981,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          livemode?: boolean
           metadata?: Json
           name?: string | null
           organization_id?: string
@@ -1095,6 +1098,7 @@ export type Database = {
           hosted_invoice_url: string | null
           id: string
           invoice_pdf_url: string | null
+          livemode: boolean
           metadata: Json
           organization_id: string
           paid_at: string | null
@@ -1122,6 +1126,7 @@ export type Database = {
           hosted_invoice_url?: string | null
           id?: string
           invoice_pdf_url?: string | null
+          livemode?: boolean
           metadata?: Json
           organization_id: string
           paid_at?: string | null
@@ -1149,6 +1154,7 @@ export type Database = {
           hosted_invoice_url?: string | null
           id?: string
           invoice_pdf_url?: string | null
+          livemode?: boolean
           metadata?: Json
           organization_id?: string
           paid_at?: string | null
@@ -1201,6 +1207,7 @@ export type Database = {
           failure_reason: string | null
           id: string
           invoice_id: string
+          livemode: boolean
           metadata: Json
           organization_id: string
           paid_at: string | null
@@ -1219,6 +1226,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           invoice_id: string
+          livemode?: boolean
           metadata?: Json
           organization_id: string
           paid_at?: string | null
@@ -1237,6 +1245,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           invoice_id?: string
+          livemode?: boolean
           metadata?: Json
           organization_id?: string
           paid_at?: string | null
@@ -1279,6 +1288,7 @@ export type Database = {
           customer_id: string | null
           id: string
           interval: string
+          livemode: boolean
           metadata: Json
           organization_id: string
           proposal_id: string | null
@@ -1301,6 +1311,7 @@ export type Database = {
           customer_id?: string | null
           id?: string
           interval?: string
+          livemode?: boolean
           metadata?: Json
           organization_id: string
           proposal_id?: string | null
@@ -1323,6 +1334,7 @@ export type Database = {
           customer_id?: string | null
           id?: string
           interval?: string
+          livemode?: boolean
           metadata?: Json
           organization_id?: string
           proposal_id?: string | null
@@ -1370,6 +1382,7 @@ export type Database = {
           event_type: string
           id: string
           last_error: string | null
+          livemode: boolean
           payload: Json
           processed_at: string | null
           processing_status: Database["public"]["Enums"]["billing_webhook_processing_status"]
@@ -1383,6 +1396,7 @@ export type Database = {
           event_type: string
           id?: string
           last_error?: string | null
+          livemode?: boolean
           payload: Json
           processed_at?: string | null
           processing_status?: Database["public"]["Enums"]["billing_webhook_processing_status"]
@@ -1396,6 +1410,7 @@ export type Database = {
           event_type?: string
           id?: string
           last_error?: string | null
+          livemode?: boolean
           payload?: Json
           processed_at?: string | null
           processing_status?: Database["public"]["Enums"]["billing_webhook_processing_status"]
