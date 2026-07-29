@@ -13,7 +13,6 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -29,6 +28,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authenticated/content-ops'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
+import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token.index'
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
@@ -96,11 +96,6 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProposalTokenRoute = ProposalTokenRouteImport.update({
-  id: '/proposal/$token',
-  path: '/proposal/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -180,6 +175,11 @@ const AuthenticatedAccountabilityRoute =
     path: '/accountability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ProposalTokenIndexRoute = ProposalTokenIndexRouteImport.update({
+  id: '/proposal/$token/',
+  path: '/proposal/$token/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSamIndexRoute = AuthenticatedSamIndexRouteImport.update({
   id: '/sam/',
   path: '/sam/',
@@ -484,7 +484,6 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -504,6 +503,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token/': typeof ProposalTokenIndexRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -554,7 +554,6 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -574,6 +573,7 @@ export interface FileRoutesByTo {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token': typeof ProposalTokenIndexRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -626,7 +626,6 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
-  '/proposal/$token': typeof ProposalTokenRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -646,6 +645,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
+  '/proposal/$token/': typeof ProposalTokenIndexRoute
   '/_authenticated/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/_authenticated/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/_authenticated/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -698,7 +698,6 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
-    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -718,6 +717,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/labs/'
     | '/sam/'
+    | '/proposal/$token/'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -768,7 +768,6 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
-    | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -788,6 +787,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/labs'
     | '/sam'
+    | '/proposal/$token'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -839,7 +839,6 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
-    | '/proposal/$token'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
@@ -859,6 +858,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
+    | '/proposal/$token/'
     | '/_authenticated/labs/commitments/$id'
     | '/_authenticated/labs/decisions/$id'
     | '/_authenticated/labs/documents/$id'
@@ -897,7 +897,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
-  ProposalTokenRoute: typeof ProposalTokenRoute
+  ProposalTokenIndexRoute: typeof ProposalTokenIndexRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicProposalsAcceptRoute: typeof ApiPublicProposalsAcceptRoute
@@ -941,13 +941,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proposal/$token': {
-      id: '/proposal/$token'
-      path: '/proposal/$token'
-      fullPath: '/proposal/$token'
-      preLoaderRoute: typeof ProposalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1054,6 +1047,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/accountability'
       preLoaderRoute: typeof AuthenticatedAccountabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/proposal/$token/': {
+      id: '/proposal/$token/'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token/'
+      preLoaderRoute: typeof ProposalTokenIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/sam/': {
       id: '/_authenticated/sam/'
@@ -1650,7 +1650,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
-  ProposalTokenRoute: ProposalTokenRoute,
+  ProposalTokenIndexRoute: ProposalTokenIndexRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicProposalsAcceptRoute: ApiPublicProposalsAcceptRoute,

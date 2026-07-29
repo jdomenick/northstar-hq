@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Download, CheckCircle2, XCircle } from "lucide-react";
 
-export const Route = createFileRoute("/proposal/$token")({
+export const Route = createFileRoute("/proposal/$token/")({
   component: PublicProposalPage,
   head: () => ({
     meta: [
