@@ -24,4 +24,6 @@ export const can = {
   archiveContent: (role?: Role | null) => atLeast(role, "executive"),
   manageOrg: (role?: Role | null) => atLeast(role, "admin"),
   manageMembers: (role?: Role | null) => atLeast(role, "admin"),
+  // Executive-only operational surfaces (billing, revenue, proposals).
+  viewFinancials: (role?: Role | null) => atLeast(role, "executive"),
 };
