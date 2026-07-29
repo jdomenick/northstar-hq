@@ -45,6 +45,12 @@ export function isBillingConfigured(): boolean {
   return Boolean(key && /^sk_(test|live)_/.test(key) && whsec && whsec.length >= 8);
 }
 
+/** True iff STRIPE_SECRET_KEY is a LIVE key. Used to stamp DB rows so test
+ *  and live records can never be confused. */
+export function isStripeLive(): boolean {
+  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_");
+}
+
 /** Safe extractor: never surfaces secret values in logs/responses. */
 export function stripeErrorMessage(err: unknown): string {
   if (err instanceof Stripe.errors.StripeError) {
