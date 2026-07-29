@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ChevronLeft, Send, CheckCircle2, RotateCcw, Copy, Download, MessageSquare, Archive, Eye, ArrowRight } from "lucide-react";
+import { ChevronLeft, Send, CheckCircle2, RotateCcw, Copy, Download, MessageSquare, Archive, Eye, ArrowRight, FolderKanban, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { formatMoney } from "@/lib/mission-control/hooks";
 import { LifecycleRail, NextStepBanner, deriveLifecycle } from "@/components/client-lifecycle";
+import { getEngagementStatusFn, retryDeliveryActivationFn } from "@/lib/delivery/activation.functions";
 import {
   getProposal, updateProposalDraft, submitForReview, approveProposal, returnProposalToDraft,
   sendProposal, markSuperseded, listComments, addComment, reissueProposalLink,
@@ -37,10 +38,16 @@ function ProposalDetail() {
   const commentsFn = useServerFn(listComments);
   const addCommentFn = useServerFn(addComment);
   const reissueFn = useServerFn(reissueProposalLink);
+  const engagementFn = useServerFn(getEngagementStatusFn);
+  const retryActivationFn = useServerFn(retryDeliveryActivationFn);
 
   const q = useQuery({
     queryKey: ["nsl-proposal", id],
     queryFn: () => getFn({ data: { proposalId: id } }),
+  });
+  const engagementQ = useQuery({
+    queryKey: ["nsl-engagement", id],
+    queryFn: () => engagementFn({ data: { proposal_id: id } }),
   });
   const commentsQ = useQuery({
     queryKey: ["nsl-proposal-comments", id],
@@ -49,6 +56,7 @@ function ProposalDetail() {
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["nsl-proposal", id] });
+    qc.invalidateQueries({ queryKey: ["nsl-engagement", id] });
     qc.invalidateQueries({ queryKey: ["nsl-proposals"] });
   };
 
@@ -92,10 +100,29 @@ function ProposalDetail() {
   if (!proposal) return <div className="p-10 text-sm text-foreground/60">Proposal not found.</div>;
 
   const editable = ["draft", "internal_review", "approved", "ready_to_send"].includes(proposal.status) && !proposal.locked_at;
+  const engagement = engagementQ.data;
+  const deliveryProject = engagement?.project ?? null;
   const lifecycle = deriveLifecycle({
     proposalStatus: proposal.status,
     recurringFeeCents: Number(proposal.recurring_fee_cents ?? 0),
+    depositStatus: engagement?.depositStatus,
+    finalStatus: engagement?.finalStatus,
+    subscriptionStatus: engagement?.subscriptionStatus,
+    deliveryProjectId: deliveryProject?.id ?? null,
+    activationError: engagement?.activationError ?? null,
   });
+
+  const retryActivation = () => {
+    if (!engagement) return;
+    retryActivationFn({ data: { organization_id: engagement.organizationId, proposal_id: id } })
+      .then((res) => {
+        if (res.status === "created") toast.success("Delivery project created. Client is now active.");
+        else if (res.status === "already_active") toast.success("Delivery project already exists.");
+        else toast.error(res.status === "blocked" ? res.message : res.message);
+        invalidate();
+      })
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Retry failed"));
+  };
 
   const primaryAction = (() => {
     if (proposal.status === "draft") {
@@ -127,6 +154,20 @@ function ProposalDetail() {
       );
     }
     if (proposal.status === "accepted") {
+      if (deliveryProject) {
+        return (
+          <Button size="sm" onClick={() => nav({ to: "/labs/projects/$id", params: { id: deliveryProject.id } })}>
+            <FolderKanban className="mr-2 h-4 w-4" /> Open delivery project
+          </Button>
+        );
+      }
+      if (lifecycle.activationNeedsAttention) {
+        return (
+          <Button size="sm" variant="destructive" onClick={retryActivation}>
+            <RefreshCw className="mr-2 h-4 w-4" /> Retry activation
+          </Button>
+        );
+      }
       return (
         <Button size="sm" onClick={() => nav({ to: "/labs/billing" })}>
           Go to billing <ArrowRight className="ml-2 h-4 w-4" />

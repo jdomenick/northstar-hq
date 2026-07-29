@@ -16,7 +16,10 @@ export type BillingEventType =
   | "subscription_updated"
   | "subscription_canceled"
   | "recurring_billing_active"
-  | "refund_issued";
+  | "refund_issued"
+  | "delivery_project_created"
+  | "client_activated"
+  | "delivery_ready_to_start";
 
 /** Strip anything that could ever be a secret from a payload. */
 function sanitizePayload(payload: unknown): Record<string, unknown> {

@@ -232,6 +232,25 @@ async function syncInvoice(
         event_type: "ready_for_go_live",
         actor_type: "stripe",
       });
+
+      // Final lifecycle step. Idempotent and self-guarding: it re-verifies
+      // every activation condition and does nothing if already activated.
+      if (local.proposal_id) {
+        const { activateClientDeliveryFromBilling } = await import(
+          "@/lib/delivery/activation.server"
+        );
+        const result = await activateClientDeliveryFromBilling(supabase, {
+          proposal_id: local.proposal_id,
+          organization_id: local.organization_id,
+        });
+        if (result.status === "failed") {
+          // Surface it without failing the webhook: the payment itself
+          // reconciled. The UI shows "Activation needs attention" and an
+          // executive can retry.
+          // eslint-disable-next-line no-console
+          console.error("[delivery activation] failed", result.message);
+        }
+      }
     }
   }
 
