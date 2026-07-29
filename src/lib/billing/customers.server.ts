@@ -1,7 +1,7 @@
 // Ensure a Stripe customer exists for a client. Idempotent per (org, client).
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getStripe, stripeErrorMessage } from "./stripe.server";
+import { getStripe, isStripeLive, stripeErrorMessage } from "./stripe.server";
 import { recordBillingEvent } from "./events.server";
 import { buildIdempotencyKey } from "./money";
 
@@ -91,6 +91,7 @@ export async function ensureBillingCustomer(
       email: input.email ?? null,
       name: client.name,
       created_by: input.actor_id ?? null,
+      livemode: isStripeLive(),
     })
     .select("*")
     .maybeSingle();
