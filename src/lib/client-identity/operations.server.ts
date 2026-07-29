@@ -22,10 +22,14 @@ import {
 
 type SB = SupabaseClient<Database>;
 
-export async function requireOrgAdmin(supabase: SB, organizationId: string): Promise<void> {
+export async function requireOrgAdmin(
+  supabase: SB,
+  organizationId: string,
+  userId: string,
+): Promise<void> {
   const { data, error } = await supabase.rpc("has_org_role", {
     _org: organizationId,
-    _user: (await supabase.auth.getUser()).data.user?.id ?? "",
+    _user: userId,
     _min: "admin",
   });
   if (error || data !== true) throw new ClientIdentityError("permission_denied");
