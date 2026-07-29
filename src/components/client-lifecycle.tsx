@@ -13,6 +13,7 @@ export const LIFECYCLE_STEPS = [
   "Accepted",
   "Deposit paid",
   "Balance paid",
+  "Delivery ready",
   "Recurring live",
 ] as const;
 
@@ -25,6 +26,12 @@ export interface LifecycleState {
   nextStep: string;
   /** True when nothing is left to do on this engagement. */
   complete: boolean;
+  /** Steps beyond this index are not part of this engagement at all. */
+  lastRelevantIndex: number;
+  /** Recurring billing exists on the proposal but is not live yet. */
+  recurringPending: boolean;
+  /** Activation ran and failed after payment reconciled. */
+  activationNeedsAttention: boolean;
 }
 
 export interface LifecycleInput {
@@ -33,6 +40,10 @@ export interface LifecycleInput {
   finalStatus?: string | null;
   subscriptionStatus?: string | null;
   recurringFeeCents?: number;
+  /** Id of the delivery project, when activation already happened. */
+  deliveryProjectId?: string | null;
+  /** Last activation failure reason, if any. */
+  activationError?: string | null;
 }
 
 /** Derive the lifecycle position from real record state. No guessing. */
