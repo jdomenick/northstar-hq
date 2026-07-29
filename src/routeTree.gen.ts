@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
+import { Route as ClientLoginRouteImport } from './routes/client.login'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -104,6 +105,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProposalTokenRoute = ProposalTokenRouteImport.update({
   id: '/proposal/$token',
   path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientLoginRoute = ClientLoginRouteImport.update({
+  id: '/client/login',
+  path: '/client/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -504,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
@@ -577,6 +584,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -651,6 +659,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/client/login': typeof ClientLoginRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
@@ -726,6 +735,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
     | '/proposal/$token'
     | '/labs/accountability'
     | '/labs/billing'
@@ -799,6 +809,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
     | '/labs/accountability'
     | '/labs/billing'
     | '/labs/decisions'
@@ -872,6 +883,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/client/login'
     | '/proposal/$token'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/billing'
@@ -933,6 +945,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ClientLoginRoute: typeof ClientLoginRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
@@ -985,6 +998,13 @@ declare module '@tanstack/react-router' {
       path: '/proposal/$token'
       fullPath: '/proposal/$token'
       preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/client/login': {
+      id: '/client/login'
+      path: '/client/login'
+      fullPath: '/client/login'
+      preLoaderRoute: typeof ClientLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset': {
@@ -1722,6 +1742,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ClientLoginRoute: ClientLoginRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
