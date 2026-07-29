@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Stripe } from "stripe";
 import type { Database } from "@/integrations/supabase/types";
 import { recordBillingEvent } from "./events.server";
-import { getStripe } from "./stripe.server";
+import { getStripe, isStripeLive } from "./stripe.server";
 
 export type WebhookResult =
   | { kind: "already_processed" }
@@ -319,6 +319,15 @@ export async function processStripeEvent(
   supabase: SupabaseClient<Database>,
   event: Stripe.Event,
 ): Promise<WebhookResult> {
+  // Mode isolation: a live app must reject test events and vice versa. This
+  // prevents cross-contamination even if webhook secrets were misconfigured.
+  if (Boolean(event.livemode) !== isStripeLive()) {
+    return {
+      kind: "failed",
+      retryable: true,
+      message: `mode_mismatch: event livemode=${event.livemode} app livemode=${isStripeLive()}`,
+    };
+  }
   if (!HANDLED_EVENTS.has(event.type)) {
     // Persist for observability but don't retry.
     const { data: existing } = await supabase
