@@ -282,7 +282,10 @@ function ClientList({ orgId, clients }: { orgId: string | null; clients: ReturnT
                 {c.notes && <div className="mt-0.5 text-[11.5px] text-foreground/60 truncate">{c.notes}</div>}
               </div>
               <Badge variant="outline" className="text-[10px] uppercase">{c.status}</Badge>
-              <div className="font-display text-[16px] tabular-nums">{formatMoney(c.mrr_cents ?? 0, { compact: true })}<span className="text-[10px] text-foreground/50">/mo</span></div>
+              <div className="flex items-center gap-3">
+                <div className="font-display text-[16px] tabular-nums">{formatMoney(c.mrr_cents ?? 0, { compact: true })}<span className="text-[10px] text-foreground/50">/mo</span></div>
+                {orgId && <ClientAccessDialog orgId={orgId} clientId={c.id} clientName={c.name} />}
+              </div>
             </li>
           ))}
         </ul>
