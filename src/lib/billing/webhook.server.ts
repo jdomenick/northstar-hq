@@ -76,6 +76,7 @@ async function claimEvent(
       attempt_count: 1,
       received_at: new Date().toISOString(),
       payload: event as never,
+      livemode: Boolean(event.livemode),
     });
     if (error) {
       // Concurrent insert; treat as already claimed by another worker.
