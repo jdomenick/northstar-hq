@@ -43,10 +43,14 @@ function DocumentsBody() {
 
   const requested = data.documents.filter((d) => d.status === "requested" || d.status === "needs_revision");
   const yours = data.documents.filter(
-    (d) => d.visibility === "client_uploaded" && d.status !== "requested" && d.status !== "needs_revision",
+    (d) => d.uploaded_by_client && d.status !== "requested" && d.status !== "needs_revision",
   );
   const shared = data.documents.filter(
-    (d) => d.visibility === "client_visible" && d.storage_path && d.status !== "needs_revision",
+    (d) =>
+      !d.uploaded_by_client &&
+      d.visibility === "client_visible" &&
+      d.storage_path &&
+      d.status !== "needs_revision",
   );
 
   return (

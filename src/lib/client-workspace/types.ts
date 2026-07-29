@@ -59,6 +59,7 @@ export interface ClientDocument {
   visibility: DocumentVisibility;
   status: DocumentStatus;
   is_required: boolean;
+  uploaded_by_client: boolean;
   storage_path: string | null;
   file_name: string | null;
   file_size: number | null;

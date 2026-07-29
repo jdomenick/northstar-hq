@@ -7,6 +7,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { recordBillingEvent } from "@/lib/billing/events.server";
+import {
+  buildImplementationReadyEvent,
+  emitClientLifecycleEvent,
+} from "@/lib/client-workspace/lifecycle-events";
 
 export type ActivationBlockedReason =
   | "proposal_not_found"
@@ -250,6 +254,19 @@ export async function activateClientDeliveryFromBilling(
       payload: { project_id: projectId, recurring_fee_cents: recurring },
     });
 
+    // Client-facing activity. Emitted only on the transition that actually
+    // created the delivery project and moved the client to active, so a retry
+    // that returns "already_active" never reaches here. Deduped by
+    // (client, proposal) as a second guard.
+    await emitImplementationReadyEvent(supabase, {
+      organization_id: orgId,
+      client_id: clientId,
+      proposal_id: proposal.id,
+      project_id: projectId,
+      implementation_name: deliveryProjectName(client.name),
+      next_step: truncate(proposal.implementation_timeline, 300),
+    });
+
     return {
       status: "created",
       projectId,
@@ -278,6 +295,42 @@ async function findDeliveryProject(
     .is("deleted_at", null)
     .maybeSingle();
   return data?.id ?? null;
+}
+
+/**
+ * Client-safe "implementation ready" activity entry. Contains the
+ * implementation name, activation date, current phase, and a plain-language
+ * next step. No project ids, no billing internals, no operator assignments.
+ */
+async function emitImplementationReadyEvent(
+  supabase: SupabaseClient<Database>,
+  input: {
+    organization_id: string;
+    client_id: string;
+    proposal_id: string;
+    project_id: string;
+    implementation_name: string;
+    next_step: string | null;
+  },
+): Promise<void> {
+  const event = buildImplementationReadyEvent({
+    client_id: input.client_id,
+    proposal_id: input.proposal_id,
+    project_id: input.project_id,
+    implementation_name: input.implementation_name,
+    activated_at: new Date().toISOString(),
+    next_step: input.next_step,
+  });
+  const outcome = await emitClientLifecycleEvent(supabase as never, {
+    organization_id: input.organization_id,
+    client_id: input.client_id,
+    event,
+  });
+  if (outcome === "failed") {
+    // Activation succeeded; a feed entry must not roll it back.
+    // eslint-disable-next-line no-console
+    console.error("[client workspace] implementation_ready event insert failed");
+  }
 }
 
 async function hasLiveSubscription(
