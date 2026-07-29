@@ -5,8 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, FileText, ArrowRight } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
-import { useRevenueClients, usePipeline, formatMoney } from "@/lib/mission-control/hooks";
+import { useRevenueClients, usePipeline, useCreateClient, formatMoney } from "@/lib/mission-control/hooks";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -62,8 +63,24 @@ function ProposalsIndex() {
   const [open, setOpen] = useState(false);
   const [clientId, setClientId] = useState<string>("");
   const [pipelineId, setPipelineId] = useState<string>("");
+  const [newClientName, setNewClientName] = useState("");
   const clients = useRevenueClients(activeOrgId);
   const pipeline = usePipeline(activeOrgId);
+  const createClient = useCreateClient(activeOrgId);
+  const hasClients = (clients.data ?? []).length > 0;
+
+  const addClient = async () => {
+    const name = newClientName.trim();
+    if (!name) return;
+    try {
+      const row = await createClient.mutateAsync({ name, status: "onboarding" });
+      setNewClientName("");
+      if (row?.id) setClientId(row.id);
+      toast.success(`${name} added. You can generate their proposal now.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not add the client");
+    }
+  };
 
   const pipelineForClient = useMemo(() => {
     return (pipeline.data ?? []).filter((d) => !clientId || d.client_id === clientId);
@@ -103,22 +120,48 @@ function ProposalsIndex() {
               <div className="space-y-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-foreground/60">Client</label>
-                  <Select value={clientId} onValueChange={(v) => { setClientId(v); setPipelineId(""); }}>
-                    <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
-                    <SelectContent>
-                      {(clients.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {hasClients && (
+                    <Select value={clientId} onValueChange={(v) => { setClientId(v); setPipelineId(""); }}>
+                      <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
+                      <SelectContent>
+                        {(clients.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <div className={hasClients ? "mt-2" : ""}>
+                    {!hasClients && (
+                      <p className="mb-2 text-xs text-foreground/60">
+                        No clients yet. Add your first one here and the proposal will be created for them.
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={hasClients ? "Or add a new client" : "Client name"}
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void addClient(); } }}
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => void addClient()}
+                        disabled={!newClientName.trim() || createClient.isPending}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-foreground/60">Pipeline record (optional)</label>
-                  <Select value={pipelineId} onValueChange={setPipelineId} disabled={!clientId}>
-                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      {pipelineForClient.map((d) => <SelectItem key={d.id} value={d.id}>{d.name} · {formatMoney(d.value_cents ?? 0, { compact: true })}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {clientId && pipelineForClient.length > 0 && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-foreground/60">Link a pipeline deal (optional)</label>
+                    <Select value={pipelineId} onValueChange={setPipelineId}>
+                      <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                      <SelectContent>
+                        {pipelineForClient.map((d) => <SelectItem key={d.id} value={d.id}>{d.name} · {formatMoney(d.value_cents ?? 0, { compact: true })}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
