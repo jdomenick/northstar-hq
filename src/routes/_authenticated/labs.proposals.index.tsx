@@ -189,7 +189,10 @@ function ProposalsIndex() {
           {list.data && list.data.length === 0 && (
             <div className="p-10 text-center text-sm text-foreground/60">
               <FileText className="mx-auto mb-2 h-8 w-8 opacity-40" />
-              No proposals yet. Generate one from an existing client.
+              <div>No proposals yet. This is where a new client engagement starts.</div>
+              <Button size="sm" className="mt-3" onClick={() => setOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> New proposal
+              </Button>
             </div>
           )}
           {(list.data ?? []).map((p) => (
