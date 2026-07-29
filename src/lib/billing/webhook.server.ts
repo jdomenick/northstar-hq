@@ -334,6 +334,7 @@ export async function processStripeEvent(
         received_at: new Date().toISOString(),
         processed_at: new Date().toISOString(),
         payload: event as never,
+        livemode: Boolean(event.livemode),
       });
     }
     return { kind: "already_processed" };
