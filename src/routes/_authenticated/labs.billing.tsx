@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, CreditCard, ExternalLink, RefreshCw, Repeat, Send, Undo2, Wallet } from "lucide-react";
+import { Copy, CreditCard, ExternalLink, FolderKanban, RefreshCw, Repeat, Send, Undo2, Wallet } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
   refundInvoiceFn,
   resendInvoiceFn,
 } from "@/lib/billing/billing.functions";
+import { listDeliveryProjectsFn, retryDeliveryActivationFn } from "@/lib/delivery/activation.functions";
 
 export const Route = createFileRoute("/_authenticated/labs/billing")({
   component: BillingPage,
@@ -66,11 +67,18 @@ function BillingPage() {
   const activateFn = useServerFn(activateSubscriptionFn);
   const refundFn = useServerFn(refundInvoiceFn);
   const resendFn = useServerFn(resendInvoiceFn);
+  const projectsFn = useServerFn(listDeliveryProjectsFn);
+  const retryActivationFn = useServerFn(retryDeliveryActivationFn);
 
   const overviewQ = useQuery({
     queryKey: ["billing-overview", activeOrgId],
     enabled: !!activeOrgId,
     queryFn: () => overviewFn({ data: { organization_id: activeOrgId! } }),
+  });
+  const deliveryQ = useQuery({
+    queryKey: ["delivery-projects", activeOrgId],
+    enabled: !!activeOrgId,
+    queryFn: () => projectsFn({ data: { organization_id: activeOrgId! } }),
   });
   const billableQ = useQuery({
     queryKey: ["billing-billable", activeOrgId],

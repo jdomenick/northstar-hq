@@ -125,3 +125,18 @@ export const getEngagementStatusFn = createServerFn({ method: "POST" })
       activationError,
     };
   });
+
+/** Delivery projects created from proposals, keyed by proposal for list views. */
+export const listDeliveryProjectsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ organization_id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("projects")
+      .select("id, name, status, proposal_id")
+      .eq("organization_id", data.organization_id)
+      .not("proposal_id", "is", null)
+      .is("deleted_at", null);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
