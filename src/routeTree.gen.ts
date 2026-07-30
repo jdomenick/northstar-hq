@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -94,6 +95,11 @@ import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/ap
 import { Route as AuthenticatedSamContentEditorIdRouteImport } from './routes/_authenticated/sam.content.editor.$id'
 import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from './routes/_authenticated/labs.clients.$clientId.workspace'
 
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -562,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/services': typeof ServicesRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/services': typeof ServicesRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -733,6 +741,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/services': typeof ServicesRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
@@ -820,6 +829,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/onboarding'
+    | '/services'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -905,6 +915,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/onboarding'
+    | '/services'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -990,6 +1001,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/onboarding'
+    | '/services'
     | '/_authenticated/accountability'
     | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
@@ -1077,6 +1089,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
+  ServicesRoute: typeof ServicesRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientBillingRoute: typeof ClientBillingRoute
   ClientCompanyRoute: typeof ClientCompanyRoute
@@ -1108,6 +1121,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -1964,6 +1984,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
+  ServicesRoute: ServicesRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientBillingRoute: ClientBillingRoute,
   ClientCompanyRoute: ClientCompanyRoute,
