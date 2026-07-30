@@ -254,7 +254,7 @@ function Deliverables({ report }: { report: ClientExecutiveReportView }) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Pill>{d.status_label}</Pill>
+                <Pill tone="neutral">{d.status_label}</Pill>
                 {d.has_file ? (
                   <button
                     type="button"
@@ -321,7 +321,7 @@ function BillingSnapshot({ report }: { report: ClientExecutiveReportView }) {
               <span className="text-[13.5px] text-foreground/85">{i.label}</span>
               <span className="flex items-center gap-3 text-[12px] text-foreground/60">
                 {formatMoney(i.amount_cents, i.currency)}
-                <Pill tone={i.status === "paid" ? "ok" : i.status === "open" ? "warn" : undefined}>
+                <Pill tone={i.status === "paid" ? "ok" : i.status === "open" ? "warn" : "neutral"}>
                   {i.status}
                 </Pill>
               </span>
