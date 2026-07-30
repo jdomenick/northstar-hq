@@ -17,7 +17,9 @@ type NavTo =
   | "/contact"
   | "/privacy"
   | "/terms"
-  | "/request-assessment";
+  | "/request-assessment"
+  | "/client/login";
+
 
 const NAV: { to: NavTo; label: string }[] = [
   { to: "/", label: "Home" },
@@ -84,10 +86,17 @@ function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <Link
+            to="/client/login"
+            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Client sign in
+          </Link>
           <CtaLink to="/request-assessment" className="px-4 py-2.5">
             Request Assessment
           </CtaLink>
         </nav>
+
 
         <button
           type="button"
@@ -114,12 +123,20 @@ function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              to="/client/login"
+              onClick={() => setOpen(false)}
+              className="border-b border-border/60 py-3 text-[14px] text-foreground"
+            >
+              Client sign in
+            </Link>
             <CtaLink to="/request-assessment" className="mt-4 mb-2 w-full">
               Request Assessment
             </CtaLink>
           </nav>
         </div>
       )}
+
     </header>
   );
 }
@@ -179,10 +196,11 @@ function SiteFooter() {
               </Link>
             </li>
             <li>
-              <a href="/client/login" className="text-[13px] text-muted-foreground hover:text-foreground">
+              <Link to="/client/login" className="text-[13px] text-muted-foreground hover:text-foreground">
                 Client sign in
-              </a>
+              </Link>
             </li>
+
             <li>
               <a href="/auth" className="text-[13px] text-muted-foreground hover:text-foreground">
                 Team sign in
