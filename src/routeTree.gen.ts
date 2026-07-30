@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndustriesRouteImport } from './routes/industries'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -109,6 +110,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const IndustriesRoute = IndustriesRouteImport.update({
   id: '/industries',
   path: '/industries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -573,6 +579,7 @@ const AuthenticatedLabsClientsClientIdWorkspaceRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/services': typeof ServicesRoute
@@ -660,6 +667,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/services': typeof ServicesRoute
@@ -748,6 +756,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/services': typeof ServicesRoute
@@ -837,6 +846,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/how-it-works'
     | '/industries'
     | '/onboarding'
     | '/services'
@@ -924,6 +934,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/how-it-works'
     | '/industries'
     | '/onboarding'
     | '/services'
@@ -1011,6 +1022,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/how-it-works'
     | '/industries'
     | '/onboarding'
     | '/services'
@@ -1100,6 +1112,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  HowItWorksRoute: typeof HowItWorksRoute
   IndustriesRoute: typeof IndustriesRoute
   OnboardingRoute: typeof OnboardingRoute
   ServicesRoute: typeof ServicesRoute
@@ -1153,6 +1166,13 @@ declare module '@tanstack/react-router' {
       path: '/industries'
       fullPath: '/industries'
       preLoaderRoute: typeof IndustriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2003,6 +2023,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  HowItWorksRoute: HowItWorksRoute,
   IndustriesRoute: IndustriesRoute,
   OnboardingRoute: OnboardingRoute,
   ServicesRoute: ServicesRoute,
