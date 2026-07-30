@@ -141,7 +141,7 @@ export async function loadClientExecutiveReport(
 ): Promise<ClientExecutiveReportView> {
   const acct = await resolveClientAccount(supabase, userId);
 
-  const [workspace, delivery, reportRes, metricRes, clientRes] = await Promise.all([
+  const [workspace, delivery, reportRes, metricRes] = await Promise.all([
     loadClientWorkspace(supabase, userId),
     loadClientDelivery(supabase, userId),
     supabase
@@ -157,16 +157,10 @@ export async function loadClientExecutiveReport(
       .eq("client_id", acct.client_id)
       .eq("client_visible", true)
       .order("sort_order", { ascending: true }),
-    supabase
-      .from("client_accounts")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle(),
   ]);
 
   if (reportRes.error) throw new ClientIdentityError("internal_error", reportRes.error.message);
   if (metricRes.error) throw new ClientIdentityError("internal_error", metricRes.error.message);
-  if (clientRes.error) throw new ClientIdentityError("internal_error", clientRes.error.message);
 
   // The client never sees who inside NorthStar Labs authored the report.
   const published = reportRes.data ? toVersion(reportRes.data as ReportRow, null) : null;
