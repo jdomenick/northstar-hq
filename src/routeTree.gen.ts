@@ -68,6 +68,7 @@ import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenticated/labs.billing'
+import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
@@ -411,6 +412,12 @@ const AuthenticatedLabsBillingRoute =
     path: '/labs/billing',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsAssessmentsRoute =
+  AuthenticatedLabsAssessmentsRouteImport.update({
+    id: '/labs/assessments',
+    path: '/labs/assessments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLabsAccountabilityRoute =
   AuthenticatedLabsAccountabilityRouteImport.update({
     id: '/labs/accountability',
@@ -644,6 +651,7 @@ export interface FileRoutesByFullPath {
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -736,6 +744,7 @@ export interface FileRoutesByTo {
   '/client/report': typeof ClientReportRoute
   '/client': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -831,6 +840,7 @@ export interface FileRoutesById {
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/_authenticated/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/_authenticated/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -926,6 +936,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/client/'
     | '/labs/accountability'
+    | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
@@ -1018,6 +1029,7 @@ export interface FileRouteTypes {
     | '/client/report'
     | '/client'
     | '/labs/accountability'
+    | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
@@ -1112,6 +1124,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/client/'
     | '/_authenticated/labs/accountability'
+    | '/_authenticated/labs/assessments'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
     | '/_authenticated/labs/documents'
@@ -1625,6 +1638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsBillingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labs/assessments': {
+      id: '/_authenticated/labs/assessments'
+      path: '/labs/assessments'
+      fullPath: '/labs/assessments'
+      preLoaderRoute: typeof AuthenticatedLabsAssessmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/labs/accountability': {
       id: '/_authenticated/labs/accountability'
       path: '/labs/accountability'
@@ -2028,6 +2048,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
+  AuthenticatedLabsAssessmentsRoute: typeof AuthenticatedLabsAssessmentsRoute
   AuthenticatedLabsBillingRoute: typeof AuthenticatedLabsBillingRoute
   AuthenticatedLabsDecisionsRoute: typeof AuthenticatedLabsDecisionsRouteWithChildren
   AuthenticatedLabsDocumentsRoute: typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -2065,6 +2086,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
+  AuthenticatedLabsAssessmentsRoute: AuthenticatedLabsAssessmentsRoute,
   AuthenticatedLabsBillingRoute: AuthenticatedLabsBillingRoute,
   AuthenticatedLabsDecisionsRoute: AuthenticatedLabsDecisionsRouteWithChildren,
   AuthenticatedLabsDocumentsRoute: AuthenticatedLabsDocumentsRouteWithChildren,
