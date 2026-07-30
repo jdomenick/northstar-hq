@@ -19,6 +19,7 @@ import {
   Users,
   Loader2,
   Rocket,
+  Inbox,
   DollarSign,
   Gauge,
 } from "lucide-react";
