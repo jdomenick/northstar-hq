@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -134,6 +135,11 @@ const IndustriesRoute = IndustriesRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -604,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
@@ -696,6 +703,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
@@ -789,6 +797,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
@@ -883,6 +892,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
@@ -975,6 +985,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
@@ -1067,6 +1078,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
+    | '/contact'
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
@@ -1161,6 +1173,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
+  ContactRoute: typeof ContactRoute
   HowItWorksRoute: typeof HowItWorksRoute
   IndustriesRoute: typeof IndustriesRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -1246,6 +1259,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -2104,6 +2124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
+  ContactRoute: ContactRoute,
   HowItWorksRoute: HowItWorksRoute,
   IndustriesRoute: IndustriesRoute,
   OnboardingRoute: OnboardingRoute,
