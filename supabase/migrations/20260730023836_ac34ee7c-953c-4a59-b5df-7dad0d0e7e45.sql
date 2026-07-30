@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.validate_client_report_scope() FROM PUBLIC, anon, authenticated;

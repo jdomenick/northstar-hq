@@ -1873,6 +1873,57 @@ export type Database = {
           },
         ]
       }
+      client_executive_reports: {
+        Row: {
+          business_notes: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          highlights: Json
+          id: string
+          organization_id: string
+          summary: string
+          version: number
+        }
+        Insert: {
+          business_notes?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          highlights?: Json
+          id?: string
+          organization_id: string
+          summary?: string
+          version: number
+        }
+        Update: {
+          business_notes?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          highlights?: Json
+          id?: string
+          organization_id?: string
+          summary?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_executive_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_executive_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invitations: {
         Row: {
           accepted_account_id: string | null
@@ -2044,6 +2095,75 @@ export type Database = {
           },
           {
             foreignKeyName: "client_onboarding_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_outcome_metrics: {
+        Row: {
+          client_id: string
+          client_visible: boolean
+          created_at: string
+          id: string
+          label: string
+          metric_key: string
+          organization_id: string
+          period_end: string | null
+          period_start: string | null
+          recorded_by: string | null
+          sort_order: number
+          source_label: string
+          updated_at: string
+          value_numeric: number
+          value_unit: string
+        }
+        Insert: {
+          client_id: string
+          client_visible?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          metric_key: string
+          organization_id: string
+          period_end?: string | null
+          period_start?: string | null
+          recorded_by?: string | null
+          sort_order?: number
+          source_label?: string
+          updated_at?: string
+          value_numeric: number
+          value_unit?: string
+        }
+        Update: {
+          client_id?: string
+          client_visible?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          metric_key?: string
+          organization_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          recorded_by?: string | null
+          sort_order?: number
+          source_label?: string
+          updated_at?: string
+          value_numeric?: number
+          value_unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_outcome_metrics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_outcome_metrics_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

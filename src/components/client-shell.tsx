@@ -94,6 +94,9 @@ export function ClientWorkspace({
             <ClientNavLink to="/client/delivery" active={pathname === "/client/delivery"}>
               Delivery
             </ClientNavLink>
+            <ClientNavLink to="/client/report" active={pathname === "/client/report"}>
+              Executive report
+            </ClientNavLink>
             <ClientNavLink to="/client/billing" active={pathname === "/client/billing"}>
               Billing
             </ClientNavLink>
