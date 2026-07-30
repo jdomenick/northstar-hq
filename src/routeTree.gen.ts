@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -99,6 +100,11 @@ import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/ap
 import { Route as AuthenticatedSamContentEditorIdRouteImport } from './routes/_authenticated/sam.content.editor.$id'
 import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from './routes/_authenticated/labs.clients.$clientId.workspace'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -597,6 +603,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -687,6 +694,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -778,6 +786,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
@@ -870,6 +879,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/services'
+    | '/terms'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -960,6 +970,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/services'
+    | '/terms'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -1050,6 +1061,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/services'
+    | '/terms'
     | '/_authenticated/accountability'
     | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
@@ -1142,6 +1154,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
+  TermsRoute: typeof TermsRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientBillingRoute: typeof ClientBillingRoute
   ClientCompanyRoute: typeof ClientCompanyRoute
@@ -1173,6 +1186,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -2069,6 +2089,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
+  TermsRoute: TermsRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientBillingRoute: ClientBillingRoute,
   ClientCompanyRoute: ClientCompanyRoute,
