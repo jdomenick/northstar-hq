@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /client/
+Disallow: /labs/
+Disallow: /sam/
+Disallow: /proposal/
+Disallow: /api/
+
+Sitemap: https://northstar-labs.lovable.app/sitemap.xml
