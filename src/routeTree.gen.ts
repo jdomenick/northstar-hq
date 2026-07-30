@@ -9,8 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as RequestAssessmentRouteImport } from './routes/request-assessment'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as IndustriesRouteImport } from './routes/industries'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
@@ -43,6 +52,7 @@ import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
 import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
+import { Route as ApiPublicAssessmentRouteImport } from './routes/api/public/assessment'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
 import { Route as AuthenticatedSettingsFounderActivationRouteImport } from './routes/_authenticated/settings.founder-activation'
 import { Route as AuthenticatedSamMemoryRouteImport } from './routes/_authenticated/sam.memory'
@@ -59,6 +69,7 @@ import { Route as AuthenticatedLabsGoalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authenticated/labs.documents'
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenticated/labs.billing'
+import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
@@ -93,14 +104,59 @@ import { Route as ApiPublicMediaMetaDeliveryTokenRouteImport } from './routes/ap
 import { Route as AuthenticatedSamContentEditorIdRouteImport } from './routes/_authenticated/sam.content.editor.$id'
 import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from './routes/_authenticated/labs.clients.$clientId.workspace'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestAssessmentRoute = RequestAssessmentRouteImport.update({
+  id: '/request-assessment',
+  path: '/request-assessment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndustriesRoute = IndustriesRouteImport.update({
+  id: '/industries',
+  path: '/industries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -265,6 +321,11 @@ const ClientInviteTokenRoute = ClientInviteTokenRouteImport.update({
   path: '/client/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAssessmentRoute = ApiPublicAssessmentRouteImport.update({
+  id: '/api/public/assessment',
+  path: '/api/public/assessment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -355,6 +416,12 @@ const AuthenticatedLabsBillingRoute =
   AuthenticatedLabsBillingRouteImport.update({
     id: '/labs/billing',
     path: '/labs/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLabsAssessmentsRoute =
+  AuthenticatedLabsAssessmentsRouteImport.update({
+    id: '/labs/assessments',
+    path: '/labs/assessments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLabsAccountabilityRoute =
@@ -554,8 +621,17 @@ const AuthenticatedLabsClientsClientIdWorkspaceRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
+  '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -582,6 +658,7 @@ export interface FileRoutesByFullPath {
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -598,6 +675,7 @@ export interface FileRoutesByFullPath {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
@@ -638,8 +716,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
+  '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
@@ -665,6 +752,7 @@ export interface FileRoutesByTo {
   '/client/report': typeof ClientReportRoute
   '/client': typeof ClientIndexRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -681,6 +769,7 @@ export interface FileRoutesByTo {
   '/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
@@ -723,8 +812,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
+  '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
@@ -751,6 +849,7 @@ export interface FileRoutesById {
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/_authenticated/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
   '/_authenticated/labs/documents': typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -767,6 +866,7 @@ export interface FileRoutesById {
   '/_authenticated/sam/memory': typeof AuthenticatedSamMemoryRoute
   '/_authenticated/settings/founder-activation': typeof AuthenticatedSettingsFounderActivationRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
+  '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
@@ -809,8 +909,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/how-it-works'
+    | '/industries'
     | '/onboarding'
+    | '/privacy'
+    | '/request-assessment'
+    | '/services'
+    | '/sitemap.xml'
+    | '/terms'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -837,6 +946,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/client/'
     | '/labs/accountability'
+    | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
@@ -853,6 +963,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/api/public/assessment'
     | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs/'
@@ -893,8 +1004,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/how-it-works'
+    | '/industries'
     | '/onboarding'
+    | '/privacy'
+    | '/request-assessment'
+    | '/services'
+    | '/sitemap.xml'
+    | '/terms'
     | '/accountability'
     | '/content-ops'
     | '/decisions'
@@ -920,6 +1040,7 @@ export interface FileRouteTypes {
     | '/client/report'
     | '/client'
     | '/labs/accountability'
+    | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
     | '/labs/documents'
@@ -936,6 +1057,7 @@ export interface FileRouteTypes {
     | '/sam/memory'
     | '/settings/founder-activation'
     | '/settings/integrations'
+    | '/api/public/assessment'
     | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/labs'
@@ -977,8 +1099,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/how-it-works'
+    | '/industries'
     | '/onboarding'
+    | '/privacy'
+    | '/request-assessment'
+    | '/services'
+    | '/sitemap.xml'
+    | '/terms'
     | '/_authenticated/accountability'
     | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
@@ -1005,6 +1136,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/client/'
     | '/_authenticated/labs/accountability'
+    | '/_authenticated/labs/assessments'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
     | '/_authenticated/labs/documents'
@@ -1021,6 +1153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sam/memory'
     | '/_authenticated/settings/founder-activation'
     | '/_authenticated/settings/integrations'
+    | '/api/public/assessment'
     | '/client/invite/$token'
     | '/proposal/$token/payment-return'
     | '/_authenticated/labs/'
@@ -1063,8 +1196,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
+  ContactRoute: typeof ContactRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  IndustriesRoute: typeof IndustriesRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RequestAssessmentRoute: typeof RequestAssessmentRoute
+  ServicesRoute: typeof ServicesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientBillingRoute: typeof ClientBillingRoute
   ClientCompanyRoute: typeof ClientCompanyRoute
@@ -1076,6 +1218,7 @@ export interface RootRouteChildren {
   ClientReportRoute: typeof ClientReportRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ClientIndexRoute: typeof ClientIndexRoute
+  ApiPublicAssessmentRoute: typeof ApiPublicAssessmentRoute
   ClientInviteTokenRoute: typeof ClientInviteTokenRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
@@ -1095,6 +1238,41 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/request-assessment': {
+      id: '/request-assessment'
+      path: '/request-assessment'
+      fullPath: '/request-assessment'
+      preLoaderRoute: typeof RequestAssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -1102,11 +1280,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/industries': {
+      id: '/industries'
+      path: '/industries'
+      fullPath: '/industries'
+      preLoaderRoute: typeof IndustriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1333,6 +1539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/assessment': {
+      id: '/api/public/assessment'
+      path: '/api/public/assessment'
+      fullPath: '/api/public/assessment'
+      preLoaderRoute: typeof ApiPublicAssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/settings/integrations': {
       id: '/_authenticated/settings/integrations'
       path: '/integrations'
@@ -1443,6 +1656,13 @@ declare module '@tanstack/react-router' {
       path: '/labs/billing'
       fullPath: '/labs/billing'
       preLoaderRoute: typeof AuthenticatedLabsBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/labs/assessments': {
+      id: '/_authenticated/labs/assessments'
+      path: '/labs/assessments'
+      fullPath: '/labs/assessments'
+      preLoaderRoute: typeof AuthenticatedLabsAssessmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/labs/accountability': {
@@ -1848,6 +2068,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
+  AuthenticatedLabsAssessmentsRoute: typeof AuthenticatedLabsAssessmentsRoute
   AuthenticatedLabsBillingRoute: typeof AuthenticatedLabsBillingRoute
   AuthenticatedLabsDecisionsRoute: typeof AuthenticatedLabsDecisionsRouteWithChildren
   AuthenticatedLabsDocumentsRoute: typeof AuthenticatedLabsDocumentsRouteWithChildren
@@ -1885,6 +2106,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
+  AuthenticatedLabsAssessmentsRoute: AuthenticatedLabsAssessmentsRoute,
   AuthenticatedLabsBillingRoute: AuthenticatedLabsBillingRoute,
   AuthenticatedLabsDecisionsRoute: AuthenticatedLabsDecisionsRouteWithChildren,
   AuthenticatedLabsDocumentsRoute: AuthenticatedLabsDocumentsRouteWithChildren,
@@ -1942,8 +2164,17 @@ const ProposalTokenRouteWithChildren = ProposalTokenRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
+  ContactRoute: ContactRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  IndustriesRoute: IndustriesRoute,
   OnboardingRoute: OnboardingRoute,
+  PrivacyRoute: PrivacyRoute,
+  RequestAssessmentRoute: RequestAssessmentRoute,
+  ServicesRoute: ServicesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientBillingRoute: ClientBillingRoute,
   ClientCompanyRoute: ClientCompanyRoute,
@@ -1955,6 +2186,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientReportRoute: ClientReportRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ClientIndexRoute: ClientIndexRoute,
+  ApiPublicAssessmentRoute: ApiPublicAssessmentRoute,
   ClientInviteTokenRoute: ClientInviteTokenRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,

@@ -19,6 +19,7 @@ import {
   Users,
   Loader2,
   Rocket,
+  Inbox,
   DollarSign,
   Gauge,
 } from "lucide-react";
@@ -54,6 +55,7 @@ type NavItem = {
   to:
     | "/labs"
     | "/labs/mission-control"
+    | "/labs/assessments"
     | "/labs/revenue"
     | "/labs/proposals"
     | "/labs/billing"
@@ -85,6 +87,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/labs", label: "The Brief", icon: CommandIcon, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
+      { to: "/labs/assessments", label: "Assessments", icon: Inbox },
       { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
       { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
       { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
