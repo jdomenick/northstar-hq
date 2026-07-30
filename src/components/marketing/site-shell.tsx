@@ -183,6 +183,11 @@ function SiteFooter() {
                 Client sign in
               </a>
             </li>
+            <li>
+              <a href="/auth" className="text-[13px] text-muted-foreground hover:text-foreground">
+                Team sign in
+              </a>
+            </li>
           </ul>
           <p className="mt-6 text-[12px] text-muted-foreground/70">
             Social profiles are not published yet.

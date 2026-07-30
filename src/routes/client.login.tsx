@@ -53,9 +53,10 @@ function ClientLoginPage() {
     try {
       await getContext();
     } catch {
-      await supabase.auth.signOut();
+      // Not a client account. It is a valid NorthStar Labs account, so send it
+      // to the operator workspace instead of signing it back out.
       setBusy(false);
-      setError("This sign in page is for NorthStar Labs clients only.");
+      navigate({ to: "/labs", replace: true });
       return;
     }
     await record({ data: { event: "client_login" } }).catch(() => undefined);
