@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,12 +8,9 @@ import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  ASSESSMENT_STATUSES,
   listAssessmentRequests,
   updateAssessmentRequest,
-  type AssessmentStatus,
 } from "@/lib/marketing/assessments.functions";
 
 export const Route = createFileRoute("/_authenticated/labs/assessments")({
@@ -38,11 +35,23 @@ export const Route = createFileRoute("/_authenticated/labs/assessments")({
 
 const STATUS_TONE: Record<string, string> = {
   new: "bg-primary/10 text-primary",
-  contacted: "bg-sky-500/10 text-sky-600",
-  scheduled: "bg-sky-500/15 text-sky-700",
-  qualified: "bg-emerald-500/10 text-emerald-600",
-  disqualified: "bg-destructive/10 text-destructive",
+  reviewed: "bg-sky-500/10 text-sky-600",
+  converted: "bg-emerald-500/10 text-emerald-600",
   archived: "bg-muted text-muted-foreground",
+};
+
+const NOTIFICATION_TONE: Record<string, string> = {
+  pending: "bg-muted text-muted-foreground",
+  not_configured: "bg-muted text-muted-foreground",
+  sent: "bg-emerald-500/10 text-emerald-600",
+  failed: "bg-destructive/10 text-destructive",
+};
+
+const NOTIFICATION_LABEL: Record<string, string> = {
+  pending: "Notification pending",
+  not_configured: "Notification not configured",
+  sent: "Operator notified",
+  failed: "Notification failed",
 };
 
 function fmt(value: string) {
@@ -67,7 +76,7 @@ function AssessmentsPage() {
   });
 
   const update = useMutation({
-    mutationFn: (input: { id: string; status?: AssessmentStatus; operatorNotes?: string }) =>
+    mutationFn: (input: { id: string; status?: "new" | "reviewed" | "archived"; operatorNotes?: string }) =>
       updateFn({ data: input }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["nsl-assessments"] });
@@ -78,7 +87,7 @@ function AssessmentsPage() {
 
   const rows = list.data ?? [];
   const visible = useMemo(
-    () => (filter === "all" ? rows : rows.filter((r) => r.status !== "archived" && r.status !== "disqualified")),
+    () => (filter === "all" ? rows : rows.filter((r) => r.status !== "archived")),
     [rows, filter],
   );
   const newCount = rows.filter((r) => r.status === "new").length;
@@ -144,6 +153,9 @@ type Row = {
   referral_source: string | null;
   status: string;
   operator_notes: string | null;
+  notification_status: string;
+  revenue_client_id: string | null;
+  proposal_id: string | null;
 };
 
 function RequestCard({
@@ -153,7 +165,7 @@ function RequestCard({
 }: {
   row: Row;
   saving: boolean;
-  onUpdate: (input: { status?: AssessmentStatus; operatorNotes?: string }) => void;
+  onUpdate: (input: { status?: "new" | "reviewed" | "archived"; operatorNotes?: string }) => void;
 }) {
   const [notes, setNotes] = useState(row.operator_notes ?? "");
   const notesDirty = notes !== (row.operator_notes ?? "");
@@ -167,26 +179,36 @@ function RequestCard({
             {row.full_name} · {fmt(row.created_at)}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge className={STATUS_TONE[row.status] ?? "bg-muted text-muted-foreground"} variant="secondary">
             {row.status}
           </Badge>
-          <Select
-            value={row.status}
-            onValueChange={(v) => onUpdate({ status: v as AssessmentStatus })}
-            disabled={saving}
+          <Badge
+            className={NOTIFICATION_TONE[row.notification_status] ?? "bg-muted text-muted-foreground"}
+            variant="secondary"
           >
-            <SelectTrigger className="h-9 w-[170px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ASSESSMENT_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {NOTIFICATION_LABEL[row.notification_status] ?? row.notification_status}
+          </Badge>
+          {row.proposal_id && (
+            <Badge className="bg-emerald-500/10 text-emerald-600" variant="secondary">
+              Proposal started
+            </Badge>
+          )}
+          <Button size="sm" asChild>
+            <Link to="/labs/assessment/$id" params={{ id: row.id }}>
+              {row.status === "new" ? "Review" : "Open"}
+            </Link>
+          </Button>
+          {row.status === "new" && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={saving}
+              onClick={() => onUpdate({ status: "reviewed" })}
+            >
+              Mark reviewed
+            </Button>
+          )}
         </div>
       </div>
 

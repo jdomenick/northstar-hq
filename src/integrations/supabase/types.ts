@@ -4935,18 +4935,31 @@ export type Database = {
       }
       nsl_assessment_requests: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           biggest_challenge: string
           business_size: string | null
           company: string
           consent: boolean
+          converted_at: string | null
+          converted_by: string | null
           created_at: string
           email: string
           full_name: string
           id: string
           industry: string | null
+          notification_attempted_at: string | null
+          notification_error: string | null
+          notification_sent_at: string | null
+          notification_status: string
           operator_notes: string | null
+          organization_id: string | null
           phone: string | null
+          proposal_id: string | null
           referral_source: string | null
+          revenue_client_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           source_ip_hash: string | null
           status: string
           updated_at: string
@@ -4954,18 +4967,31 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           biggest_challenge: string
           business_size?: string | null
           company: string
           consent?: boolean
+          converted_at?: string | null
+          converted_by?: string | null
           created_at?: string
           email: string
           full_name: string
           id?: string
           industry?: string | null
+          notification_attempted_at?: string | null
+          notification_error?: string | null
+          notification_sent_at?: string | null
+          notification_status?: string
           operator_notes?: string | null
+          organization_id?: string | null
           phone?: string | null
+          proposal_id?: string | null
           referral_source?: string | null
+          revenue_client_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source_ip_hash?: string | null
           status?: string
           updated_at?: string
@@ -4973,25 +4999,60 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           biggest_challenge?: string
           business_size?: string | null
           company?: string
           consent?: boolean
+          converted_at?: string | null
+          converted_by?: string | null
           created_at?: string
           email?: string
           full_name?: string
           id?: string
           industry?: string | null
+          notification_attempted_at?: string | null
+          notification_error?: string | null
+          notification_sent_at?: string | null
+          notification_status?: string
           operator_notes?: string | null
+          organization_id?: string | null
           phone?: string | null
+          proposal_id?: string | null
           referral_source?: string | null
+          revenue_client_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source_ip_hash?: string | null
           status?: string
           updated_at?: string
           user_agent?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nsl_assessment_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_assessment_requests_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "nsl_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nsl_assessment_requests_revenue_client_id_fkey"
+            columns: ["revenue_client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nsl_proposal_activity: {
         Row: {
@@ -10342,6 +10403,24 @@ export type Database = {
       is_client_account: { Args: { _user: string }; Returns: boolean }
       is_org_member: { Args: { _org: string; _user: string }; Returns: boolean }
       is_org_owner: { Args: { _org: string; _user: string }; Returns: boolean }
+      nsl_assessment_convert: {
+        Args: {
+          _assessment_id: string
+          _company?: string
+          _contact_name?: string
+          _email?: string
+          _existing_client_id?: string
+          _industry?: string
+          _organization_id: string
+          _phone?: string
+          _website?: string
+        }
+        Returns: {
+          client_id: string
+          created: boolean
+          idempotent: boolean
+        }[]
+      }
       nsl_proposal_accept: {
         Args: {
           _acknowledgement: string
