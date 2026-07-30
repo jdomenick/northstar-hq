@@ -96,7 +96,15 @@ export const updateAssessmentRequest = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }) => {
     const now = new Date().toISOString();
-    const patch: Record<string, string | null> = { updated_at: now };
+    const patch: {
+      updated_at: string;
+      status?: AssessmentStatus;
+      reviewed_at?: string;
+      reviewed_by?: string;
+      archived_at?: string;
+      archived_by?: string;
+      operator_notes?: string;
+    } = { updated_at: now };
     if (data.status) {
       patch.status = data.status;
       if (data.status === "reviewed") {
