@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as RequestAssessmentRouteImport } from './routes/request-assessment'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndustriesRouteImport } from './routes/industries'
@@ -108,6 +109,11 @@ const TermsRoute = TermsRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestAssessmentRoute = RequestAssessmentRouteImport.update({
+  id: '/request-assessment',
+  path: '/request-assessment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -602,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
@@ -693,6 +700,7 @@ export interface FileRoutesByTo {
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
@@ -785,6 +793,7 @@ export interface FileRoutesById {
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
+  '/request-assessment': typeof RequestAssessmentRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
@@ -878,6 +887,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/onboarding'
     | '/privacy'
+    | '/request-assessment'
     | '/services'
     | '/terms'
     | '/accountability'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/onboarding'
     | '/privacy'
+    | '/request-assessment'
     | '/services'
     | '/terms'
     | '/accountability'
@@ -1060,6 +1071,7 @@ export interface FileRouteTypes {
     | '/industries'
     | '/onboarding'
     | '/privacy'
+    | '/request-assessment'
     | '/services'
     | '/terms'
     | '/_authenticated/accountability'
@@ -1153,6 +1165,7 @@ export interface RootRouteChildren {
   IndustriesRoute: typeof IndustriesRoute
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
+  RequestAssessmentRoute: typeof RequestAssessmentRoute
   ServicesRoute: typeof ServicesRoute
   TermsRoute: typeof TermsRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
@@ -1198,6 +1211,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/request-assessment': {
+      id: '/request-assessment'
+      path: '/request-assessment'
+      fullPath: '/request-assessment'
+      preLoaderRoute: typeof RequestAssessmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -2088,6 +2108,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndustriesRoute: IndustriesRoute,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,
+  RequestAssessmentRoute: RequestAssessmentRoute,
   ServicesRoute: ServicesRoute,
   TermsRoute: TermsRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
