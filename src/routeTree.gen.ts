@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -101,6 +102,11 @@ import { Route as AuthenticatedLabsClientsClientIdWorkspaceRouteImport } from '.
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
@@ -678,6 +685,7 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
@@ -768,6 +776,7 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/industries': typeof IndustriesRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
@@ -859,6 +868,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
+    | '/privacy'
     | '/services'
     | '/accountability'
     | '/content-ops'
@@ -948,6 +958,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
+    | '/privacy'
     | '/services'
     | '/accountability'
     | '/content-ops'
@@ -1037,6 +1048,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/industries'
     | '/onboarding'
+    | '/privacy'
     | '/services'
     | '/_authenticated/accountability'
     | '/_authenticated/content-ops'
@@ -1128,6 +1140,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   IndustriesRoute: typeof IndustriesRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ClientBillingRoute: typeof ClientBillingRoute
@@ -1165,6 +1178,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -2047,6 +2067,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   IndustriesRoute: IndustriesRoute,
   OnboardingRoute: OnboardingRoute,
+  PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ClientBillingRoute: ClientBillingRoute,
