@@ -4933,6 +4933,66 @@ export type Database = {
           },
         ]
       }
+      nsl_assessment_requests: {
+        Row: {
+          biggest_challenge: string
+          business_size: string | null
+          company: string
+          consent: boolean
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          industry: string | null
+          operator_notes: string | null
+          phone: string | null
+          referral_source: string | null
+          source_ip_hash: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          website: string | null
+        }
+        Insert: {
+          biggest_challenge: string
+          business_size?: string | null
+          company: string
+          consent?: boolean
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          industry?: string | null
+          operator_notes?: string | null
+          phone?: string | null
+          referral_source?: string | null
+          source_ip_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          website?: string | null
+        }
+        Update: {
+          biggest_challenge?: string
+          business_size?: string | null
+          company?: string
+          consent?: boolean
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          industry?: string | null
+          operator_notes?: string | null
+          phone?: string | null
+          referral_source?: string | null
+          source_ip_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       nsl_proposal_activity: {
         Row: {
           action: string
