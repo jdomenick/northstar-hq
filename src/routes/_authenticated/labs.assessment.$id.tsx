@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -396,5 +395,3 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     </div>
   );
 }
-
-export { Badge };
