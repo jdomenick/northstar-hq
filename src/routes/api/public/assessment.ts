@@ -63,7 +63,9 @@ export const Route = createFileRoute("/api/public/assessment")({
             }
           }
 
-          const { error } = await supabaseAdmin.from("nsl_assessment_requests").insert({
+          const { data: inserted, error } = await supabaseAdmin
+            .from("nsl_assessment_requests")
+            .insert({
             full_name: data.fullName,
             company: data.company,
             email: data.email.toLowerCase(),
@@ -76,8 +78,50 @@ export const Route = createFileRoute("/api/public/assessment")({
             consent: true,
             source_ip_hash: ipHash,
             user_agent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
-          });
+            })
+            .select("id")
+            .single();
           if (error) throw error;
+
+          // Operator notification. Delivery state is recorded truthfully and
+          // never blocks the visitor's submission.
+          try {
+            const { sendAssessmentNotification } = await import("@/lib/marketing/notify.server");
+            const origin = new URL(request.url).origin;
+            const outcome = await sendAssessmentNotification({
+              id: inserted.id,
+              fullName: data.fullName,
+              company: data.company,
+              email: data.email.toLowerCase(),
+              phone: data.phone ?? null,
+              website: data.website ?? null,
+              industry: data.industry ?? null,
+              businessSize: data.businessSize ?? null,
+              biggestChallenge: data.biggestChallenge,
+              referralSource: data.referralSource ?? null,
+              reviewUrl: `${origin}/labs/assessment/${inserted.id}`,
+            });
+            await supabaseAdmin
+              .from("nsl_assessment_requests")
+              .update({
+                notification_status: outcome.status,
+                notification_attempted_at: new Date().toISOString(),
+                notification_sent_at: outcome.status === "sent" ? new Date().toISOString() : null,
+                notification_error: outcome.status === "sent" ? null : outcome.error,
+              })
+              .eq("id", inserted.id);
+          } catch (notifyError) {
+            console.error("[api/public/assessment] notification failed", notifyError);
+            await supabaseAdmin
+              .from("nsl_assessment_requests")
+              .update({
+                notification_status: "failed",
+                notification_attempted_at: new Date().toISOString(),
+                notification_error:
+                  notifyError instanceof Error ? notifyError.message : "Unknown notification failure.",
+              })
+              .eq("id", inserted.id);
+          }
 
           return Response.json({ ok: true });
         } catch (e) {
