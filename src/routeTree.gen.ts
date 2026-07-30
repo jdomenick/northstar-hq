@@ -96,6 +96,7 @@ import { Route as AuthenticatedLabsGoalsIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLabsDocumentsIdRouteImport } from './routes/_authenticated/labs.documents.$id'
 import { Route as AuthenticatedLabsDecisionsIdRouteImport } from './routes/_authenticated/labs.decisions.$id'
 import { Route as AuthenticatedLabsCommitmentsIdRouteImport } from './routes/_authenticated/labs.commitments.$id'
+import { Route as AuthenticatedLabsAssessmentIdRouteImport } from './routes/_authenticated/labs.assessment.$id'
 import { Route as ApiPublicOauthMetaDeauthorizeRouteImport } from './routes/api/public/oauth/meta/deauthorize'
 import { Route as ApiPublicOauthMetaDataDeletionRouteImport } from './routes/api/public/oauth/meta/data-deletion'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
@@ -576,6 +577,12 @@ const AuthenticatedLabsCommitmentsIdRoute =
     path: '/labs/commitments/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsAssessmentIdRoute =
+  AuthenticatedLabsAssessmentIdRouteImport.update({
+    id: '/labs/assessment/$id',
+    path: '/labs/assessment/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicOauthMetaDeauthorizeRoute =
   ApiPublicOauthMetaDeauthorizeRouteImport.update({
     id: '/api/public/oauth/meta/deauthorize',
@@ -681,6 +688,7 @@ export interface FileRoutesByFullPath {
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
+  '/labs/assessment/$id': typeof AuthenticatedLabsAssessmentIdRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -775,6 +783,7 @@ export interface FileRoutesByTo {
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
   '/proposal/$token': typeof ProposalTokenIndexRoute
+  '/labs/assessment/$id': typeof AuthenticatedLabsAssessmentIdRoute
   '/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -872,6 +881,7 @@ export interface FileRoutesById {
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
+  '/_authenticated/labs/assessment/$id': typeof AuthenticatedLabsAssessmentIdRoute
   '/_authenticated/labs/commitments/$id': typeof AuthenticatedLabsCommitmentsIdRoute
   '/_authenticated/labs/decisions/$id': typeof AuthenticatedLabsDecisionsIdRoute
   '/_authenticated/labs/documents/$id': typeof AuthenticatedLabsDocumentsIdRoute
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/labs/'
     | '/sam/'
     | '/proposal/$token/'
+    | '/labs/assessment/$id'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -1063,6 +1074,7 @@ export interface FileRouteTypes {
     | '/labs'
     | '/sam'
     | '/proposal/$token'
+    | '/labs/assessment/$id'
     | '/labs/commitments/$id'
     | '/labs/decisions/$id'
     | '/labs/documents/$id'
@@ -1159,6 +1171,7 @@ export interface FileRouteTypes {
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
     | '/proposal/$token/'
+    | '/_authenticated/labs/assessment/$id'
     | '/_authenticated/labs/commitments/$id'
     | '/_authenticated/labs/decisions/$id'
     | '/_authenticated/labs/documents/$id'
@@ -1847,6 +1860,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsCommitmentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labs/assessment/$id': {
+      id: '/_authenticated/labs/assessment/$id'
+      path: '/labs/assessment/$id'
+      fullPath: '/labs/assessment/$id'
+      preLoaderRoute: typeof AuthenticatedLabsAssessmentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/oauth/meta/deauthorize': {
       id: '/api/public/oauth/meta/deauthorize'
       path: '/api/public/oauth/meta/deauthorize'
@@ -2085,6 +2105,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSamMemoryRoute: typeof AuthenticatedSamMemoryRoute
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
+  AuthenticatedLabsAssessmentIdRoute: typeof AuthenticatedLabsAssessmentIdRoute
   AuthenticatedLabsCommitmentsIdRoute: typeof AuthenticatedLabsCommitmentsIdRoute
   AuthenticatedLabsProposalsIdRoute: typeof AuthenticatedLabsProposalsIdRoute
   AuthenticatedSamMissionsIdRoute: typeof AuthenticatedSamMissionsIdRoute
@@ -2124,6 +2145,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSamMemoryRoute: AuthenticatedSamMemoryRoute,
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
+  AuthenticatedLabsAssessmentIdRoute: AuthenticatedLabsAssessmentIdRoute,
   AuthenticatedLabsCommitmentsIdRoute: AuthenticatedLabsCommitmentsIdRoute,
   AuthenticatedLabsProposalsIdRoute: AuthenticatedLabsProposalsIdRoute,
   AuthenticatedSamMissionsIdRoute: AuthenticatedSamMissionsIdRoute,
