@@ -65,6 +65,11 @@ function ClientLoginPage() {
 
   return (
     <ClientFrame label="Client access">
+      <div className="text-[12.5px] text-foreground/60">
+        <Link to="/" className="underline underline-offset-4 hover:text-foreground">
+          Back to NorthStar Labs
+        </Link>
+      </div>
       <h1 className="mt-4 font-display text-[40px] leading-[1.05] text-foreground">
         Sign in to your workspace.
       </h1>
@@ -72,6 +77,7 @@ function ClientLoginPage() {
         This is the client workspace for NorthStar Labs engagements. Team members of NorthStar Labs
         should use the <Link to="/auth" className="underline">operator sign in</Link>.
       </p>
+
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
         <label className="block border-b border-foreground/20 pb-3 focus-within:border-foreground">
           <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/60">

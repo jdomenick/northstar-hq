@@ -154,6 +154,14 @@ function AuthPage() {
             </Link>
           )}
         </div>
+
+        <div className="mt-6 border-t border-border/60 pt-5 text-center text-[12.5px] text-muted-foreground">
+          Looking for the client workspace?{" "}
+          <Link to="/client/login" className="text-foreground underline underline-offset-4 hover:text-foreground/80">
+            Sign in as a client
+          </Link>
+        </div>
+
       </div>
     </div>
   );
