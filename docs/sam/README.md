@@ -66,3 +66,39 @@ functionality is untouched.
   - Archive Center restore completed for ventures / goals / decisions /
     commitments (Phase 2D leftover)
   - Privacy: founder + preference memory user-private (`ADR-0010`)
+
+## Architecture ownership
+
+NorthStar HQ owns:
+
+- company/business state
+- revenue
+- proposals
+- billing
+- client workspace
+- delivery
+- goals/projects/decisions/commitments
+- executive intelligence
+
+SAM Core owns:
+
+- SAM operational memory
+- directives
+- missions
+- mission work items
+- agent approvals
+- runtime/task execution
+- work-request protocol
+- capability execution
+- application credentials
+- social OAuth connections
+- agent autonomy
+- learning
+- execution audit
+
+Standalone SAM owns:
+
+- public SAM marketing website
+- auth handoff to SAM Core
+
+The old standalone SAM platform layer is legacy/frozen.
