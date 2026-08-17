@@ -298,8 +298,8 @@ export function BandHeading({ eyebrow, title, lede }: { eyebrow?: string; title:
 }
 
 export function FinalCta({
-  title = "Find out what is limiting growth.",
-  body = "An Assessment is a working conversation about your business, not a software demo. You leave with a clear read on the constraint and what it costs to leave it in place.",
+  title = "Request an Assessment",
+  body = "Tell us where you want to go. We’ll find what’s getting in the way.",
 }: {
   title?: string;
   body?: string;
