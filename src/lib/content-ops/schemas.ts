@@ -89,7 +89,7 @@ export const CreateStrategyInput = z.object({
   objective: z.string().max(1000).optional(),
   strategyPeriodStart: z.string().date(),
   strategyPeriodEnd: z.string().date(),
-  platformMix: z.record(z.enum(SOCIAL_PLATFORMS), z.number().min(0).max(1)).default({}),
+  platformMix: z.partialRecord(z.enum(SOCIAL_PLATFORMS), z.number().min(0).max(1)).default({}),
   promotionRatioLimit: z.number().min(0).max(1).optional(),
   strategicRationale: z.string().max(4000).optional(),
   samRecommendation: z.record(z.string(), z.unknown()).optional(),
