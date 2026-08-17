@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react";
 import { Menu, X, ArrowRight } from "lucide-react";
 import northstarLogo from "@/assets/northstar-labs-logo.png.asset.json";
 import { BRAND } from "@/lib/marketing/content";
+import { SOCIAL_IMAGE_URL } from "@/lib/marketing/site-url";
 import { cn } from "@/lib/utils";
 
 type NavTo =
@@ -344,9 +345,16 @@ export function pageMeta({
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { property: "og:url", content: url },
+      { property: "og:site_name", content: "NorthStar Labs" },
+      { property: "og:image", content: SOCIAL_IMAGE_URL },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "NorthStar Labs" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
+      { name: "twitter:image", content: SOCIAL_IMAGE_URL },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
     ],
     links: [{ rel: "canonical", href: url }],
   };

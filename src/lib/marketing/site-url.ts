@@ -35,3 +35,6 @@ export function siteUrl(path = "/"): string {
 
 /** Stripe webhook endpoint on the canonical public host. */
 export const STRIPE_WEBHOOK_URL = siteUrl("/api/public/stripe/webhook");
+
+/** Absolute social preview image on the canonical public host. */
+export const SOCIAL_IMAGE_URL = siteUrl("/og-image.jpg");
