@@ -72,6 +72,8 @@ import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe/webhook'
 import { Route as ApiPublicProposalsViewRouteImport } from './routes/api/public/proposals/view'
 import { Route as ApiPublicProposalsStatusRouteImport } from './routes/api/public/proposals/status'
@@ -437,6 +439,16 @@ const AuthenticatedLabsProposalsIndexRoute =
     path: '/labs/proposals/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe/webhook',
   path: '/api/public/stripe/webhook',
@@ -713,6 +725,8 @@ export interface FileRoutesByFullPath {
   '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
@@ -808,6 +822,8 @@ export interface FileRoutesByTo {
   '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/labs/proposals': typeof AuthenticatedLabsProposalsIndexRoute
   '/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
@@ -906,6 +922,8 @@ export interface FileRoutesById {
   '/api/public/proposals/status': typeof ApiPublicProposalsStatusRoute
   '/api/public/proposals/view': typeof ApiPublicProposalsViewRoute
   '/api/public/stripe/webhook': typeof ApiPublicStripeWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/_authenticated/labs/proposals/': typeof AuthenticatedLabsProposalsIndexRoute
   '/_authenticated/labs/clients/$clientId/workspace': typeof AuthenticatedLabsClientsClientIdWorkspaceRoute
   '/_authenticated/sam/content/editor/$id': typeof AuthenticatedSamContentEditorIdRoute
@@ -1004,6 +1022,8 @@ export interface FileRouteTypes {
     | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/labs/proposals/'
     | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
@@ -1099,6 +1119,8 @@ export interface FileRouteTypes {
     | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/labs/proposals'
     | '/labs/clients/$clientId/workspace'
     | '/sam/content/editor/$id'
@@ -1196,6 +1218,8 @@ export interface FileRouteTypes {
     | '/api/public/proposals/status'
     | '/api/public/proposals/view'
     | '/api/public/stripe/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/_authenticated/labs/proposals/'
     | '/_authenticated/labs/clients/$clientId/workspace'
     | '/_authenticated/sam/content/editor/$id'
@@ -1242,6 +1266,8 @@ export interface RootRouteChildren {
   ApiPublicProposalsStatusRoute: typeof ApiPublicProposalsStatusRoute
   ApiPublicProposalsViewRoute: typeof ApiPublicProposalsViewRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   ApiPublicMediaMetaDeliveryTokenRoute: typeof ApiPublicMediaMetaDeliveryTokenRoute
   ApiPublicOauthMetaAuthorizeRoute: typeof ApiPublicOauthMetaAuthorizeRoute
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
@@ -1691,6 +1717,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/labs/proposals/'
       preLoaderRoute: typeof AuthenticatedLabsProposalsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/stripe/webhook': {
       id: '/api/public/stripe/webhook'
@@ -2219,6 +2259,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicProposalsStatusRoute: ApiPublicProposalsStatusRoute,
   ApiPublicProposalsViewRoute: ApiPublicProposalsViewRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   ApiPublicMediaMetaDeliveryTokenRoute: ApiPublicMediaMetaDeliveryTokenRoute,
   ApiPublicOauthMetaAuthorizeRoute: ApiPublicOauthMetaAuthorizeRoute,
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
