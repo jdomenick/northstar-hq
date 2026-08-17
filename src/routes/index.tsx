@@ -59,7 +59,7 @@ function HomePage() {
             Business systems implementation
           </div>
           <h1 className="mt-5 max-w-4xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[58px]">
-            Most businesses do not have a growth problem. They have a constraint nobody has named.
+            Your Business Is Losing Opportunities Somewhere. We Find Where.
           </h1>
           <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">
             {BRAND.tagline} We find the one thing holding revenue back, then implement the systems that
