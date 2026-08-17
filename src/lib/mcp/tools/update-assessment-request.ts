@@ -9,7 +9,7 @@ export default defineTool({
   description: "Update the review status and operator notes on an inbound assessment request.",
   inputSchema: {
     id: z.string().uuid().describe("The assessment request id."),
-    status: z.enum(["new", "reviewing", "qualified", "disqualified"]).optional().describe("New review status."),
+    status: z.enum(["new", "reviewed", "converted", "archived"]).optional().describe("New review status."),
     operator_notes: z.string().trim().max(4000).optional().describe("Internal operator notes to store on the request."),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
