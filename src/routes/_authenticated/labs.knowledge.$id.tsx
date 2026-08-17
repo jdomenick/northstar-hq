@@ -3,6 +3,7 @@ import { ChevronLeft, ShieldCheck, AlertTriangle, Flag, Archive, RotateCcw } fro
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
+import { safeHttpUrl } from "@/lib/safe-url";
 import {
   useActorProfiles,
   useArchiveKnowledge,
