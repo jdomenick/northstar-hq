@@ -16,9 +16,9 @@ const UpsertIn = z.object({
   baseUrl: z.string().url(),
   method: HttpMethod.default("GET"),
   authType: AuthType.default("none"),
-  authConfig: z.record(z.string()).optional().nullable(),
-  defaultHeaders: z.record(z.string()).default({}),
-  defaultQueryParams: z.record(z.string()).default({}),
+  authConfig: z.record(z.string(), z.string()).optional().nullable(),
+  defaultHeaders: z.record(z.string(), z.string()).default({}),
+  defaultQueryParams: z.record(z.string(), z.string()).default({}),
   timeoutMs: z.number().int().min(1000).max(60000).default(15000),
   enabled: z.boolean().default(true),
 });
