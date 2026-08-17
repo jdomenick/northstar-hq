@@ -75,6 +75,7 @@ import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -460,6 +461,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedLabsProposalsIndexRoute =
   AuthenticatedLabsProposalsIndexRouteImport.update({
     id: '/labs/proposals/',
@@ -706,6 +712,7 @@ export interface FileRoutesByFullPath {
   '/client/report': typeof ClientReportRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -807,6 +814,7 @@ export interface FileRoutesByTo {
   '/client/profile': typeof ClientProfileRoute
   '/client/report': typeof ClientReportRoute
   '/client': typeof ClientIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -911,6 +919,7 @@ export interface FileRoutesById {
   '/client/report': typeof ClientReportRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -1015,6 +1024,7 @@ export interface FileRouteTypes {
     | '/client/report'
     | '/proposal/$token'
     | '/client/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/labs/accountability'
     | '/labs/assessments'
@@ -1116,6 +1126,7 @@ export interface FileRouteTypes {
     | '/client/profile'
     | '/client/report'
     | '/client'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/labs/accountability'
     | '/labs/assessments'
@@ -1219,6 +1230,7 @@ export interface FileRouteTypes {
     | '/client/report'
     | '/proposal/$token'
     | '/client/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/assessments'
@@ -1309,6 +1321,7 @@ export interface RootRouteChildren {
   ClientReportRoute: typeof ClientReportRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ClientIndexRoute: typeof ClientIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAssessmentRoute: typeof ApiPublicAssessmentRoute
   ClientInviteTokenRoute: typeof ClientInviteTokenRoute
@@ -1792,6 +1805,13 @@ declare module '@tanstack/react-router' {
       path: '/.mcp/invoke-tool/$tool'
       fullPath: '/.mcp/invoke-tool/$tool'
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/labs/proposals/': {
@@ -2335,6 +2355,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientReportRoute: ClientReportRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ClientIndexRoute: ClientIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAssessmentRoute: ApiPublicAssessmentRoute,
   ClientInviteTokenRoute: ClientInviteTokenRoute,
