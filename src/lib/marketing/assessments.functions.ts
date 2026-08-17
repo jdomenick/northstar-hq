@@ -337,7 +337,7 @@ export const retryAssessmentNotification = createServerFn({ method: "POST" })
     if (!row) throw new Error("Assessment request not found or not accessible.");
 
     const { sendAssessmentNotification } = await import("./notify.server");
-    const origin = process.env.PUBLIC_SITE_URL?.trim() || "https://northstar-labs.lovable.app";
+    const origin = process.env.PUBLIC_SITE_URL?.trim() || "https://northstarlabshq.com";
     const outcome = await sendAssessmentNotification({
       id: row.id,
       fullName: row.full_name,

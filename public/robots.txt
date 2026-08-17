@@ -6,4 +6,4 @@ Disallow: /sam/
 Disallow: /proposal/
 Disallow: /api/
 
-Sitemap: https://northstar-labs.lovable.app/sitemap.xml
+Sitemap: https://northstarlabshq.com/sitemap.xml

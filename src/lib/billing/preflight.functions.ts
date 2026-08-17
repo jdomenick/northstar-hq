@@ -65,7 +65,7 @@ export const stripePreflightFn = createServerFn({ method: "POST" })
       business_profile?: { name?: string | null } | null;
     };
     const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
-    const targetUrl = "https://northstar-labs.lovable.app/api/public/stripe/webhook";
+    const { STRIPE_WEBHOOK_URL: targetUrl } = await import("@/lib/marketing/site-url");
     const matching: EndpointSummary[] = endpoints.data
       .filter((e) => e.url === targetUrl)
       .map((e) => ({

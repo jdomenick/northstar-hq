@@ -1,13 +1,15 @@
 // Public website content. Single source of truth for copy shared across the
 // marketing routes so pages never drift from one another.
 
+import { SITE_URL } from "./site-url";
+
 export const BRAND = {
   name: "NorthStar Labs",
   tagline: "Helping business owners find what's limiting growth, and fixing it.",
   positioning:
     "NorthStar Labs improves marketing, lead generation, sales, operations, automation, reporting, and AI implementation. We do not sell software. We implement business systems that produce measurable outcomes.",
-  email: "hello@northstarlabs.io",
-  siteUrl: "https://northstar-labs.lovable.app",
+  email: "info@northstarlabshq.com",
+  siteUrl: SITE_URL,
 } as const;
 
 export type Service = {
