@@ -6,6 +6,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({
+    next: typeof search['next'] === "string" ? (search['next'] as string) : undefined,
+  }),
   component: AuthPage,
   head: () => ({
     meta: [
@@ -21,9 +24,18 @@ type Mode = "signin" | "signup";
 // Internal users are provisioned through invitation instead.
 const PUBLIC_SIGNUP_ENABLED = import.meta.env.VITE_ALLOW_PUBLIC_SIGNUP === "true";
 
+// Only same-origin relative paths are accepted as a post sign-in destination.
+function safeNext(next: string | undefined): string | null {
+  if (!next) return null;
+  if (!next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const redirectTo = safeNext(next);
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,8 +43,13 @@ function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/labs", replace: true });
-  }, [loading, user, navigate]);
+    if (loading || !user) return;
+    if (redirectTo) {
+      window.location.replace(redirectTo);
+      return;
+    }
+    navigate({ to: "/labs", replace: true });
+  }, [loading, user, navigate, redirectTo]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +62,7 @@ function AuthPage() {
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${redirectTo ?? "/"}`,
           },
         });
         if (error) throw error;
