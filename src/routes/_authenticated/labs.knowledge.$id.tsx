@@ -204,7 +204,23 @@ function KnowledgeDetail() {
                 <Section title="Details">
                   <div className="grid grid-cols-2 gap-6 text-[13.5px]">
                     <Row label="Source" value={r.source ?? " - "} />
-                    <Row label="Source URL" value={r.source_url ? <a href={r.source_url} className="text-foreground underline" target="_blank" rel="noreferrer">{r.source_url}</a> : " - "} />
+                    <Row
+                      label="Source URL"
+                      value={
+                        safeHttpUrl(r.source_url) ? (
+                          <a
+                            href={safeHttpUrl(r.source_url) as string}
+                            className="text-foreground underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {r.source_url}
+                          </a>
+                        ) : (
+                          (r.source_url ?? " - ")
+                        )
+                      }
+                    />
                     <Row label="Tags" value={(r.tags ?? []).length ? (r.tags ?? []).map((t) => `#${t}`).join("  ") : " - "} />
                     <Row label="Effective date" value={r.effective_date ?? " - "} />
                     <Row label="Expiration date" value={r.expiration_date ?? " - "} />
