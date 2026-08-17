@@ -6,9 +6,8 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    next: typeof search['next'] === "string" ? (search['next'] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } =>
+    typeof search['next'] === "string" ? { next: search['next'] as string } : {},
   component: AuthPage,
   head: () => ({
     meta: [
