@@ -4953,7 +4953,7 @@ export type Database = {
           notification_sent_at: string | null
           notification_status: string
           operator_notes: string | null
-          organization_id: string | null
+          organization_id: string
           phone: string | null
           proposal_id: string | null
           referral_source: string | null
@@ -4985,7 +4985,7 @@ export type Database = {
           notification_sent_at?: string | null
           notification_status?: string
           operator_notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           proposal_id?: string | null
           referral_source?: string | null
@@ -5017,7 +5017,7 @@ export type Database = {
           notification_sent_at?: string | null
           notification_status?: string
           operator_notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           proposal_id?: string | null
           referral_source?: string | null
@@ -10392,6 +10392,15 @@ export type Database = {
       }
       client_account_client_id: { Args: { _user: string }; Returns: string }
       client_account_org_id: { Args: { _user: string }; Returns: string }
+      client_document_links_owned: {
+        Args: {
+          _client_id: string
+          _milestone_id: string
+          _onboarding_item_id: string
+          _project_id: string
+        }
+        Returns: boolean
+      }
       has_org_role: {
         Args: {
           _min: Database["public"]["Enums"]["org_role"]
@@ -10421,6 +10430,7 @@ export type Database = {
           idempotent: boolean
         }[]
       }
+      nsl_default_organization_id: { Args: never; Returns: string }
       nsl_proposal_accept: {
         Args: {
           _acknowledgement: string

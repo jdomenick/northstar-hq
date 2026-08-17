@@ -9,6 +9,7 @@ import {
   pageMeta,
 } from "@/components/marketing/site-shell";
 import { BRAND, INDUSTRIES, OUTCOMES, PROCESS_STEPS, SERVICES, WHY_US } from "@/lib/marketing/content";
+import { SOCIAL_IMAGE_URL, siteUrl } from "@/lib/marketing/site-url";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -29,6 +30,18 @@ export const Route = createFileRoute("/")({
           url: BRAND.siteUrl,
           email: BRAND.email,
           description: BRAND.positioning,
+          logo: SOCIAL_IMAGE_URL,
+          image: SOCIAL_IMAGE_URL,
+          slogan: BRAND.tagline,
+          contactPoint: [
+            {
+              "@type": "ContactPoint",
+              contactType: "sales",
+              email: BRAND.email,
+              url: siteUrl("/request-assessment"),
+              availableLanguage: ["en"],
+            },
+          ],
         }),
       },
     ],
