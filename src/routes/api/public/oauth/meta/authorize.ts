@@ -10,6 +10,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { readMetaConfigStatus } from "@/lib/social/providers/meta/config.server";
 import { buildAuthorizeUrl, generateOAuthState, getRequiredScopes } from "@/lib/social/providers/meta/oauth.server";
+import { SITE_URL } from "@/lib/marketing/site-url";
 
 const QuerySchema = z.object({
   organizationId: z.string().uuid(),
@@ -30,14 +31,8 @@ export const Route = createFileRoute("/api/public/oauth/meta/authorize")({
         if (!parsed.success) {
           return Response.json({ error: "invalid_input", detail: parsed.error.flatten() }, { status: 400 });
         }
-        const cfg = readMetaConfigStatus();
-        if (!cfg.configured) {
-          return Response.json(
-            { error: "meta_not_configured", missing: cfg.missing },
-            { status: 503 },
-          );
-        }
-        // Verify caller with the current bearer token before persisting state.
+        // Verify the caller before anything else. Unauthenticated callers must
+        // not be able to probe provider configuration state.
         const authz = request.headers.get("authorization");
         if (!authz?.startsWith("Bearer ")) {
           return Response.json({ error: "unauthorized" }, { status: 401 });
@@ -51,9 +46,40 @@ export const Route = createFileRoute("/api/public/oauth/meta/authorize")({
         if (userErr || !userData.user) {
           return Response.json({ error: "unauthorized" }, { status: 401 });
         }
+
+        const cfg = readMetaConfigStatus();
+        if (!cfg.configured) {
+          return Response.json(
+            { error: "meta_not_configured", missing: cfg.missing },
+            { status: 503 },
+          );
+        }
+
+        // The redirect target must be same-origin with this request or the
+        // canonical site. Otherwise the callback becomes an open redirect and
+        // the OAuth code round-trips through an attacker host.
+        const allowedOrigins = new Set([new URL(request.url).origin, SITE_URL]);
+        if (!allowedOrigins.has(new URL(parsed.data.redirectUri).origin)) {
+          return Response.json({ error: "redirect_not_allowed" }, { status: 400 });
+        }
+
         const { state, codeVerifier } = generateOAuthState();
         const scopes = getRequiredScopes();
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        // The caller must be an active member of the organization they are
+        // connecting. Identity alone is not authorization.
+        const { data: membership } = await supabaseAdmin
+          .from("organization_members")
+          .select("id")
+          .eq("organization_id", parsed.data.organizationId)
+          .eq("user_id", userData.user.id)
+          .eq("status", "active")
+          .maybeSingle();
+        if (!membership) {
+          return Response.json({ error: "forbidden" }, { status: 403 });
+        }
+
         const { error: insertErr } = await supabaseAdmin.from("meta_oauth_states").insert({
           organization_id: parsed.data.organizationId,
           venture_id: parsed.data.ventureId ?? null,

@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHash } from "crypto";
 import { assessmentRequestSchema } from "@/lib/marketing/assessment";
+import { siteUrl } from "@/lib/marketing/site-url";
 
 /** Submissions allowed per hashed IP per rolling hour. */
 const HOURLY_LIMIT = 5;
+/** Hard cap on the request body. The validated form is a few KB at most. */
+const MAX_BODY_BYTES = 16 * 1024;
 
 function hashIp(ip: string | null, salt: string) {
   if (!ip) return null;
@@ -20,8 +23,28 @@ export const Route = createFileRoute("/api/public/assessment")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const declared = Number(request.headers.get("content-length") ?? "0");
+        if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+          return Response.json(
+            { ok: false, code: "invalid_input", message: "Request too large." },
+            { status: 413 },
+          );
+        }
+        const rawBody = await request.text().catch(() => "");
+        if (rawBody.length > MAX_BODY_BYTES) {
+          return Response.json(
+            { ok: false, code: "invalid_input", message: "Request too large." },
+            { status: 413 },
+          );
+        }
         const parsed = assessmentRequestSchema.safeParse(
-          await request.json().catch(() => null),
+          (() => {
+            try {
+              return JSON.parse(rawBody) as unknown;
+            } catch {
+              return null;
+            }
+          })(),
         );
         if (!parsed.success) {
           return Response.json(
@@ -87,7 +110,6 @@ export const Route = createFileRoute("/api/public/assessment")({
           // never blocks the visitor's submission.
           try {
             const { sendAssessmentNotification } = await import("@/lib/marketing/notify.server");
-            const origin = new URL(request.url).origin;
             const outcome = await sendAssessmentNotification({
               id: inserted.id,
               fullName: data.fullName,
@@ -99,7 +121,9 @@ export const Route = createFileRoute("/api/public/assessment")({
               businessSize: data.businessSize ?? null,
               biggestChallenge: data.biggestChallenge,
               referralSource: data.referralSource ?? null,
-              reviewUrl: `${origin}/labs/assessment/${inserted.id}`,
+              // Canonical host, never the request Host header, so a spoofed
+              // Host cannot rewrite the operator's review link.
+              reviewUrl: siteUrl(`/labs/assessment/${inserted.id}`),
             });
             await supabaseAdmin
               .from("nsl_assessment_requests")

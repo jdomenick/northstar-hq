@@ -34,6 +34,20 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Header-safe single-line value. Visitor-supplied text reaches the subject
+ * line, so CR/LF and other control characters are stripped to prevent email
+ * header injection.
+ */
+function headerSafe(value: string, max = 120): string {
+  return value
+    .replace(/[\r\n\t]+/g, " ")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, max);
+}
+
 function fieldRows(input: AssessmentNotificationInput): Array<[string, string]> {
   return [
     ["Company", input.company],
@@ -53,7 +67,7 @@ export function buildAssessmentNotification(input: AssessmentNotificationInput):
   html: string;
 } {
   const rows = fieldRows(input);
-  const subject = `New Assessment request: ${input.company}`;
+  const subject = `New Assessment request: ${headerSafe(input.company)}`;
   const text = [
     "A new Assessment request was submitted on the NorthStar Labs website.",
     "",
