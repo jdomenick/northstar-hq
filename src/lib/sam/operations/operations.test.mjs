@@ -183,7 +183,7 @@ test("parseOperationProposal rejects unknown operations", async () => {
   const { parseOperationProposal } = await import("./dispatch.server.ts");
   const r = parseOperationProposal(
     { operation: "nukeEverything", payload: {}, confidence: 1 },
-    "00000000-0000-0000-0000-000000000001",
+    "11111111-1111-4111-8111-111111111111",
   );
   assert.equal(r.status, "unsupported");
   assert.equal(r.operation, null);
@@ -193,8 +193,8 @@ test("parseOperationProposal flags missing required fields", async () => {
   const { parseOperationProposal } = await import("./dispatch.server.ts");
   const r = parseOperationProposal(
     { operation: "approveVariant", payload: {}, confidence: 0.9 },
-    "00000000-0000-0000-0000-000000000001",
-    "00000000-0000-0000-0000-000000000002",
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
   );
   assert.equal(r.status, "needs_fields");
   assert.ok(r.missingFields.includes("contentItemId"), `missingFields includes contentItemId, got ${r.missingFields.join(",")}`);
@@ -209,12 +209,12 @@ test("parseOperationProposal injects organizationId and ventureId", async () => 
       payload: { limit: 25 },
       confidence: 0.7,
     },
-    "00000000-0000-0000-0000-000000000001",
-    "00000000-0000-0000-0000-000000000002",
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
   );
   assert.equal(r.status, "ready");
-  assert.equal(r.payload?.organizationId, "00000000-0000-0000-0000-000000000001");
-  assert.equal(r.payload?.ventureId, "00000000-0000-0000-0000-000000000002");
+  assert.equal(r.payload?.organizationId, "11111111-1111-4111-8111-111111111111");
+  assert.equal(r.payload?.ventureId, "22222222-2222-4222-8222-222222222222");
   assert.equal(r.requiresConfirmation, false, "read-only ops do not require confirmation");
 });
 
