@@ -31,14 +31,8 @@ export const Route = createFileRoute("/api/public/oauth/meta/authorize")({
         if (!parsed.success) {
           return Response.json({ error: "invalid_input", detail: parsed.error.flatten() }, { status: 400 });
         }
-        const cfg = readMetaConfigStatus();
-        if (!cfg.configured) {
-          return Response.json(
-            { error: "meta_not_configured", missing: cfg.missing },
-            { status: 503 },
-          );
-        }
-        // Verify caller with the current bearer token before persisting state.
+        // Verify the caller before anything else. Unauthenticated callers must
+        // not be able to probe provider configuration state.
         const authz = request.headers.get("authorization");
         if (!authz?.startsWith("Bearer ")) {
           return Response.json({ error: "unauthorized" }, { status: 401 });
@@ -51,6 +45,14 @@ export const Route = createFileRoute("/api/public/oauth/meta/authorize")({
         const { data: userData, error: userErr } = await supabase.auth.getUser();
         if (userErr || !userData.user) {
           return Response.json({ error: "unauthorized" }, { status: 401 });
+        }
+
+        const cfg = readMetaConfigStatus();
+        if (!cfg.configured) {
+          return Response.json(
+            { error: "meta_not_configured", missing: cfg.missing },
+            { status: 503 },
+          );
         }
 
         // The redirect target must be same-origin with this request or the
