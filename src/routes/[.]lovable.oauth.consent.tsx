@@ -18,8 +18,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     const authorizationId = new URLSearchParams(location.search).get("authorization_id")!;
     const { data, error } = await supabase.auth.oauth.getAuthorizationDetails(authorizationId);
     if (error) throw error;
-    const immediate = data?.redirect_url;
-    if (immediate && !data?.client) throw redirect({ href: immediate });
+    if (data && "redirect_url" in data) throw redirect({ href: data.redirect_url });
     return data;
   },
   component: Consent,
@@ -38,7 +37,8 @@ function Consent() {
   const { authorization_id } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const clientName = details?.client?.name ?? "this application";
+  const clientName =
+    details && "client" in details ? (details.client?.name ?? "this application") : "this application";
 
   async function decide(approve: boolean) {
     setBusy(true);
