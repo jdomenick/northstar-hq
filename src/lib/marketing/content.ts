@@ -5,12 +5,88 @@ import { SITE_URL } from "./site-url";
 
 export const BRAND = {
   name: "NorthStar Labs",
-  tagline: "Helping business owners find what's limiting growth, and fixing it.",
+  tagline: "We find where your business is leaking revenue. Then we fix it.",
   positioning:
-    "NorthStar Labs improves marketing, lead generation, sales, operations, automation, reporting, and AI implementation. We do not sell software. We implement business systems that produce measurable outcomes.",
+    "NorthStar Labs audits the systems between marketing, leads, calls, follow-up, appointments, sales, and revenue. We identify where opportunities are being lost, then build and implement the systems needed to close those gaps.",
   email: "info@northstarlabshq.com",
   siteUrl: SITE_URL,
 } as const;
+
+// The delivery model, stated the same way everywhere it appears.
+export const DELIVERY_MODEL: { key: string; label: string; detail: string }[] = [
+  {
+    key: "assess",
+    label: "Assess",
+    detail: "We inspect the real customer journey, from first touch to closed revenue.",
+  },
+  {
+    key: "identify",
+    label: "Identify",
+    detail: "We name where opportunities are being lost, and what it costs to leave it alone.",
+  },
+  {
+    key: "build",
+    label: "Build",
+    detail: "We implement the systems that close the gap, inside the tools you already run.",
+  },
+  {
+    key: "automate",
+    label: "Automate",
+    detail: "Where automation is the right answer, the work runs without someone remembering to do it.",
+  },
+  {
+    key: "measure",
+    label: "Measure",
+    detail: "We report what changed using real data, and keep tuning after go live.",
+  },
+];
+
+// The path revenue travels, and the points where it commonly leaks.
+export const REVENUE_PATH: { stage: string; leak: string }[] = [
+  { stage: "Marketing", leak: "Spend runs without a clear read on what produced revenue." },
+  { stage: "Leads", leak: "Inquiries arrive and sit in an inbox with no owner." },
+  { stage: "Calls", leak: "Calls go unanswered after hours and during busy periods." },
+  { stage: "Follow-up", leak: "The second and third touch depend on someone remembering." },
+  { stage: "Appointments", leak: "No-shows and cancellations are never recovered." },
+  { stage: "Sales", leak: "Deals stall mid-pipeline and nobody can say why." },
+  { stage: "Revenue", leak: "Numbers live in five tools and no two of them agree." },
+];
+
+// Outcome-first capability list. Tools are the means, never the headline.
+export const CAPABILITIES: { title: string; body: string }[] = [
+  {
+    title: "AI receptionists and customer communication",
+    body: "Every call and message answered, qualified, and routed with context, including after hours.",
+  },
+  {
+    title: "Lead capture and qualification",
+    body: "Inquiries captured from every source and sorted before they reach your team.",
+  },
+  {
+    title: "Automated follow-up",
+    body: "A consistent follow-up path for every lead, and reactivation for the ones that went cold.",
+  },
+  {
+    title: "Appointment booking and recovery",
+    body: "Booking handled at the moment of interest, with no-shows and cancellations chased back.",
+  },
+  {
+    title: "Customer acquisition systems",
+    body: "A repeatable way to create qualified conversations, with the source of each one known.",
+  },
+  {
+    title: "CRM and software integrations",
+    body: "We connect the systems you already pay for instead of rebuilding your stack.",
+  },
+  {
+    title: "Workflow automation",
+    body: "Manual re-entry, copying, and chasing removed from the steps that do not need a person.",
+  },
+  {
+    title: "Reporting and revenue attribution",
+    body: "One truthful view of pipeline, delivery, and what actually produced revenue.",
+  },
+];
 
 export type Service = {
   slug: string;
