@@ -45,7 +45,7 @@ function AboutPage() {
       <PageIntro
         eyebrow="About"
         title="We fix what is limiting growth, then prove it moved."
-        lede="NorthStar Labs is an implementation firm. We work directly with owners and leadership teams to find the constraint holding the business back and build the systems that remove it."
+        lede="NorthStar Labs helps businesses find what’s limiting growth, fix the problem, and build the systems needed to produce measurable results."
       />
 
       <Band>
