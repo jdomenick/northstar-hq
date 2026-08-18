@@ -19,8 +19,8 @@ function RequestAssessmentPage() {
     <SiteLayout>
       <PageIntro
         eyebrow="Request an Assessment"
-        title="Start with a clear read on what is holding revenue back."
-        lede="Answer a few questions about the business. We review every request personally and follow up to schedule Discovery."
+        title="Start With the Constraint."
+        lede="We inspect the actual customer journey, then show you what is broken, where opportunities are being lost, what should change, and what we can implement. Answer a few questions and we follow up personally to schedule Discovery."
       />
       <Band>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px]">

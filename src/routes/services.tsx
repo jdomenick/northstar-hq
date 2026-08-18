@@ -20,7 +20,7 @@ function ServicesPage() {
       <PageIntro
         eyebrow="Services"
         title="Managed services built around a business result."
-        lede="Each service below exists to solve a specific operating problem. We scope only what the Assessment shows the business needs, in the order it needs it."
+        lede="Each service below closes a specific place where revenue leaks. We integrate with the CRM and systems you already run, and scope only what the Assessment shows the business needs, in the order it needs it."
       />
 
       <section className="border-b border-border">
