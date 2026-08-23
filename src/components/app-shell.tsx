@@ -50,6 +50,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useGlobalSearch, type SearchHit } from "@/lib/data-hooks";
 import { can, type Role } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
+import { SamChatHead } from "@/components/sam/sam-chat-head";
+
 
 type NavItem = {
   to:
