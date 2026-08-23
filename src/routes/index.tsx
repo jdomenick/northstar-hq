@@ -101,7 +101,11 @@ function HomePage() {
               <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{r.leak}</p>
             </li>
           ))}
+          {/* Filler keeps the last row of the hairline grid from showing an empty cell. */}
+          <li aria-hidden className="hidden bg-background p-6 sm:block lg:hidden xl:hidden" />
+          <li aria-hidden className="hidden bg-background p-6 lg:block" />
         </ul>
+
       </Band>
 
       {/* Delivery model */}
