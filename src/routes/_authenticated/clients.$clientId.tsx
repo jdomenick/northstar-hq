@@ -57,6 +57,7 @@ function ClientWorkspacePage() {
 
   const d = q.data;
   const client = d.client;
+  if (!client) return null;
   const invoices = d.revenue.data ?? [];
   const collected = invoices.reduce((n, i) => n + i.amount_paid_cents, 0);
   const outstanding = invoices
