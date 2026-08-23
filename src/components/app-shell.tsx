@@ -91,7 +91,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/command", label: "Command", icon: CommandIcon, exact: true },
       { to: "/clients", label: "Clients", icon: Users },
-      { to: "/labs", label: "The Brief", icon: Gauge, exact: true },
     ],
   },
   {
@@ -110,7 +109,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Operations",
     items: [
+      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
+
       { to: "/sam/control", label: "SAM Control", icon: Gauge },
       { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
