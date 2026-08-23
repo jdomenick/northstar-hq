@@ -304,11 +304,12 @@ function CommandPage() {
               </Link>
             ))}
           </div>
-          <div className="mt-4">
-            <NotAvailable
-              reason={`Standalone apps (${EXTERNAL_APPS.join(", ")}) run independently and do not report data into Command. Their status is not shown here until a data source is connected.`}
-            />
+          <div className="mt-4 space-y-3">
+            {MODULE_ADAPTERS.map((a) => (
+              <NotAvailable key={a.name} reason={`${a.name}: ${a.reason}`} />
+            ))}
           </div>
+
         </Section>
 
         <Section
