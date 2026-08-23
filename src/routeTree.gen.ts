@@ -47,12 +47,14 @@ import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authenticated/content-ops'
+import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token.index'
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
+import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
 import { Route as OauthConnectorReturnRouteImport } from './routes/oauth/connector/return'
 import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
@@ -76,6 +78,7 @@ import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
 import { Route as AuthenticatedLabsAssessmentGeneratorRouteImport } from './routes/_authenticated/labs.assessment-generator'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
+import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
@@ -306,6 +309,11 @@ const AuthenticatedContentOpsRoute = AuthenticatedContentOpsRouteImport.update({
   path: '/content-ops',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAccountabilityRoute =
   AuthenticatedAccountabilityRouteImport.update({
     id: '/accountability',
@@ -339,6 +347,12 @@ const AuthenticatedLabsIndexRoute = AuthenticatedLabsIndexRouteImport.update({
   path: '/labs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClientsIndexRoute =
+  AuthenticatedClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ProposalTokenPaymentReturnRoute =
   ProposalTokenPaymentReturnRouteImport.update({
     id: '/payment-return',
@@ -468,6 +482,12 @@ const AuthenticatedLabsAccountabilityRoute =
   AuthenticatedLabsAccountabilityRouteImport.update({
     id: '/labs/accountability',
     path: '/labs/accountability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientsClientIdRoute =
+  AuthenticatedClientsClientIdRouteImport.update({
+    id: '/clients/$clientId',
+    path: '/clients/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -714,6 +734,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/command': typeof AuthenticatedCommandRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -740,6 +761,7 @@ export interface FileRoutesByFullPath {
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -763,6 +785,7 @@ export interface FileRoutesByFullPath {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/clients/': typeof AuthenticatedClientsIndexRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
@@ -821,6 +844,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/command': typeof AuthenticatedCommandRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -846,6 +870,7 @@ export interface FileRoutesByTo {
   '/client': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -869,6 +894,7 @@ export interface FileRoutesByTo {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/clients': typeof AuthenticatedClientsIndexRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
   '/proposal/$token': typeof ProposalTokenIndexRoute
@@ -929,6 +955,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
+  '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
@@ -955,6 +982,7 @@ export interface FileRoutesById {
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/_authenticated/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
@@ -978,6 +1006,7 @@ export interface FileRoutesById {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
@@ -1038,6 +1067,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accountability'
+    | '/command'
     | '/content-ops'
     | '/decisions'
     | '/documents'
@@ -1064,6 +1094,7 @@ export interface FileRouteTypes {
     | '/client/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/clients/$clientId'
     | '/labs/accountability'
     | '/labs/assessment-generator'
     | '/labs/assessments'
@@ -1087,6 +1118,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/clients/'
     | '/labs/'
     | '/sam/'
     | '/proposal/$token/'
@@ -1145,6 +1177,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accountability'
+    | '/command'
     | '/content-ops'
     | '/decisions'
     | '/documents'
@@ -1170,6 +1203,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/clients/$clientId'
     | '/labs/accountability'
     | '/labs/assessment-generator'
     | '/labs/assessments'
@@ -1193,6 +1227,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/clients'
     | '/labs'
     | '/sam'
     | '/proposal/$token'
@@ -1252,6 +1287,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/accountability'
+    | '/_authenticated/command'
     | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
     | '/_authenticated/documents'
@@ -1278,6 +1314,7 @@ export interface FileRouteTypes {
     | '/client/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/clients/$clientId'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/assessment-generator'
     | '/_authenticated/labs/assessments'
@@ -1301,6 +1338,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/_authenticated/clients/'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
     | '/proposal/$token/'
@@ -1664,6 +1702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContentOpsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/command': {
+      id: '/_authenticated/command'
+      path: '/command'
+      fullPath: '/command'
+      preLoaderRoute: typeof AuthenticatedCommandRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/accountability': {
       id: '/_authenticated/accountability'
       path: '/accountability'
@@ -1704,6 +1749,13 @@ declare module '@tanstack/react-router' {
       path: '/labs'
       fullPath: '/labs/'
       preLoaderRoute: typeof AuthenticatedLabsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients/': {
+      id: '/_authenticated/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/proposal/$token/payment-return': {
@@ -1865,6 +1917,13 @@ declare module '@tanstack/react-router' {
       path: '/labs/accountability'
       fullPath: '/labs/accountability'
       preLoaderRoute: typeof AuthenticatedLabsAccountabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients/$clientId': {
+      id: '/_authenticated/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/.mcp/invoke-tool/$tool': {
@@ -2300,6 +2359,7 @@ const AuthenticatedSamIntegrationsRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
+  AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
@@ -2311,6 +2371,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
+  AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
   AuthenticatedLabsAssessmentGeneratorRoute: typeof AuthenticatedLabsAssessmentGeneratorRoute
   AuthenticatedLabsAssessmentsRoute: typeof AuthenticatedLabsAssessmentsRoute
@@ -2328,6 +2389,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSamControlRoute: typeof AuthenticatedSamControlRoute
   AuthenticatedSamIntegrationsRoute: typeof AuthenticatedSamIntegrationsRouteWithChildren
   AuthenticatedSamMemoryRoute: typeof AuthenticatedSamMemoryRoute
+  AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsAssessmentIdRoute: typeof AuthenticatedLabsAssessmentIdRoute
@@ -2340,6 +2402,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
+  AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedContentOpsRoute: AuthenticatedContentOpsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
@@ -2351,6 +2414,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
+  AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
   AuthenticatedLabsAssessmentGeneratorRoute:
     AuthenticatedLabsAssessmentGeneratorRoute,
@@ -2370,6 +2434,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSamIntegrationsRoute:
     AuthenticatedSamIntegrationsRouteWithChildren,
   AuthenticatedSamMemoryRoute: AuthenticatedSamMemoryRoute,
+  AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsAssessmentIdRoute: AuthenticatedLabsAssessmentIdRoute,
