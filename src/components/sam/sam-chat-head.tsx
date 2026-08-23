@@ -164,7 +164,11 @@ export function SamChatHead() {
           )}
         >
           <header className="flex items-start gap-3 border-b border-border px-4 py-3">
-            <img src={SAM_MARK_SRC} alt="" className="mt-0.5 h-8 w-8 shrink-0 object-contain" />
+            <img
+              src={SAM_MARK_SRC}
+              alt=""
+              className="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover"
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-[15px] font-semibold text-foreground">
