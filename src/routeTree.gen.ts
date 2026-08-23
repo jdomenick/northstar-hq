@@ -25,6 +25,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientIndexRouteImport } from './routes/client.index'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
+import { Route as PlatformSamRouteImport } from './routes/platform.sam'
 import { Route as ClientReportRouteImport } from './routes/client.report'
 import { Route as ClientProfileRouteImport } from './routes/client.profile'
 import { Route as ClientOnboardingRouteImport } from './routes/client.onboarding'
@@ -196,6 +197,11 @@ const ClientIndexRoute = ClientIndexRouteImport.update({
 const ProposalTokenRoute = ProposalTokenRouteImport.update({
   id: '/proposal/$token',
   path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformSamRoute = PlatformSamRouteImport.update({
+  id: '/platform/sam',
+  path: '/platform/sam',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientReportRoute = ClientReportRouteImport.update({
@@ -757,6 +763,7 @@ export interface FileRoutesByFullPath {
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/client/report': typeof ClientReportRoute
+  '/platform/sam': typeof PlatformSamRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -867,6 +874,7 @@ export interface FileRoutesByTo {
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/client/report': typeof ClientReportRoute
+  '/platform/sam': typeof PlatformSamRoute
   '/client': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -978,6 +986,7 @@ export interface FileRoutesById {
   '/client/onboarding': typeof ClientOnboardingRoute
   '/client/profile': typeof ClientProfileRoute
   '/client/report': typeof ClientReportRoute
+  '/platform/sam': typeof PlatformSamRoute
   '/proposal/$token': typeof ProposalTokenRouteWithChildren
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -1090,6 +1099,7 @@ export interface FileRouteTypes {
     | '/client/onboarding'
     | '/client/profile'
     | '/client/report'
+    | '/platform/sam'
     | '/proposal/$token'
     | '/client/'
     | '/.lovable/oauth/consent'
@@ -1200,6 +1210,7 @@ export interface FileRouteTypes {
     | '/client/onboarding'
     | '/client/profile'
     | '/client/report'
+    | '/platform/sam'
     | '/client'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1310,6 +1321,7 @@ export interface FileRouteTypes {
     | '/client/onboarding'
     | '/client/profile'
     | '/client/report'
+    | '/platform/sam'
     | '/proposal/$token'
     | '/client/'
     | '/.lovable/oauth/consent'
@@ -1407,6 +1419,7 @@ export interface RootRouteChildren {
   ClientOnboardingRoute: typeof ClientOnboardingRoute
   ClientProfileRoute: typeof ClientProfileRoute
   ClientReportRoute: typeof ClientReportRoute
+  PlatformSamRoute: typeof PlatformSamRoute
   ProposalTokenRoute: typeof ProposalTokenRouteWithChildren
   ClientIndexRoute: typeof ClientIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -1546,6 +1559,13 @@ declare module '@tanstack/react-router' {
       path: '/proposal/$token'
       fullPath: '/proposal/$token'
       preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform/sam': {
+      id: '/platform/sam'
+      path: '/platform/sam'
+      fullPath: '/platform/sam'
+      preLoaderRoute: typeof PlatformSamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/client/report': {
@@ -2502,6 +2522,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientOnboardingRoute: ClientOnboardingRoute,
   ClientProfileRoute: ClientProfileRoute,
   ClientReportRoute: ClientReportRoute,
+  PlatformSamRoute: PlatformSamRoute,
   ProposalTokenRoute: ProposalTokenRouteWithChildren,
   ClientIndexRoute: ClientIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
