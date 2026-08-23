@@ -53,6 +53,8 @@ import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 
 type NavItem = {
   to:
+    | "/command"
+    | "/clients"
     | "/labs"
     | "/labs/mission-control"
     | "/labs/assessments"
@@ -83,31 +85,38 @@ type NavGroup = { heading: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    heading: "NorthStar Labs",
+    heading: "Command",
     items: [
-      { to: "/labs", label: "The Brief", icon: CommandIcon, exact: true },
-      { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
+      { to: "/command", label: "Command", icon: CommandIcon, exact: true },
+      { to: "/clients", label: "Clients", icon: Users },
+      { to: "/labs", label: "The Brief", icon: Gauge, exact: true },
+    ],
+  },
+  {
+    heading: "Modules",
+    items: [
+      { to: "/sam", label: "SAM", icon: Sparkles },
+      { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
+      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/labs/assessments", label: "Assessments", icon: Inbox },
-      { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
       { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
       { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
+      { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
+      { to: "/labs/projects", label: "Delivery", icon: FolderKanban },
+    ],
+  },
+  {
+    heading: "Operations",
+    items: [
+      { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
+      { to: "/sam/control", label: "SAM Control", icon: Gauge },
+      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
-      { to: "/labs/projects", label: "Projects", icon: FolderKanban },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
       { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
       { to: "/labs/goals", label: "Goals", icon: Target },
       { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
       { to: "/labs/documents", label: "Documents", icon: FileText },
-    ],
-  },
-  {
-    heading: "SAM",
-    items: [
-      { to: "/sam", label: "Ask SAM", icon: Sparkles },
-      { to: "/sam/control", label: "Control", icon: Gauge },
-      { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
-      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
-      { to: "/sam/integrations", label: "Integrations", icon: Plug },
     ],
   },
   {
