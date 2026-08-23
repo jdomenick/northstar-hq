@@ -41,7 +41,7 @@ function IntegrationsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listIntegrationsDashboard);
   const testFn = useServerFn(testIntegrationConnection);
-  const venturesQ = useVentures(activeOrgId ?? undefined);
+  const venturesQ = useVentures(activeOrgId ?? null);
   const ventureId = venturesQ.data?.[0]?.id ?? null;
   const rowsQ = useQuery({
     enabled: !!activeOrgId,
