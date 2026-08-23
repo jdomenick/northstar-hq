@@ -27,6 +27,9 @@ import {
   probeWebsiteSources,
   probeWebhooks,
   probeRestEndpoints,
+  probeX,
+  probeReddit,
+  probeAppUserConnector,
   type ProbeResult,
   type ProviderStatus,
   type IntegrationDiagnostics,
@@ -36,12 +39,9 @@ type Supa = SupabaseClient<Database>;
 
 export type IntegrationStatus = ProviderStatus;
 
-export type IntegrationAction =
-  | { kind: "none" }
-  | { kind: "test"; supported: true }
-  | { kind: "manage_link"; href: string; label: string }
-  | { kind: "start_meta_oauth" }
-  | { kind: "ask_lovable"; message: string };
+import { deriveIntegrationActions, type IntegrationAction } from "./actions";
+
+export type { IntegrationAction } from "./actions";
 
 export interface IntegrationRow {
   key: string;
@@ -59,6 +59,7 @@ export interface IntegrationRow {
   capabilities: { granted: string[]; missing: string[] };
   adapterVersion: string | null;
   action: IntegrationAction;
+  actions: IntegrationAction[];
   testable: boolean;
   description: string;
   docsUrl: string | null;
@@ -69,27 +70,33 @@ export interface IntegrationRow {
   executiveAction: ExecutiveAction;
 }
 
-const Input = z.object({ organizationId: z.string().uuid() });
+const Input = z.object({
+  organizationId: z.string().uuid(),
+  ventureId: z.string().uuid().nullable().optional(),
+});
 
-function actionFor(def: ProviderDefinition, probe: ProbeResult): IntegrationAction {
-  if (def.key === "facebook" || def.key === "instagram") {
-    return { kind: "start_meta_oauth" };
-  }
-  if (def.managePath) {
-    return { kind: "manage_link", href: def.managePath, label: "Manage" };
-  }
-  if (probe.testable) return { kind: "test", supported: true };
-  if (probe.status === "awaiting_credentials" || probe.status === "awaiting_oauth_configuration") {
-    return {
-      kind: "ask_lovable",
-      message: def.externalStep ?? "Ask Lovable to configure this integration.",
-    };
-  }
-  return { kind: "none" };
+function actionsFor(def: ProviderDefinition, probe: ProbeResult): IntegrationAction[] {
+  return deriveIntegrationActions(def, {
+    status: probe.status,
+    testable: probe.testable,
+    connected: probe.connected,
+    missingEnv: probe.missingEnv,
+  });
 }
 
-async function probeFor(def: ProviderDefinition, supabase: Supa, orgId: string): Promise<ProbeResult> {
+interface ProbeScope {
+  supabase: Supa;
+  orgId: string;
+  ventureId: string | null;
+  userId: string;
+}
+
+async function probeFor(def: ProviderDefinition, scope: ProbeScope): Promise<ProbeResult> {
+  const { supabase, orgId } = scope;
+  if (def.auth === "oauth_user") return probeAppUserConnector(def, scope.userId);
   switch (def.key) {
+    case "x": return probeX(supabase, orgId, scope.ventureId);
+    case "reddit": return probeReddit(supabase, orgId, scope.ventureId);
     case "beehiiv": return probeBeehiiv(supabase, orgId);
     case "linkedin": return probeLinkedIn(supabase, orgId);
     case "facebook": return probeMeta(supabase, orgId, "facebook_page");
@@ -121,6 +128,7 @@ function unknownRow(def: ProviderDefinition, msg: string): IntegrationRow {
     capabilities: { granted: [], missing: [] },
     adapterVersion: null,
     action: { kind: "none" },
+    actions: [{ kind: "none" }],
     testable: false,
     description: def.description,
     docsUrl: def.docsUrl ?? null,
@@ -146,10 +154,16 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<IntegrationRow[]> => {
     const supabase = context.supabase as Supa;
     const orgId = data.organizationId;
+    const scope: ProbeScope = {
+      supabase,
+      orgId,
+      ventureId: data.ventureId ?? null,
+      userId: context.userId,
+    };
     const rows = await Promise.all(
       INTEGRATION_PROVIDERS.map(async (def) => {
         try {
-          const p = await probeFor(def, supabase, orgId);
+          const p = await probeFor(def, scope);
           return {
             key: def.key,
             label: def.label,
@@ -165,7 +179,8 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
             lastErrorMessage: p.lastErrorMessage,
             capabilities: { granted: p.grantedCapabilities, missing: p.missingCapabilities },
             adapterVersion: p.adapterVersion,
-            action: actionFor(def, p),
+            action: actionsFor(def, p)[0]!,
+            actions: actionsFor(def, p),
             testable: p.testable,
             description: def.description,
             docsUrl: def.docsUrl ?? null,
@@ -186,7 +201,11 @@ export const listIntegrationsDashboard = createServerFn({ method: "POST" })
 // -----------------------------------------------------------------------
 // Detail: same as row + activity log (last 20 events across the platform)
 // -----------------------------------------------------------------------
-const DetailInput = z.object({ organizationId: z.string().uuid(), key: z.string().min(1) });
+const DetailInput = z.object({
+  organizationId: z.string().uuid(),
+  ventureId: z.string().uuid().nullable().optional(),
+  key: z.string().min(1),
+});
 
 export interface ActivityEvent {
   at: string;
@@ -212,9 +231,15 @@ export const getIntegrationDetail = createServerFn({ method: "POST" })
     if (!def) return null;
     const supabase = context.supabase as Supa;
     const orgId = data.organizationId;
+    const scope: ProbeScope = {
+      supabase,
+      orgId,
+      ventureId: data.ventureId ?? null,
+      userId: context.userId,
+    };
     let probe: ProbeResult;
     try {
-      probe = await probeFor(def, supabase, orgId);
+      probe = await probeFor(def, scope);
     } catch (err) {
       return { row: unknownRow(def, (err as Error).message), activity: [], requiredEnv: def.requiredEnv ?? [], optionalEnv: def.optionalEnv ?? [], requiredScopes: def.requiredScopes ?? [], approvalStatus: def.approvalStatus ?? null };
     }
@@ -233,7 +258,8 @@ export const getIntegrationDetail = createServerFn({ method: "POST" })
       lastErrorMessage: probe.lastErrorMessage,
       capabilities: { granted: probe.grantedCapabilities, missing: probe.missingCapabilities },
       adapterVersion: probe.adapterVersion,
-      action: actionFor(def, probe),
+      action: actionsFor(def, probe)[0]!,
+      actions: actionsFor(def, probe),
       testable: probe.testable,
       description: def.description,
       docsUrl: def.docsUrl ?? null,
