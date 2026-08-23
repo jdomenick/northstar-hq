@@ -56,7 +56,7 @@ function ClientLoginPage() {
       // Not a client account. It is a valid NorthStar Labs account, so send it
       // to the operator workspace instead of signing it back out.
       setBusy(false);
-      navigate({ to: "/labs", replace: true });
+      navigate({ to: "/command", replace: true });
       return;
     }
     await record({ data: { event: "client_login" } }).catch(() => undefined);

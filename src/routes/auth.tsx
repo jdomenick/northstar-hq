@@ -54,7 +54,7 @@ function AuthPage() {
       window.location.replace(redirectTo);
       return;
     }
-    navigate({ to: "/labs", replace: true });
+    navigate({ to: "/command", replace: true });
   }, [loading, user, navigate, redirectTo]);
 
   async function onSubmit(e: React.FormEvent) {
