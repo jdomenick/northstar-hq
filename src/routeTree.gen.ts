@@ -47,6 +47,7 @@ import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedContentOpsRouteImport } from './routes/_authenticated/content-ops'
+import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedAccountabilityRouteImport } from './routes/_authenticated/accountability'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -304,6 +305,11 @@ const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
 const AuthenticatedContentOpsRoute = AuthenticatedContentOpsRouteImport.update({
   id: '/content-ops',
   path: '/content-ops',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAccountabilityRoute =
@@ -714,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/command': typeof AuthenticatedCommandRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -821,6 +828,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/accountability': typeof AuthenticatedAccountabilityRoute
+  '/command': typeof AuthenticatedCommandRoute
   '/content-ops': typeof AuthenticatedContentOpsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -929,6 +937,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/accountability': typeof AuthenticatedAccountabilityRoute
+  '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/content-ops': typeof AuthenticatedContentOpsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
@@ -1038,6 +1047,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accountability'
+    | '/command'
     | '/content-ops'
     | '/decisions'
     | '/documents'
@@ -1145,6 +1155,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/accountability'
+    | '/command'
     | '/content-ops'
     | '/decisions'
     | '/documents'
@@ -1252,6 +1263,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/accountability'
+    | '/_authenticated/command'
     | '/_authenticated/content-ops'
     | '/_authenticated/decisions'
     | '/_authenticated/documents'
@@ -1662,6 +1674,13 @@ declare module '@tanstack/react-router' {
       path: '/content-ops'
       fullPath: '/content-ops'
       preLoaderRoute: typeof AuthenticatedContentOpsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/command': {
+      id: '/_authenticated/command'
+      path: '/command'
+      fullPath: '/command'
+      preLoaderRoute: typeof AuthenticatedCommandRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/accountability': {
@@ -2300,6 +2319,7 @@ const AuthenticatedSamIntegrationsRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountabilityRoute: typeof AuthenticatedAccountabilityRoute
+  AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedContentOpsRoute: typeof AuthenticatedContentOpsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
@@ -2340,6 +2360,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountabilityRoute: AuthenticatedAccountabilityRoute,
+  AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedContentOpsRoute: AuthenticatedContentOpsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
