@@ -203,7 +203,7 @@ function CommandPage() {
           </div>
 
           {/* Charts + top clients */}
-          <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.25fr_0.85fr_1.15fr]">
+          <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.1fr_0.8fr_1.4fr]">
             <Panel title="Revenue Trend" subtitle="Trailing 12 months" demo bodyClassName="p-2.5">
               <TrendChart data={DEMO_REVENUE_TREND} valuePrefix="$" />
             </Panel>
@@ -233,9 +233,9 @@ function CommandPage() {
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="w-14 px-2 py-1.5 text-right font-medium">Leads</th>
-                    <th className="w-20 px-2 py-1.5 text-right font-medium">Revenue</th>
-                    <th className="w-16 px-3 py-1.5 text-right font-medium">Chg</th>
+                    <th className="w-11 px-2 py-1.5 text-right font-medium">Leads</th>
+                    <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
+                    <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
                   </tr>
                 </thead>
                 <tbody>

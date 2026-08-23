@@ -104,8 +104,8 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
                 <th className="px-3 py-1.5 font-medium">Channel</th>
                 <th className="w-12 px-2 py-1.5 text-right font-medium">Leads</th>
                 <th className="w-12 px-2 py-1.5 text-right font-medium">Appts</th>
-                <th className="w-20 px-2 py-1.5 text-right font-medium">Revenue</th>
-                <th className="w-14 px-3 py-1.5 text-right font-medium">Chg</th>
+                <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
+                <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
               </tr>
             </thead>
             <tbody>
