@@ -173,6 +173,12 @@ function CommandPage() {
       <div className="grid min-w-0 gap-2.5 xl:grid-cols-[1.18fr_1fr]">
         <div className="flex min-w-0 flex-col gap-2.5">
           {/* KPI row */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground">
+              Portfolio metrics
+            </span>
+            <DemoBadge />
+          </div>
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-6">
             {DEMO_COMMAND_KPIS.map((k) => (
               <KpiCard
@@ -181,7 +187,6 @@ function CommandPage() {
                 value={k.value}
                 delta={k.delta}
                 series={k.series}
-                hint="Demo data"
               />
             ))}
             <KpiCard
