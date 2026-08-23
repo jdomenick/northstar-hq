@@ -214,7 +214,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           collapsed ? "w-[72px]" : "w-[236px]",
         )}
       >
-        <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border/70 px-4">
+        <Link
+          to="/command"
+          className="flex h-14 items-center gap-2.5 border-b border-sidebar-border/70 px-4"
+          aria-label="NorthStar Command Center"
+        >
           <img
             src={northstarLogo.url}
             alt="NorthStar Labs"
@@ -234,7 +238,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
           </div>
-        </div>
+        </Link>
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-2" aria-label="Primary">
           {navGroups.map((group, gi) => (
