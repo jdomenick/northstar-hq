@@ -441,6 +441,81 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
   });
 }
 
+// ───── Cross-client health, derived only from records already read above.
+
+export interface ClientHealth {
+  id: string;
+  name: string;
+  status: string;
+  mrrCents: number;
+  /** Modules that actually hold records for this client. */
+  modules: string[];
+  /** Highest-priority real issue, or null when nothing is outstanding. */
+  issue: string | null;
+  outstandingCents: number;
+  lastActivityAt: string | null;
+  lastActivityLabel: string | null;
+}
+
+export function deriveClientHealth(d: CommandOverview): ClientHealth[] {
+  const clients = d.clients.data ?? [];
+  const invoices = d.invoices.data ?? [];
+  const milestones = d.milestones.data ?? [];
+  const pipeline = d.pipeline.data ?? [];
+  const leads = d.leads.data ?? [];
+  const events = d.events.data ?? [];
+  const now = Date.now();
+
+  return clients.map((c) => {
+    const cInvoices = invoices.filter((i) => i.client_id === c.id);
+    const cMilestones = milestones.filter((m) => m.client_id === c.id);
+    const cPipeline = pipeline.filter((p) => p.client_id === c.id);
+    const cLeads = leads.filter((l) => l.revenue_client_id === c.id);
+    const cEvent = events.find((e) => e.client_id === c.id) ?? null;
+
+    const open = cInvoices.filter((i) => i.status === "open");
+    const outstandingCents = open.reduce(
+      (n, i) => n + (i.amount_cents - i.amount_paid_cents),
+      0,
+    );
+    const pastDue = open.filter((i) => i.due_at && new Date(i.due_at).getTime() < now);
+    const clientAction = cMilestones.filter(
+      (m) => m.requires_client_action && m.status !== "complete",
+    );
+    const overdueMilestones = cMilestones.filter(
+      (m) =>
+        m.status !== "complete" &&
+        m.target_date &&
+        new Date(m.target_date).getTime() < now,
+    );
+
+    let issue: string | null = null;
+    if (pastDue.length) issue = `${pastDue.length} invoice past due`;
+    else if (overdueMilestones.length) issue = `${overdueMilestones.length} milestone overdue`;
+    else if (clientAction.length) issue = `${clientAction.length} item waiting on client`;
+    else if (outstandingCents > 0) issue = `${money(outstandingCents)} outstanding`;
+
+    const modules: string[] = [];
+    if (cLeads.length) modules.push("Assessments");
+    if (cPipeline.length) modules.push("Pipeline");
+    if (cInvoices.length) modules.push("Billing");
+    if (cMilestones.length) modules.push("Delivery");
+
+    return {
+      id: c.id,
+      name: c.name,
+      status: c.status,
+      mrrCents: c.mrr_cents ?? 0,
+      modules,
+      issue,
+      outstandingCents,
+      lastActivityAt: cEvent?.occurred_at ?? null,
+      lastActivityLabel: cEvent?.title ?? null,
+    };
+  });
+}
+
+
 export function money(cents: number, currency = "usd"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
