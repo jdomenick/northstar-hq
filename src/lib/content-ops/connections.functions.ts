@@ -134,7 +134,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
         label: key === "facebook" ? "Facebook Page" : "Instagram Business",
         category: "social",
         tone: "blocked",
-        action: metaBlocked ? "setup_required" : "connect",
+        action: metaBlocked ? "setup_required" : "none",
         headline: metaBlocked
           ? "Meta credentials not configured"
           : "Awaiting account connection",
