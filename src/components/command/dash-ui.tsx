@@ -194,7 +194,7 @@ export function MiniStat({
 }) {
   return (
     <div className="min-w-0">
-      <div className="truncate text-[9.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="text-[9px] font-medium uppercase leading-[1.25] tracking-[0.08em] text-muted-foreground [overflow-wrap:anywhere]">
         {label}
       </div>
       <div
