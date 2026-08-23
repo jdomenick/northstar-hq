@@ -18,11 +18,25 @@ export type ConnectionStatusTone =
   | "blocked"
   | "not_implemented";
 
+// What the operator can actually do from the card right now.
+//   none            - nothing actionable (managed elsewhere / not built)
+//   setup_required  - app credentials missing; an operator cannot fix in-app
+//   connect         - adapter ready, no account connected
+//   reconnect       - account connected but token/permissions need re-auth
+//   connected       - live; disconnect is the only action
+export type ConnectionAction =
+  | "none"
+  | "setup_required"
+  | "connect"
+  | "reconnect"
+  | "connected";
+
 export interface ContentOpsConnectionStatus {
   key: string;                       // stable identifier (beehiiv, facebook, ...)
   label: string;                     // display name
   category: "newsletter" | "social";
   tone: ConnectionStatusTone;
+  action: ConnectionAction;
   headline: string;                  // one-line human status
   detail: string;                    // supporting sentence
   identity: string | null;           // e.g. publication name, page name
@@ -31,6 +45,7 @@ export interface ContentOpsConnectionStatus {
   missingCapabilities: string[];
   adapterVersion: string | null;
 }
+
 
 const Input = z.object({
   organizationId: z.string().uuid(),
