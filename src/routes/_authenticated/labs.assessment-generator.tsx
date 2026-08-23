@@ -47,17 +47,31 @@ function AssessmentGeneratorPage() {
         <Section title="Known metrics" hint="Leave unknown fields blank"><div className="grid gap-4 md:grid-cols-3">{([['monthlyLeads','Monthly leads'],['monthlySpend','Monthly marketing spend'],['avgCustomerValue','Average customer value'],['responseTime','Average lead response time'],['leadToAppointment','Lead → appointment %'],['appointmentToCustomer','Appointment → customer %']] as [keyof Form,string][]).map(([k,l])=><Field key={k} label={l} value={form[k]} onChange={(v)=>set(k,v)}/>)}</div><Area label="Additional notes" value={form.notes} onChange={(v)=>set('notes',v)}/><Button className="mt-5" onClick={()=>setGenerated(true)}>Generate Assessment</Button></Section>
       </div>
 
-      {generated && <div id="assessment-output" className="space-y-8 bg-background print:space-y-6">
-        <div className="flex items-center justify-between border-b border-border pb-5"><div><div className="text-[11px] font-medium uppercase tracking-[.22em] text-primary">NorthStar Labs</div><h1 className="mt-2 font-display text-3xl font-semibold">Growth Assessment</h1><p className="mt-1 text-muted-foreground">{form.company || 'Client'}{form.industry ? ` · ${form.industry}` : ''}</p></div><Button className="print:hidden" variant="outline" onClick={()=>window.print()}><Printer className="mr-2 h-4 w-4"/>Print / Save PDF</Button></div>
+      {generated && <div id="assessment-output" className="nsl-report mt-8 space-y-8 p-8 shadow-[0_24px_60px_-40px_oklch(0_0_0/0.5)] print:mt-0 print:space-y-6 print:p-0 print:shadow-none">
+        <header className="border-b-2 border-primary pb-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <img src={northstarLogo.url} alt="NorthStar Labs" className="h-12 w-auto" width={48} height={48} />
+              <div>
+                <div className="text-[11px] font-medium uppercase tracking-[.22em] text-primary">NorthStar Labs</div>
+                <h1 className="mt-1.5 font-display text-3xl font-semibold text-foreground">Growth Assessment</h1>
+              </div>
+            </div>
+            <Button className="print:hidden" variant="outline" onClick={()=>window.print()}><Printer className="mr-2 h-4 w-4"/>Print / Save PDF</Button>
+          </div>
+          <p className="mt-4 text-[14px] text-muted-foreground">Prepared for <span className="font-medium text-foreground">{form.company || 'Client'}</span>{form.industry ? ` · ${form.industry}` : ''}{form.website ? ` · ${form.website}` : ''}</p>
+        </header>
         <Report title="Executive Summary"><p>{form.company || 'This business'} is being assessed across acquisition, lead handling, conversion, operations, and revenue measurement. The purpose is to identify the highest-impact constraints, prioritize the fixes, and establish a measurable baseline before implementation.</p>{form.goals && <p className="mt-3"><strong>Primary goals:</strong> {form.goals}</p>}</Report>
-        <Report title="Current State"><div className="grid gap-4 md:grid-cols-2">{areas.map(([k,v])=><div key={k} className="border-t border-border pt-3"><h3 className="font-semibold">{k}</h3><p className="mt-1 text-sm text-muted-foreground">{v || 'Not enough information supplied yet.'}</p></div>)}</div></Report>
-        <Report title="Primary Constraints & Leaks">{constraints.length ? <ul className="space-y-2">{constraints.map(x=><li key={x}>• {x}</li>)}</ul> : <p>Insufficient information to name a constraint responsibly.</p>}{form.knownProblems && <p className="mt-3"><strong>Known leaks:</strong> {form.knownProblems}</p>}</Report>
+        <Report title="Current State"><div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">{areas.map(([k,v])=><div key={k} className="bg-background p-4"><h3 className="text-[13px] font-semibold uppercase tracking-[.1em] text-primary">{k}</h3><p className="mt-1.5 text-sm text-muted-foreground">{v || 'Not enough information supplied yet.'}</p></div>)}</div></Report>
+        <Report title="Primary Constraints & Leaks"><div className="nsl-report-panel p-5">{constraints.length ? <ul className="space-y-2">{constraints.map(x=><li key={x} className="flex gap-2"><span className="mt-[9px] h-1.5 w-1.5 shrink-0 bg-primary"/><span>{x}</span></li>)}</ul> : <p>Insufficient information to name a constraint responsibly.</p>}{form.knownProblems && <p className="mt-3"><strong>Known leaks:</strong> {form.knownProblems}</p>}</div></Report>
         <Report title="Baseline Economics"><div className="grid gap-4 sm:grid-cols-3"><Metric label="Cost per lead" value={metrics.cpl ? money(metrics.cpl) : 'Unknown'}/><Metric label="Est. customers / month" value={metrics.customers ? metrics.customers.toFixed(1) : 'Unknown'}/><Metric label="Est. revenue from supplied funnel" value={metrics.revenue ? money(metrics.revenue) : 'Unknown'}/></div><p className="mt-3 text-xs text-muted-foreground">Calculated only from supplied inputs. These are baseline calculations, not promises or historical NorthStar results.</p></Report>
         <Report title="Priority Actions"><ol className="space-y-2"><li>1. Fix the highest-impact break in the lead-to-revenue path first.</li><li>2. Remove manual handoffs where they delay response or follow-up.</li><li>3. Connect activity to pipeline and revenue so the result can be measured.</li><li>4. Establish the baseline above before implementation and compare the same metrics after launch.</li></ol></Report>
         <Report title="NorthStar Implementation Plan"><p>Scope should follow the assessment, not a preset software package. NorthStar will use the smallest combination of acquisition, communication, automation, CRM, integration, and reporting infrastructure required to address the identified constraint.</p></Report>
         <Report title="Expected Outcomes"><p>Faster response, more consistent follow-up, fewer lost opportunities, less manual work, clearer pipeline visibility, and stronger revenue attribution. Specific targets should be set only after the baseline and implementation scope are confirmed.</p></Report>
-        <Report title="Next Step"><p>Review the findings with the client, confirm the priority constraint and baseline, then issue the implementation scope with the exact work, investment, timeline, and success measures.</p></Report>
+        <Report title="Next Step"><div className="nsl-report-panel p-5"><p>Review the findings with the client, confirm the priority constraint and baseline, then issue the implementation scope with the exact work, investment, timeline, and success measures.</p></div></Report>
+        <footer className="border-t border-border pt-4 text-[11px] text-muted-foreground">NorthStar Labs · Innovate. Automate. Elevate. · northstarlabshq.com</footer>
       </div>}
+
     </PageBody>
   </>;
 }
