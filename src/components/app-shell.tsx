@@ -14,6 +14,9 @@ import {
   Search,
   PanelLeft,
   Bell,
+  Megaphone,
+  MessageSquare,
+  LayoutGrid,
   CheckSquare,
   ClipboardList,
   Users,
@@ -53,29 +56,33 @@ import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { SamChatHead } from "@/components/sam/sam-chat-head";
 
 
+type NavTo =
+  | "/command"
+  | "/clients"
+  | "/labs"
+  | "/labs/mission-control"
+  | "/labs/assessments"
+  | "/labs/revenue"
+  | "/labs/proposals"
+  | "/labs/billing"
+  | "/labs/ventures"
+  | "/labs/projects"
+  | "/labs/decisions"
+  | "/labs/goals"
+  | "/labs/knowledge"
+  | "/labs/documents"
+  | "/labs/accountability"
+  | "/sam"
+  | "/sam/control"
+  | "/sam/memory"
+  | "/sam/content"
+  | "/sam/integrations"
+  | "/settings";
+
 type NavItem = {
-  to:
-    | "/command"
-    | "/clients"
-    | "/labs"
-    | "/labs/mission-control"
-    | "/labs/assessments"
-    | "/labs/revenue"
-    | "/labs/proposals"
-    | "/labs/billing"
-    | "/labs/ventures"
-    | "/labs/projects"
-    | "/labs/decisions"
-    | "/labs/goals"
-    | "/labs/knowledge"
-    | "/labs/documents"
-    | "/labs/accountability"
-    | "/sam"
-    | "/sam/control"
-    | "/sam/memory"
-    | "/sam/content"
-    | "/sam/integrations"
-    | "/settings";
+  to: NavTo;
+  /** In-page anchor on the Command Center for module/alert sections. */
+  hash?: string;
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -89,50 +96,56 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Command",
     items: [
-      { to: "/command", label: "Command", icon: CommandIcon, exact: true },
+      { to: "/command", label: "Command Center", icon: CommandIcon, exact: true },
       { to: "/clients", label: "Clients", icon: Users },
     ],
   },
   {
     heading: "Modules",
     items: [
-      { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
-      { to: "/labs/assessments", label: "Assessments", icon: Inbox },
-      { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
-      { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
-      { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
-      { to: "/labs/projects", label: "Delivery", icon: FolderKanban },
+      { to: "/command", hash: "cam", label: "CAM", icon: Megaphone },
+      { to: "/command", hash: "ccm", label: "CCM", icon: MessageSquare },
+      { to: "/command", hash: "crm", label: "NorthStar CRM", icon: Building2 },
+      { to: "/command", hash: "modules", label: "All Modules", icon: LayoutGrid },
     ],
   },
   {
     heading: "Operations",
     items: [
-      { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-      { to: "/labs/ventures", label: "Ventures", icon: Building2 },
-      { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
-      { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
-      { to: "/labs/goals", label: "Goals", icon: Target },
-    ],
-  },
-  {
-    heading: "Knowledge",
-    items: [
-      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
-      { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
-      { to: "/labs/documents", label: "Documents", icon: FileText },
+      { to: "/sam/control", label: "Operations Center", icon: Gauge },
+      { to: "/labs/mission-control", label: "Approvals", icon: CheckSquare },
+      { to: "/command", hash: "alerts", label: "Alerts", icon: Bell },
+      { to: "/labs", label: "Reports", icon: FileText, exact: true },
     ],
   },
   {
     heading: "System",
     items: [
-      { to: "/sam", label: "SAM", icon: Sparkles },
-      { to: "/sam/control", label: "SAM Control", icon: Gauge },
-      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
-      { to: "/sam/integrations", label: "Integrations", icon: Plug },
+      { to: "/labs/knowledge", label: "Knowledge Base", icon: BookOpen },
+      { to: "/sam", label: "System / SAM Core", icon: Sparkles },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
+];
 
+/**
+ * Surfaces that are not pinned in the primary sidebar but must stay reachable.
+ * They are listed in the command palette (Cmd/Ctrl + K) Navigate group.
+ */
+const SECONDARY_NAV: NavItem[] = [
+  { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
+  { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
+  { to: "/sam/integrations", label: "Integrations", icon: Plug },
+  { to: "/labs/assessments", label: "Assessments", icon: Inbox },
+  { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
+  { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
+  { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
+  { to: "/labs/projects", label: "Delivery", icon: FolderKanban },
+  { to: "/labs/ventures", label: "Ventures", icon: Building2 },
+  { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
+  { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
+  { to: "/labs/goals", label: "Goals", icon: Target },
+  { to: "/labs/documents", label: "Documents", icon: FileText },
 ];
 
 function visibleGroups(role: Role | undefined | null): NavGroup[] {
@@ -142,6 +155,7 @@ function visibleGroups(role: Role | undefined | null): NavGroup[] {
     items: g.items.filter((i) => allowFinancial || !i.financial),
   })).filter((g) => g.items.length > 0);
 }
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -166,7 +180,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const searchQ = useGlobalSearch(activeOrgId, debouncedQuery);
   const canWrite = can.writeContent(activeMembership?.role);
   const navGroups = visibleGroups(activeMembership?.role);
-  const navItems = navGroups.flatMap((g) => g.items);
+  const navItems = [
+    ...navGroups.flatMap((g) => g.items),
+    ...SECONDARY_NAV.filter((i) => can.viewFinancials(activeMembership?.role) || !i.financial),
+  ];
   const results = searchQ.data;
   const hasQuery = debouncedQuery.length >= 2;
 
@@ -211,7 +228,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside
         className={cn(
           "hidden md:flex print:hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "w-[72px]" : "w-[236px]",
+          collapsed ? "w-[68px]" : "w-[185px]",
         )}
       >
         <Link
@@ -257,8 +274,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.to}
+                      key={item.to + (item.hash ?? "")}
                       to={item.to}
+                      hash={item.hash}
                       title={collapsed ? item.label : undefined}
                       aria-current={active ? "page" : undefined}
                       className={cn(
@@ -290,6 +308,29 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-sidebar-border p-2">
+          <Link
+            to="/settings"
+            title={collapsed ? (user?.email ?? "Account") : undefined}
+            className={cn(
+              "mb-1 flex h-10 w-full items-center gap-2 rounded-md px-2 hover:bg-sidebar-accent/60",
+              collapsed && "justify-center px-0",
+            )}
+          >
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[9.5px] font-semibold text-primary">
+              {initials || "?"}
+            </span>
+            {!collapsed && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-[11px] text-sidebar-foreground">
+                  {user?.email ?? "Account"}
+                </span>
+                <span className="block truncate text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {activeMembership?.role ?? "operator"}
+                </span>
+              </span>
+            )}
+          </Link>
+
           <button
             onClick={() => setCollapsed((v) => !v)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -334,8 +375,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                       const Icon = item.icon;
                       return (
                         <Link
-                          key={item.to}
+                          key={item.to + (item.hash ?? "")}
                           to={item.to}
+                          hash={item.hash}
                           className={cn(
                             "flex items-center gap-3 rounded-md px-2.5 py-2 text-[14px]",
                             active
@@ -474,7 +516,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <CommandGroup heading="Navigate">
             {navItems.map((item) => (
               <CommandItem
-                key={item.to}
+                key={item.to + (item.hash ?? "")}
                 value={`nav-${item.label}`}
                 onSelect={() => goto({ to: item.to })}
               >
