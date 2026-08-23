@@ -51,8 +51,6 @@ const INTERNAL_MODULES: { name: string; to: string; purpose: string }[] = [
   { name: "Assessments", to: "/labs/assessments", purpose: "Inbound assessment requests" },
 ];
 
-/** Standalone NorthStar apps that stay independently operated. */
-const EXTERNAL_APPS = ["CAM", "CCM", "CRM"];
 
 function CommandPage() {
   const { activeOrgId, activeMembership } = useOrg();
