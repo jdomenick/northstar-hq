@@ -1,70 +1,284 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { Band, BandHeading, CtaLink, FinalCta, SiteLayout, pageMeta } from "@/components/marketing/site-shell";
-import { BRAND } from "@/lib/marketing/content";
+import {
+  Band,
+  BandHeading,
+  CtaLink,
+  FinalCta,
+  SiteLayout,
+  pageMeta,
+} from "@/components/marketing/site-shell";
+import {
+  BRAND,
+  CAPABILITIES,
+  DELIVERY_MODEL,
+  INDUSTRIES,
+  OUTCOMES,
+  PROCESS_STEPS,
+  REVENUE_PATH,
+  SERVICES,
+  WHY_US,
+} from "@/lib/marketing/content";
 import { SOCIAL_IMAGE_URL, siteUrl } from "@/lib/marketing/site-url";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
-    ...pageMeta({ title: "NorthStar Labs | Build a Better Growth System", description: "Find the constraint. Fix the leaks. Build the system. Prove the result.", path: "/" }),
-    scripts: [{ type: "application/ld+json", children: JSON.stringify({ "@context":"https://schema.org", "@type":"Organization", name:"NorthStar Labs", url:BRAND.siteUrl, email:BRAND.email, logo:SOCIAL_IMAGE_URL, contactPoint:[{ "@type":"ContactPoint", contactType:"sales", email:BRAND.email, url:siteUrl("/request-assessment") }] }) }],
+    ...pageMeta({
+      title: "NorthStar Labs | Find the Revenue Leak, Then Fix It",
+      description:
+        "We find where your business is leaking revenue, then build, automate, and measure the systems that close the gap. Request an Assessment.",
+      path: "/",
+    }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "NorthStar Labs",
+          url: BRAND.siteUrl,
+          email: BRAND.email,
+          description: BRAND.positioning,
+          logo: SOCIAL_IMAGE_URL,
+          image: SOCIAL_IMAGE_URL,
+          slogan: BRAND.tagline,
+          contactPoint: [
+            {
+              "@type": "ContactPoint",
+              contactType: "sales",
+              email: BRAND.email,
+              url: siteUrl("/request-assessment"),
+              availableLanguage: ["en"],
+            },
+          ],
+        }),
+      },
+    ],
   }),
 });
 
-const FLOW = [
-  ["Assess", "We look at how demand becomes revenue today."],
-  ["Diagnose", "We identify the constraints, leaks, and highest-impact opportunities."],
-  ["Implement", "We build the smallest system required to fix what matters."],
-  ["Operate", "The system handles the repeatable work and keeps the process moving."],
-  ["Measure", "We connect activity to pipeline, customers, and revenue."],
-  ["Improve", "We use real performance to decide what should change next."],
-];
-
-const SYSTEM = [
-  ["Acquire", "Create, capture, and qualify opportunities."],
-  ["Convert", "Respond, follow up, book, and move opportunities forward."],
-  ["Operate", "Connect systems and automate repetitive execution."],
-  ["Measure", "Track the path from spend to customer and revenue."],
-  ["Improve", "Find the next constraint using actual performance."],
-];
-
-const OUTCOMES = [
-  ["Faster response", "Build toward immediate lead response instead of hours or days."],
-  ["Consistent follow-up", "Every qualified opportunity gets the required next touch."],
-  ["Fewer lost opportunities", "Recover missed calls, stalled leads, cancellations, and forgotten follow-up."],
-  ["Less manual work", "Remove repetitive handoffs and re-entry where automation is appropriate."],
-  ["Clear pipeline visibility", "Know what is moving, what is stalled, and what needs attention."],
-  ["Revenue attribution", "Connect spend → lead → conversation → opportunity → customer → revenue."],
-];
-
 function HomePage() {
-  return <SiteLayout>
-    <section className="border-b border-border"><div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-      <div className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-primary">NorthStar Labs</div>
-      <h1 className="mt-5 max-w-4xl font-display text-[40px] font-semibold leading-[1.04] text-foreground md:text-[64px]">Find the constraint. Fix the leaks. Build the system. Prove the result.</h1>
-      <p className="mt-6 max-w-2xl text-[17px] leading-[1.8] text-muted-foreground">NorthStar builds and operates the systems that turn demand into customers and measurable revenue. We start with the business, not with a software package.</p>
-      <div className="mt-9"><CtaLink to="/request-assessment">Request an Assessment <ArrowRight className="h-4 w-4"/></CtaLink></div>
-    </div></section>
+  return (
+    <SiteLayout>
+      {/* Hero */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
+          <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+            <span className="h-1 w-1 rounded-full bg-primary" />
+            Business systems implementation
+          </div>
+          <h1 className="mt-5 max-w-4xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[58px]">
+            We find where your business is leaking revenue. Then we fix it.
+          </h1>
+          <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">
+            {BRAND.positioning} We do not stop at the diagnosis. We build the fix, automate the workflow
+            where that is the right answer, integrate it with the systems you already run, and measure what
+            changed.
+          </p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <CtaLink to="/request-assessment">
+              Request an Assessment <ArrowRight className="h-4 w-4" />
+            </CtaLink>
+            <CtaLink to="/services" variant="secondary">
+              View Services
+            </CtaLink>
+          </div>
+        </div>
+      </section>
 
-    <Band muted><BandHeading eyebrow="The problem" title="Growth breaks between the steps." lede="Marketing, lead capture, response, follow-up, appointments, sales, customer management, and reporting are one connected system. When the handoffs fail, revenue gets lost." />
-      <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-5">{SYSTEM.map(([t,b])=><div key={t} className="bg-background p-6"><h3 className="font-display font-semibold">{t}</h3><p className="mt-2 text-[13.5px] leading-7 text-muted-foreground">{b}</p></div>)}</div>
-    </Band>
+      {/* Where revenue leaks */}
+      <Band muted>
+        <BandHeading
+          eyebrow="Where revenue leaks"
+          title="Revenue is rarely lost in one place. It leaks between the steps."
+          lede="Marketing, leads, calls, follow-up, appointments, sales, and revenue are one connected path. Most businesses lose money in the handoffs, not in the tools."
+        />
+        <ul className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {REVENUE_PATH.map((r) => (
+            <li key={r.stage} className="bg-background p-6">
+              <h3 className="font-display text-[15px] font-semibold text-foreground">{r.stage}</h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{r.leak}</p>
+            </li>
+          ))}
+        </ul>
+      </Band>
 
-    <Band><BandHeading eyebrow="How NorthStar works" title="One process. No software maze." lede="We diagnose first, then implement only what the business actually needs." />
-      <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{FLOW.map(([t,b],i)=><li key={t} className="border-t border-border pt-4"><div className="text-[11px] uppercase tracking-[.2em] text-primary">0{i+1}</div><h3 className="mt-2 font-display font-semibold">{t}</h3><p className="mt-2 text-[13.5px] leading-7 text-muted-foreground">{b}</p></li>)}</ol>
-    </Band>
+      {/* Delivery model */}
+      <Band>
+        <BandHeading
+          eyebrow="How we deliver"
+          title="Assess. Identify. Build. Automate. Measure."
+          lede="The same sequence on every engagement. Diagnosis is where we start, not where we stop."
+        />
+        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+          {DELIVERY_MODEL.map((d, i) => (
+            <li key={d.key} className="border-t border-border pt-4">
+              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">
+                0{i + 1} / {d.label}
+              </div>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{d.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </Band>
 
-    <Band muted><BandHeading eyebrow="Business outcomes" title="Measure what the owner actually cares about." lede="The operating chain is simple: Spend → Lead → Qualified Lead → Conversation → Appointment / Opportunity → Customer → Revenue." />
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{OUTCOMES.map(([t,b])=><div key={t} className="border-t border-border pt-4"><h3 className="font-display font-semibold">{t}</h3><p className="mt-2 text-[13.5px] leading-7 text-muted-foreground">{b}</p></div>)}</div>
-      <p className="mt-8 max-w-3xl text-xs leading-6 text-muted-foreground">Targets are established from each client's baseline and implementation scope. Capability targets are not presented as historical client results.</p>
-    </Band>
+      {/* Why NorthStar Labs */}
+      <Band muted>
+        <BandHeading
+          eyebrow="Why NorthStar Labs"
+          title="Accountable for the outcome, not the deliverable."
+        />
+        <div className="mt-10 grid gap-8 md:grid-cols-2">
+          {WHY_US.map((w) => (
+            <div key={w.title} className="border-l border-primary/40 pl-5">
+              <h3 className="font-display text-[16px] font-semibold text-foreground">{w.title}</h3>
+              <p className="mt-2 text-[14px] leading-[1.75] text-muted-foreground">{w.body}</p>
+            </div>
+          ))}
+        </div>
+      </Band>
 
-    <Band><BandHeading eyebrow="The assessment" title="Know what to fix before you buy anything." lede="We assess acquisition, lead handling, conversion, operations and automation, and measurement and revenue. You get the constraints, leaks, priorities, defensible opportunity estimates, recommended fixes, and implementation scope in writing." />
-      <div className="mt-8"><CtaLink to="/request-assessment">Start the Assessment <ArrowRight className="h-4 w-4"/></CtaLink></div>
-    </Band>
+      {/* What we implement */}
+      <Band>
+        <BandHeading
+          eyebrow="What we implement"
+          title="Built around the gap, not around a product."
+          lede="We integrate with the CRM and business systems you already use. AI and automation are used where they are the right solution, not because they are the headline."
+        />
+        <div className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {CAPABILITIES.map((c) => (
+            <div key={c.title} className="bg-background p-6">
+              <h3 className="font-display text-[14.5px] font-semibold leading-[1.35] text-foreground">
+                {c.title}
+              </h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </Band>
 
-    <Band muted><BandHeading eyebrow="NorthStar infrastructure" title="The technology stays underneath the outcome." lede="NorthStar can deploy acquisition, communication, workflow execution, CRM, attribution, integrations, and AI independently or as one connected system. You do not need to assemble the stack yourself." /></Band>
-    <FinalCta />
-  </SiteLayout>;
+      {/* Our Process */}
+      <Band muted>
+        <BandHeading
+          eyebrow="Our process"
+          title="Seven steps, in order, with nothing skipped."
+          lede="Every engagement follows the same sequence so you always know where you are and what comes next."
+        />
+        <ol className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {PROCESS_STEPS.slice(0, 4).map((s) => (
+            <li key={s.step} className="border-t border-border pt-4">
+              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">
+                Step {s.step}
+              </div>
+              <h3 className="mt-2 font-display text-[15px] font-semibold text-foreground">{s.name}</h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{s.detail}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-8">
+          <Link
+            to="/how-it-works"
+            className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
+          >
+            See all seven steps <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Band>
+
+      {/* Services overview */}
+      <Band>
+        <BandHeading
+          eyebrow="Managed services"
+          title="What an engagement can turn into once the constraint is named."
+          lede="Scope follows the Assessment. We recommend only the work that changes a number, in the order it should happen."
+        />
+        <div className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+          {SERVICES.map((s) => (
+            <div key={s.slug} className="bg-background p-6">
+              <h3 className="font-display text-[15px] font-semibold text-foreground">{s.name}</h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{s.outcome}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
+          >
+            Read the full service detail <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Band>
+
+      {/* Industries */}
+      <Band muted>
+        <BandHeading
+          eyebrow="Industries we help"
+          title="Different industries. The same constraints."
+          lede="Response time, follow-up, manual work, and unclear reporting show up almost everywhere. The context changes; the operating problems rarely do."
+        />
+        <ul className="mt-10 flex flex-wrap gap-2">
+          {INDUSTRIES.map((i) => (
+            <li
+              key={i.name}
+              className="border border-border px-3.5 py-2 text-[13px] text-muted-foreground"
+            >
+              {i.name}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8">
+          <Link
+            to="/industries"
+            className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
+          >
+            See industry detail <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Band>
+
+      {/* Business outcomes */}
+      <Band>
+        <BandHeading
+          eyebrow="Business outcomes"
+          title="We measure the work the way an owner does."
+          lede="Every engagement is tied to outcomes you can see in the business, not activity reports."
+        />
+        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {OUTCOMES.map((o) => (
+            <div key={o.label} className="border-t border-border pt-4">
+              <h3 className="font-display text-[15px] font-semibold text-foreground">{o.label}</h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{o.detail}</p>
+            </div>
+          ))}
+        </div>
+      </Band>
+
+      {/* Assessment */}
+      <Band muted>
+        <BandHeading
+          eyebrow="The assessment"
+          title="Start With the Constraint."
+          lede="We inspect the actual customer journey the way a buyer experiences it, then show you what we found in writing."
+        />
+        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { t: "What is broken", b: "The specific steps where the process fails, named and evidenced." },
+            { t: "Where opportunity is lost", b: "The points between demand and revenue that quietly cost you deals." },
+            { t: "What should change", b: "The sequence of fixes, ordered by business impact." },
+            { t: "What we can implement", b: "The work NorthStar Labs can build and run, with scope in writing." },
+          ].map((a, i) => (
+            <li key={a.t} className="border-t border-border pt-4">
+              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">0{i + 1}</div>
+              <h3 className="mt-2 font-display text-[15px] font-semibold text-foreground">{a.t}</h3>
+              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{a.b}</p>
+            </li>
+          ))}
+        </ol>
+      </Band>
+
+      <FinalCta />
+    </SiteLayout>
+  );
 }
