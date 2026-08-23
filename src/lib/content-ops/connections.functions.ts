@@ -146,27 +146,111 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
       });
     }
 
-    // ---- LinkedIn / X / Reddit -----------------------------------------
-    const upcoming: Array<{ key: string; label: string }> = [
-      { key: "linkedin", label: "LinkedIn" },
-      { key: "x", label: "X" },
-      { key: "reddit", label: "Reddit" },
-    ];
-    for (const p of upcoming) {
+    // ---- LinkedIn (workspace connector, no per-operator OAuth) ---------
+    try {
+      const { validateLinkedInCredentials } = await import(
+        "@/lib/social/providers/linkedin"
+      );
+      const li = await validateLinkedInCredentials();
       results.push({
-        key: p.key,
-        label: p.label,
+        key: "linkedin",
+        label: "LinkedIn",
         category: "social",
-        tone: "not_implemented",
-        headline: "Adapter not yet built",
-        detail: `${p.label} publishing is on the roadmap. No credentials collected, no publish path armed.`,
+        tone: li.configured && li.reachable ? "configured" : "blocked",
+        action: li.configured && li.reachable ? "connected" : "setup_required",
+        headline: !li.configured
+          ? "Connector not configured"
+          : !li.reachable
+            ? "Connector configured but not responding"
+            : "Connected",
+        detail: li.message,
+        identity: li.displayName ?? li.memberId,
+        armed: li.configured ? li.armed : null,
+        grantedCapabilities: li.grantedCapabilities,
+        missingCapabilities: li.missingCapabilities,
+        adapterVersion: "linkedin.v0.1.0",
+      });
+    } catch (err) {
+      results.push({
+        key: "linkedin",
+        label: "LinkedIn",
+        category: "social",
+        tone: "blocked",
+        action: "setup_required",
+        headline: "Could not check LinkedIn",
+        detail: (err as Error).message,
         identity: null,
         armed: null,
         grantedCapabilities: [],
         missingCapabilities: [],
-        adapterVersion: null,
+        adapterVersion: "linkedin.v0.1.0",
       });
     }
+
+    // ---- X (per-venture OAuth 2.0 user context with PKCE) --------------
+    try {
+      const { validateXConnection } = await import("@/lib/social/providers/x");
+      const x = await validateXConnection(data.organizationId, data.ventureId);
+      results.push({
+        key: "x",
+        label: "X",
+        category: "social",
+        tone: x.connected && x.reachable ? "configured" : "blocked",
+        action: !x.configured
+          ? "setup_required"
+          : !x.connected
+            ? "connect"
+            : !x.reachable
+              ? "reconnect"
+              : "connected",
+        headline: !x.configured
+          ? "Setup required"
+          : !x.connected
+            ? "No account connected"
+            : !x.reachable
+              ? "Reconnect required"
+              : `Connected${x.username ? ` as @${x.username}` : ""}`,
+        detail: x.message,
+        identity: x.username ? `@${x.username}` : x.displayName,
+        armed: x.configured ? x.armed : null,
+        grantedCapabilities: x.grantedCapabilities,
+        missingCapabilities: x.missingCapabilities,
+        adapterVersion: "x.v0.1.0",
+      });
+    } catch (err) {
+      results.push({
+        key: "x",
+        label: "X",
+        category: "social",
+        tone: "blocked",
+        action: "setup_required",
+        headline: "Could not check X",
+        detail: (err as Error).message,
+        identity: null,
+        armed: null,
+        grantedCapabilities: [],
+        missingCapabilities: [],
+        adapterVersion: "x.v0.1.0",
+      });
+    }
+
+    // ---- Reddit (not built) --------------------------------------------
+    results.push({
+      key: "reddit",
+      label: "Reddit",
+      category: "social",
+      tone: "not_implemented",
+      action: "none",
+      headline: "Adapter not yet built",
+      detail:
+        "Reddit publishing is on the roadmap. No credentials collected, no publish path armed.",
+      identity: null,
+      armed: null,
+      grantedCapabilities: [],
+      missingCapabilities: [],
+      adapterVersion: null,
+    });
+
 
     return results;
   });
