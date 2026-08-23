@@ -3,10 +3,11 @@
 
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, Sun, Moon } from "lucide-react";
 import northstarLogo from "@/assets/northstar-labs-logo.png.asset.json";
 import { BRAND } from "@/lib/marketing/content";
 import { SOCIAL_IMAGE_URL } from "@/lib/marketing/site-url";
+import { useSiteTheme, type SiteTheme } from "@/lib/marketing/site-theme";
 import { cn } from "@/lib/utils";
 
 type NavTo =
@@ -58,7 +59,33 @@ export function CtaLink({
   );
 }
 
-function SiteHeader() {
+function ThemeToggle({
+  theme,
+  onToggle,
+  className,
+}: {
+  theme: SiteTheme;
+  onToggle: () => void;
+  className?: string;
+}) {
+  const nextLabel = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={nextLabel}
+      title={nextLabel}
+      className={cn(
+        "inline-flex h-10 w-10 items-center justify-center border border-border text-muted-foreground transition-colors hover:text-foreground",
+        className,
+      )}
+    >
+      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
+function SiteHeader({ theme, onToggleTheme }: { theme: SiteTheme; onToggleTheme: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
@@ -93,22 +120,26 @@ function SiteHeader() {
           >
             Client sign in
           </Link>
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} className="h-9 w-9" />
           <CtaLink to="/request-assessment" className="px-4 py-2.5">
             Request Assessment
           </CtaLink>
         </nav>
 
 
-        <button
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="inline-flex h-10 w-10 items-center justify-center border border-border text-foreground lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center border border-border text-foreground"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -223,15 +254,16 @@ function SiteFooter() {
 }
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const { theme, toggleTheme } = useSiteTheme();
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="nsl-site flex min-h-screen flex-col bg-background" data-theme={theme}>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
-      <SiteHeader />
+      <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <main id="main" className="flex-1">
         {children}
       </main>

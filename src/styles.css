@@ -240,3 +240,62 @@
   }
 }
 
+
+/* ---------------------------------------------------------------------------
+   Public marketing site themes.
+
+   The public website at northstarlabshq.com offers a true light and a true dark
+   theme. These tokens are scoped to the public site shell (.nsl-site) so the
+   authenticated Executive Operating System, SAM, and every internal product
+   surface keep the obsidian theme defined on :root above and are unaffected.
+
+   Rules for both themes: NorthStar blue is an accent only, never a page base.
+   Light  = white / off-white base, charcoal-navy text.
+   Dark   = near-black / deep charcoal base, near-white text.
+--------------------------------------------------------------------------- */
+.nsl-site[data-theme="light"] {
+  color-scheme: light;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.22 0.014 260);
+  --card: oklch(0.978 0.002 250);
+  --card-foreground: oklch(0.22 0.014 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.014 260);
+  --primary: oklch(0.48 0.15 255);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.003 250);
+  --secondary-foreground: oklch(0.25 0.014 260);
+  --muted: oklch(0.965 0.003 250);
+  --muted-foreground: oklch(0.47 0.014 258);
+  --accent: oklch(0.955 0.008 252);
+  --accent-foreground: oklch(0.25 0.014 260);
+  --border: oklch(0.9 0.008 255);
+  --input: oklch(0.88 0.008 255);
+  --ring: oklch(0.48 0.15 255 / 45%);
+}
+
+.nsl-site[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.13 0.002 260);
+  --foreground: oklch(0.97 0.002 260);
+  --card: oklch(0.175 0.003 260);
+  --card-foreground: oklch(0.97 0.002 260);
+  --popover: oklch(0.175 0.003 260);
+  --popover-foreground: oklch(0.97 0.002 260);
+  --primary: oklch(0.65 0.18 255);
+  --primary-foreground: oklch(0.12 0.002 260);
+  --secondary: oklch(0.22 0.003 260);
+  --secondary-foreground: oklch(0.95 0.002 260);
+  --muted: oklch(0.2 0.003 260);
+  --muted-foreground: oklch(0.7 0.006 260);
+  --accent: oklch(0.24 0.006 258);
+  --accent-foreground: oklch(0.97 0.002 260);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.65 0.18 255 / 50%);
+}
+
+.nsl-site {
+  background-color: var(--background);
+  color: var(--foreground);
+}
