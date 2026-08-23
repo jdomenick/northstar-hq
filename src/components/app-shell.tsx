@@ -53,29 +53,33 @@ import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { SamChatHead } from "@/components/sam/sam-chat-head";
 
 
+type NavTo =
+  | "/command"
+  | "/clients"
+  | "/labs"
+  | "/labs/mission-control"
+  | "/labs/assessments"
+  | "/labs/revenue"
+  | "/labs/proposals"
+  | "/labs/billing"
+  | "/labs/ventures"
+  | "/labs/projects"
+  | "/labs/decisions"
+  | "/labs/goals"
+  | "/labs/knowledge"
+  | "/labs/documents"
+  | "/labs/accountability"
+  | "/sam"
+  | "/sam/control"
+  | "/sam/memory"
+  | "/sam/content"
+  | "/sam/integrations"
+  | "/settings";
+
 type NavItem = {
-  to:
-    | "/command"
-    | "/clients"
-    | "/labs"
-    | "/labs/mission-control"
-    | "/labs/assessments"
-    | "/labs/revenue"
-    | "/labs/proposals"
-    | "/labs/billing"
-    | "/labs/ventures"
-    | "/labs/projects"
-    | "/labs/decisions"
-    | "/labs/goals"
-    | "/labs/knowledge"
-    | "/labs/documents"
-    | "/labs/accountability"
-    | "/sam"
-    | "/sam/control"
-    | "/sam/memory"
-    | "/sam/content"
-    | "/sam/integrations"
-    | "/settings";
+  to: NavTo;
+  /** In-page anchor on the Command Center for module/alert sections. */
+  hash?: string;
   label: string;
   icon: typeof CommandIcon;
   exact?: boolean;
@@ -89,50 +93,56 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Command",
     items: [
-      { to: "/command", label: "Command", icon: CommandIcon, exact: true },
+      { to: "/command", label: "Command Center", icon: CommandIcon, exact: true },
       { to: "/clients", label: "Clients", icon: Users },
     ],
   },
   {
     heading: "Modules",
     items: [
-      { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
-      { to: "/labs/assessments", label: "Assessments", icon: Inbox },
-      { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
-      { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
-      { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
-      { to: "/labs/projects", label: "Delivery", icon: FolderKanban },
+      { to: "/command", hash: "cam", label: "CAM", icon: Megaphone },
+      { to: "/command", hash: "ccm", label: "CCM", icon: MessageSquare },
+      { to: "/command", hash: "crm", label: "NorthStar CRM", icon: Building2 },
+      { to: "/command", hash: "modules", label: "All Modules", icon: LayoutGrid },
     ],
   },
   {
     heading: "Operations",
     items: [
-      { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-      { to: "/labs/ventures", label: "Ventures", icon: Building2 },
-      { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
-      { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
-      { to: "/labs/goals", label: "Goals", icon: Target },
-    ],
-  },
-  {
-    heading: "Knowledge",
-    items: [
-      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
-      { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
-      { to: "/labs/documents", label: "Documents", icon: FileText },
+      { to: "/sam/control", label: "Operations Center", icon: Gauge },
+      { to: "/labs/mission-control", label: "Approvals", icon: CheckSquare },
+      { to: "/command", hash: "alerts", label: "Alerts", icon: Bell },
+      { to: "/labs", label: "Reports", icon: FileText, exact: true },
     ],
   },
   {
     heading: "System",
     items: [
-      { to: "/sam", label: "SAM", icon: Sparkles },
-      { to: "/sam/control", label: "SAM Control", icon: Gauge },
-      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
-      { to: "/sam/integrations", label: "Integrations", icon: Plug },
+      { to: "/labs/knowledge", label: "Knowledge Base", icon: BookOpen },
+      { to: "/sam", label: "System / SAM Core", icon: Sparkles },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
+];
 
+/**
+ * Surfaces that are not pinned in the primary sidebar but must stay reachable.
+ * They are listed in the command palette (Cmd/Ctrl + K) Navigate group.
+ */
+const SECONDARY_NAV: NavItem[] = [
+  { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
+  { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
+  { to: "/sam/integrations", label: "Integrations", icon: Plug },
+  { to: "/labs/assessments", label: "Assessments", icon: Inbox },
+  { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
+  { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
+  { to: "/labs/revenue", label: "Revenue", icon: DollarSign, financial: true },
+  { to: "/labs/projects", label: "Delivery", icon: FolderKanban },
+  { to: "/labs/ventures", label: "Ventures", icon: Building2 },
+  { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
+  { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
+  { to: "/labs/goals", label: "Goals", icon: Target },
+  { to: "/labs/documents", label: "Documents", icon: FileText },
 ];
 
 function visibleGroups(role: Role | undefined | null): NavGroup[] {
@@ -142,6 +152,7 @@ function visibleGroups(role: Role | undefined | null): NavGroup[] {
     items: g.items.filter((i) => allowFinancial || !i.financial),
   })).filter((g) => g.items.length > 0);
 }
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
