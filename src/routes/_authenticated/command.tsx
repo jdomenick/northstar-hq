@@ -10,7 +10,13 @@ import {
   SourceView,
   StatTile,
 } from "@/components/command-ui";
-import { money, useCommandOverview } from "@/lib/command/hooks";
+import {
+  MODULE_ADAPTERS,
+  deriveClientHealth,
+  money,
+  useCommandOverview,
+} from "@/lib/command/hooks";
+
 
 export const Route = createFileRoute("/_authenticated/command")({
   component: CommandPage,
@@ -45,8 +51,6 @@ const INTERNAL_MODULES: { name: string; to: string; purpose: string }[] = [
   { name: "Assessments", to: "/labs/assessments", purpose: "Inbound assessment requests" },
 ];
 
-/** Standalone NorthStar apps that stay independently operated. */
-const EXTERNAL_APPS = ["CAM", "CCM", "CRM"];
 
 function CommandPage() {
   const { activeOrgId, activeMembership } = useOrg();
@@ -79,7 +83,9 @@ function CommandPage() {
   }
 
   const d = q.data;
+  const health = deriveClientHealth(d);
   const clients = d.clients.data ?? [];
+
   const activeClients = clients.filter((c) => c.status === "active");
   const invoices = d.invoices.data ?? [];
   const openInvoices = invoices.filter((i) => i.status === "open");
@@ -199,26 +205,89 @@ function CommandPage() {
         </Section>
 
         <Section
-          title="Clients"
-          hint="Each client opens a unified workspace"
+          title="Client health"
+          hint="Modules holding records, current issue, last meaningful activity"
           action={<DrillLink to="/clients">View all</DrillLink>}
         >
-          <SourceView source={d.clients} empty="No clients on record yet.">
-            {(rows) => (
-              <RowList>
-                {rows.slice(0, 8).map((c) => (
-                  <ListRow
-                    key={c.id}
-                    title={c.name}
-                    meta={`${c.status}${c.mrr_cents ? ` · ${money(c.mrr_cents)} MRR` : ""}`}
-                    to={`/clients/${c.id}`}
-                    right="Workspace"
-                  />
-                ))}
-              </RowList>
-            )}
-          </SourceView>
+          {d.clients.status !== "ok" ? (
+            <NotAvailable reason={d.clients.reason ?? "Client records are unavailable."} />
+          ) : health.length === 0 ? (
+            <EmptyLine>No clients on record yet.</EmptyLine>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-[12.5px]">
+                <thead className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+                  <tr className="border-b border-border/60">
+                    <th className="py-2 pr-4 font-medium">Client</th>
+                    <th className="py-2 pr-4 font-medium">Status</th>
+                    <th className="py-2 pr-4 font-medium">Modules</th>
+                    <th className="py-2 pr-4 font-medium">Current issue</th>
+                    <th className="py-2 pr-4 font-medium">Last activity</th>
+                    <th className="py-2 font-medium">MRR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {health.slice(0, 12).map((c) => (
+                    <tr key={c.id} className="border-b border-border/40 last:border-0">
+                      <td className="py-2.5 pr-4">
+                        <Link
+                          to="/clients/$clientId"
+                          params={{ clientId: c.id }}
+                          className="text-foreground underline-offset-4 hover:underline"
+                        >
+                          {c.name}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">{c.status}</td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">
+                        {c.modules.length ? c.modules.join(", ") : "No module records"}
+                      </td>
+                      <td
+                        className={
+                          c.issue ? "py-2.5 pr-4 text-foreground" : "py-2.5 pr-4 text-muted-foreground"
+                        }
+                      >
+                        {c.issue ?? "Nothing outstanding"}
+                      </td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">
+                        {c.lastActivityAt
+                          ? `${new Date(c.lastActivityAt).toLocaleDateString()}${c.lastActivityLabel ? ` · ${c.lastActivityLabel}` : ""}`
+                          : "No recorded activity"}
+                      </td>
+                      <td className="py-2.5 text-muted-foreground">
+                        {c.mrrCents ? money(c.mrrCents) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Section>
+
+        <Section
+          title="Approvals and decisions"
+          hint="Operator tasks explicitly waiting on a decision"
+          action={<DrillLink to="/labs/mission-control">Mission Control</DrillLink>}
+        >
+          {d.approvals.status !== "ok" ? (
+            <NotAvailable reason={d.approvals.reason ?? "Approvals are unavailable."} />
+          ) : approvals.length === 0 ? (
+            <EmptyLine>No approvals are waiting.</EmptyLine>
+          ) : (
+            <RowList>
+              {approvals.slice(0, 8).map((t) => (
+                <ListRow
+                  key={t.id}
+                  title={t.title}
+                  meta={`${t.kind} · ${t.status}${t.due_at ? ` · due ${new Date(t.due_at).toLocaleDateString()}` : ""}`}
+                  right={t.priority}
+                />
+              ))}
+            </RowList>
+          )}
+        </Section>
+
 
         <Section title="Modules" hint="Product surfaces operated from Command">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -233,11 +302,12 @@ function CommandPage() {
               </Link>
             ))}
           </div>
-          <div className="mt-4">
-            <NotAvailable
-              reason={`Standalone apps (${EXTERNAL_APPS.join(", ")}) run independently and do not report data into Command. Their status is not shown here until a data source is connected.`}
-            />
+          <div className="mt-4 space-y-3">
+            {MODULE_ADAPTERS.map((a) => (
+              <NotAvailable key={a.name} reason={`${a.name}: ${a.reason}`} />
+            ))}
           </div>
+
         </Section>
 
         <Section

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useOrg } from "@/lib/org-context";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
-import { EmptyLine, ListRow, NotAvailable, RowList, SourceView } from "@/components/command-ui";
-import { money, useCommandOverview } from "@/lib/command/hooks";
+import { EmptyLine, ListRow, NotAvailable, RowList } from "@/components/command-ui";
+import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
+
 
 export const Route = createFileRoute("/_authenticated/clients/")({
   component: ClientsIndex,
@@ -38,29 +39,42 @@ function ClientsIndex() {
         description="One workspace per client. Modules are reached from inside the client, not alongside it."
       />
       <PageBody>
-        <Section title="All clients">
+        <Section title="All clients" hint="Status, active modules, current issue, last activity">
           {q.isLoading || !q.data ? (
             <EmptyLine>Loading clients…</EmptyLine>
           ) : q.isError ? (
             <NotAvailable reason="Client records could not be read. Refresh to try again." />
+          ) : q.data.clients.status !== "ok" ? (
+            <NotAvailable reason={q.data.clients.reason ?? "Client records are unavailable."} />
           ) : (
-            <SourceView source={q.data.clients} empty="No clients on record yet.">
-              {(rows) => (
+            (() => {
+              const health = deriveClientHealth(q.data);
+              if (health.length === 0) return <EmptyLine>No clients on record yet.</EmptyLine>;
+              return (
                 <RowList>
-                  {rows.map((c) => (
+                  {health.map((c) => (
                     <ListRow
                       key={c.id}
                       title={c.name}
-                      meta={`${c.status}${c.started_at ? ` · since ${new Date(c.started_at).toLocaleDateString()}` : ""}`}
+
+                      meta={[
+                        c.status,
+                        c.modules.length ? c.modules.join(", ") : "No module records",
+                        c.issue ?? "Nothing outstanding",
+                        c.lastActivityAt
+                          ? `last activity ${new Date(c.lastActivityAt).toLocaleDateString()}`
+                          : "no recorded activity",
+                      ].join(" · ")}
                       to={`/clients/${c.id}`}
-                      right={c.mrr_cents ? `${money(c.mrr_cents)} MRR` : "Workspace"}
+                      right={c.mrrCents ? `${money(c.mrrCents)} MRR` : "Workspace"}
                     />
                   ))}
                 </RowList>
-              )}
-            </SourceView>
+              );
+            })()
           )}
         </Section>
+
       </PageBody>
     </>
   );

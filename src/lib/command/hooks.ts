@@ -90,6 +90,11 @@ type PipelineRow = Pick<
   "id" | "client_id" | "name" | "stage" | "value_cents" | "expected_close" | "next_action" | "source"
 >;
 
+type EventRow = Pick<
+  Database["public"]["Tables"]["client_workspace_events"]["Row"],
+  "id" | "client_id" | "title" | "event_type" | "occurred_at"
+>;
+
 export interface CommandOverview {
   clients: Source<ClientRow[]>;
   leads: Source<LeadRow[]>;
@@ -100,16 +105,41 @@ export interface CommandOverview {
   approvals: Source<TaskRow[]>;
   milestones: Source<MilestoneRow[]>;
   pipeline: Source<PipelineRow[]>;
+  events: Source<EventRow[]>;
   /** No calls/messaging system of record is wired into this project yet. */
   conversations: Source<never>;
   /** No scheduling system of record is wired into this project yet. */
   appointments: Source<never>;
 }
 
+/**
+ * Standalone NorthStar products that are not wired into this project's data
+ * layer. They are declared here as adapter boundaries so Command can report a
+ * truthful Not Connected state instead of guessing.
+ */
+export const MODULE_ADAPTERS: { name: string; reason: string }[] = [
+  {
+    name: "CAM",
+    reason:
+      "CAM runs as a standalone product. No acquisition data source is connected to Command yet.",
+  },
+  {
+    name: "CCM",
+    reason:
+      "CCM runs as a standalone product. No calls or messaging data source is connected to Command yet.",
+  },
+  {
+    name: "CRM",
+    reason:
+      "Standalone CRM is not connected. Pipeline shown in Command comes from NorthStar revenue records only.",
+  },
+];
+
 const NO_COMMS =
   "No calls or messaging system is connected to Command. Connect a communications source to report here.";
 const NO_SCHEDULING =
   "No scheduling system is connected to Command. Connect a calendar or booking source to report here.";
+
 
 export function useCommandOverview(orgId: string | null) {
   return useQuery({
@@ -129,7 +159,9 @@ export function useCommandOverview(orgId: string | null) {
         approvals,
         milestones,
         pipeline,
+        events,
       ] = await Promise.all([
+
         read("Clients", async () => {
           const { data, error } = await supabase
             .from("revenue_clients")
@@ -227,6 +259,16 @@ export function useCommandOverview(orgId: string | null) {
           if (error) throw error;
           return (data ?? []) as PipelineRow[];
         }),
+        read("Client activity", async () => {
+          const { data, error } = await supabase
+            .from("client_workspace_events")
+            .select("id,client_id,title,event_type,occurred_at")
+            .eq("organization_id", org)
+            .order("occurred_at", { ascending: false })
+            .limit(200);
+          if (error) throw error;
+          return (data ?? []) as EventRow[];
+        }),
       ]);
 
       return {
@@ -239,9 +281,11 @@ export function useCommandOverview(orgId: string | null) {
         approvals,
         milestones,
         pipeline,
+        events,
         conversations: notConnected<never>(NO_COMMS),
         appointments: notConnected<never>(NO_SCHEDULING),
       };
+
     },
   });
 }
@@ -396,6 +440,81 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
     },
   });
 }
+
+// ───── Cross-client health, derived only from records already read above.
+
+export interface ClientHealth {
+  id: string;
+  name: string;
+  status: string;
+  mrrCents: number;
+  /** Modules that actually hold records for this client. */
+  modules: string[];
+  /** Highest-priority real issue, or null when nothing is outstanding. */
+  issue: string | null;
+  outstandingCents: number;
+  lastActivityAt: string | null;
+  lastActivityLabel: string | null;
+}
+
+export function deriveClientHealth(d: CommandOverview): ClientHealth[] {
+  const clients = d.clients.data ?? [];
+  const invoices = d.invoices.data ?? [];
+  const milestones = d.milestones.data ?? [];
+  const pipeline = d.pipeline.data ?? [];
+  const leads = d.leads.data ?? [];
+  const events = d.events.data ?? [];
+  const now = Date.now();
+
+  return clients.map((c) => {
+    const cInvoices = invoices.filter((i) => i.client_id === c.id);
+    const cMilestones = milestones.filter((m) => m.client_id === c.id);
+    const cPipeline = pipeline.filter((p) => p.client_id === c.id);
+    const cLeads = leads.filter((l) => l.revenue_client_id === c.id);
+    const cEvent = events.find((e) => e.client_id === c.id) ?? null;
+
+    const open = cInvoices.filter((i) => i.status === "open");
+    const outstandingCents = open.reduce(
+      (n, i) => n + (i.amount_cents - i.amount_paid_cents),
+      0,
+    );
+    const pastDue = open.filter((i) => i.due_at && new Date(i.due_at).getTime() < now);
+    const clientAction = cMilestones.filter(
+      (m) => m.requires_client_action && m.status !== "complete",
+    );
+    const overdueMilestones = cMilestones.filter(
+      (m) =>
+        m.status !== "complete" &&
+        m.target_date &&
+        new Date(m.target_date).getTime() < now,
+    );
+
+    let issue: string | null = null;
+    if (pastDue.length) issue = `${pastDue.length} invoice past due`;
+    else if (overdueMilestones.length) issue = `${overdueMilestones.length} milestone overdue`;
+    else if (clientAction.length) issue = `${clientAction.length} item waiting on client`;
+    else if (outstandingCents > 0) issue = `${money(outstandingCents)} outstanding`;
+
+    const modules: string[] = [];
+    if (cLeads.length) modules.push("Assessments");
+    if (cPipeline.length) modules.push("Pipeline");
+    if (cInvoices.length) modules.push("Billing");
+    if (cMilestones.length) modules.push("Delivery");
+
+    return {
+      id: c.id,
+      name: c.name,
+      status: c.status,
+      mrrCents: c.mrr_cents ?? 0,
+      modules,
+      issue,
+      outstandingCents,
+      lastActivityAt: cEvent?.occurred_at ?? null,
+      lastActivityLabel: cEvent?.title ?? null,
+    };
+  });
+}
+
 
 export function money(cents: number, currency = "usd"): string {
   return new Intl.NumberFormat("en-US", {
