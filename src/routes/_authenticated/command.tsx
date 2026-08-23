@@ -10,7 +10,13 @@ import {
   SourceView,
   StatTile,
 } from "@/components/command-ui";
-import { money, useCommandOverview } from "@/lib/command/hooks";
+import {
+  MODULE_ADAPTERS,
+  deriveClientHealth,
+  money,
+  useCommandOverview,
+} from "@/lib/command/hooks";
+
 
 export const Route = createFileRoute("/_authenticated/command")({
   component: CommandPage,
