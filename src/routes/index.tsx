@@ -66,16 +66,16 @@ function HomePage() {
         <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
           <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
             <span className="h-1 w-1 rounded-full bg-primary" />
-            Business systems implementation
+            NorthStar Labs
           </div>
           <h1 className="mt-5 max-w-4xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[58px]">
-            We find where your business is leaking revenue. Then we fix it.
+            We find where your business is leaking revenue.
           </h1>
           <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">
-            {BRAND.positioning} We do not stop at the diagnosis. We build the fix, automate the workflow
-            where that is the right answer, integrate it with the systems you already run, and measure what
-            changed.
+            Then we fix it. We build the system, automate the workflow where that is the right answer,
+            integrate it with the tools you already run, and measure what changed.
           </p>
+
           <div className="mt-9 flex flex-wrap gap-3">
             <CtaLink to="/request-assessment">
               Request an Assessment <ArrowRight className="h-4 w-4" />
