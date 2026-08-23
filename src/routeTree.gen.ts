@@ -73,6 +73,7 @@ import { Route as AuthenticatedLabsDocumentsRouteImport } from './routes/_authen
 import { Route as AuthenticatedLabsDecisionsRouteImport } from './routes/_authenticated/labs.decisions'
 import { Route as AuthenticatedLabsBillingRouteImport } from './routes/_authenticated/labs.billing'
 import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_authenticated/labs.assessments'
+import { Route as AuthenticatedLabsAssessmentGeneratorRouteImport } from './routes/_authenticated/labs.assessment-generator'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -449,6 +450,12 @@ const AuthenticatedLabsAssessmentsRoute =
     path: '/labs/assessments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLabsAssessmentGeneratorRoute =
+  AuthenticatedLabsAssessmentGeneratorRouteImport.update({
+    id: '/labs/assessment-generator',
+    path: '/labs/assessment-generator',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLabsAccountabilityRoute =
   AuthenticatedLabsAccountabilityRouteImport.update({
     id: '/labs/accountability',
@@ -715,6 +722,7 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -817,6 +825,7 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -922,6 +931,7 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
+  '/_authenticated/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
   '/_authenticated/labs/assessments': typeof AuthenticatedLabsAssessmentsRoute
   '/_authenticated/labs/billing': typeof AuthenticatedLabsBillingRoute
   '/_authenticated/labs/decisions': typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -1027,6 +1037,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/labs/accountability'
+    | '/labs/assessment-generator'
     | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
@@ -1129,6 +1140,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/labs/accountability'
+    | '/labs/assessment-generator'
     | '/labs/assessments'
     | '/labs/billing'
     | '/labs/decisions'
@@ -1233,6 +1245,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/labs/accountability'
+    | '/_authenticated/labs/assessment-generator'
     | '/_authenticated/labs/assessments'
     | '/_authenticated/labs/billing'
     | '/_authenticated/labs/decisions'
@@ -1793,6 +1806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsAssessmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/labs/assessment-generator': {
+      id: '/_authenticated/labs/assessment-generator'
+      path: '/labs/assessment-generator'
+      fullPath: '/labs/assessment-generator'
+      preLoaderRoute: typeof AuthenticatedLabsAssessmentGeneratorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/labs/accountability': {
       id: '/_authenticated/labs/accountability'
       path: '/labs/accountability'
@@ -2231,6 +2251,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
+  AuthenticatedLabsAssessmentGeneratorRoute: typeof AuthenticatedLabsAssessmentGeneratorRoute
   AuthenticatedLabsAssessmentsRoute: typeof AuthenticatedLabsAssessmentsRoute
   AuthenticatedLabsBillingRoute: typeof AuthenticatedLabsBillingRoute
   AuthenticatedLabsDecisionsRoute: typeof AuthenticatedLabsDecisionsRouteWithChildren
@@ -2270,6 +2291,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
+  AuthenticatedLabsAssessmentGeneratorRoute:
+    AuthenticatedLabsAssessmentGeneratorRoute,
   AuthenticatedLabsAssessmentsRoute: AuthenticatedLabsAssessmentsRoute,
   AuthenticatedLabsBillingRoute: AuthenticatedLabsBillingRoute,
   AuthenticatedLabsDecisionsRoute: AuthenticatedLabsDecisionsRouteWithChildren,
