@@ -54,6 +54,7 @@ import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
+import { Route as OauthConnectorReturnRouteImport } from './routes/oauth/connector/return'
 import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
 import { Route as ApiPublicAssessmentRouteImport } from './routes/api/public/assessment'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings.integrations'
@@ -106,6 +107,7 @@ import { Route as AuthenticatedLabsDecisionsIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedLabsCommitmentsIdRouteImport } from './routes/_authenticated/labs.commitments.$id'
 import { Route as AuthenticatedLabsAssessmentIdRouteImport } from './routes/_authenticated/labs.assessment.$id'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth/x/callback'
+import { Route as ApiPublicOauthRedditCallbackRouteImport } from './routes/api/public/oauth/reddit/callback'
 import { Route as ApiPublicOauthMetaDeauthorizeRouteImport } from './routes/api/public/oauth/meta/deauthorize'
 import { Route as ApiPublicOauthMetaDataDeletionRouteImport } from './routes/api/public/oauth/meta/data-deletion'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
@@ -343,6 +345,11 @@ const ProposalTokenPaymentReturnRoute =
     path: '/payment-return',
     getParentRoute: () => ProposalTokenRoute,
   } as any)
+const OauthConnectorReturnRoute = OauthConnectorReturnRouteImport.update({
+  id: '/oauth/connector/return',
+  path: '/oauth/connector/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientInviteTokenRoute = ClientInviteTokenRouteImport.update({
   id: '/client/invite/$token',
   path: '/client/invite/$token',
@@ -641,6 +648,12 @@ const ApiPublicOauthXCallbackRoute = ApiPublicOauthXCallbackRouteImport.update({
   path: '/api/public/oauth/x/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthRedditCallbackRoute =
+  ApiPublicOauthRedditCallbackRouteImport.update({
+    id: '/api/public/oauth/reddit/callback',
+    path: '/api/public/oauth/reddit/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicOauthMetaDeauthorizeRoute =
   ApiPublicOauthMetaDeauthorizeRouteImport.update({
     id: '/api/public/oauth/meta/deauthorize',
@@ -748,6 +761,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
+  '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
@@ -787,6 +801,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/reddit/callback': typeof ApiPublicOauthRedditCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -852,6 +867,7 @@ export interface FileRoutesByTo {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
+  '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
@@ -891,6 +907,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/reddit/callback': typeof ApiPublicOauthRedditCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
 }
 export interface FileRoutesById {
@@ -959,6 +976,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRouteWithChildren
   '/api/public/assessment': typeof ApiPublicAssessmentRoute
   '/client/invite/$token': typeof ClientInviteTokenRoute
+  '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
@@ -998,6 +1016,7 @@ export interface FileRoutesById {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/reddit/callback': typeof ApiPublicOauthRedditCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
 }
 export interface FileRouteTypes {
@@ -1066,6 +1085,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/api/public/assessment'
     | '/client/invite/$token'
+    | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
     | '/labs/'
     | '/sam/'
@@ -1105,6 +1125,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/reddit/callback'
     | '/api/public/oauth/x/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1170,6 +1191,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/api/public/assessment'
     | '/client/invite/$token'
+    | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
     | '/labs'
     | '/sam'
@@ -1209,6 +1231,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/reddit/callback'
     | '/api/public/oauth/x/callback'
   id:
     | '__root__'
@@ -1276,6 +1299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations'
     | '/api/public/assessment'
     | '/client/invite/$token'
+    | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
@@ -1315,6 +1339,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/reddit/callback'
     | '/api/public/oauth/x/callback'
   fileRoutesById: FileRoutesById
 }
@@ -1350,6 +1375,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAssessmentRoute: typeof ApiPublicAssessmentRoute
   ClientInviteTokenRoute: typeof ClientInviteTokenRoute
+  OauthConnectorReturnRoute: typeof OauthConnectorReturnRoute
   ApiPublicAutomationSchedulerRoute: typeof ApiPublicAutomationSchedulerRoute
   ApiPublicAutomationTickRoute: typeof ApiPublicAutomationTickRoute
   ApiPublicClientInvitationRoute: typeof ApiPublicClientInvitationRoute
@@ -1366,6 +1392,7 @@ export interface RootRouteChildren {
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
   ApiPublicOauthMetaDataDeletionRoute: typeof ApiPublicOauthMetaDataDeletionRoute
   ApiPublicOauthMetaDeauthorizeRoute: typeof ApiPublicOauthMetaDeauthorizeRoute
+  ApiPublicOauthRedditCallbackRoute: typeof ApiPublicOauthRedditCallbackRoute
   ApiPublicOauthXCallbackRoute: typeof ApiPublicOauthXCallbackRoute
 }
 
@@ -1685,6 +1712,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/proposal/$token/payment-return'
       preLoaderRoute: typeof ProposalTokenPaymentReturnRouteImport
       parentRoute: typeof ProposalTokenRoute
+    }
+    '/oauth/connector/return': {
+      id: '/oauth/connector/return'
+      path: '/oauth/connector/return'
+      fullPath: '/oauth/connector/return'
+      preLoaderRoute: typeof OauthConnectorReturnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/client/invite/$token': {
       id: '/client/invite/$token'
@@ -2050,6 +2084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthXCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/reddit/callback': {
+      id: '/api/public/oauth/reddit/callback'
+      path: '/api/public/oauth/reddit/callback'
+      fullPath: '/api/public/oauth/reddit/callback'
+      preLoaderRoute: typeof ApiPublicOauthRedditCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/oauth/meta/deauthorize': {
       id: '/api/public/oauth/meta/deauthorize'
       path: '/api/public/oauth/meta/deauthorize'
@@ -2402,6 +2443,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAssessmentRoute: ApiPublicAssessmentRoute,
   ClientInviteTokenRoute: ClientInviteTokenRoute,
+  OauthConnectorReturnRoute: OauthConnectorReturnRoute,
   ApiPublicAutomationSchedulerRoute: ApiPublicAutomationSchedulerRoute,
   ApiPublicAutomationTickRoute: ApiPublicAutomationTickRoute,
   ApiPublicClientInvitationRoute: ApiPublicClientInvitationRoute,
@@ -2418,6 +2460,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
   ApiPublicOauthMetaDataDeletionRoute: ApiPublicOauthMetaDataDeletionRoute,
   ApiPublicOauthMetaDeauthorizeRoute: ApiPublicOauthMetaDeauthorizeRoute,
+  ApiPublicOauthRedditCallbackRoute: ApiPublicOauthRedditCallbackRoute,
   ApiPublicOauthXCallbackRoute: ApiPublicOauthXCallbackRoute,
 }
 export const routeTree = rootRouteImport

@@ -33,6 +33,10 @@ export interface ProbeResult {
   lastErrorMessage: string | null;
   adapterVersion: string | null;
   testable: boolean;
+  // True only when a real credential/token/database row proves the link.
+  connected?: boolean;
+  // Exact env names the runtime still needs. Drives the Setup required action.
+  missingEnv?: string[];
   diagnostics?: IntegrationDiagnostics;
 }
 
@@ -46,7 +50,8 @@ export type IntegrationDiagnostics =
   | { kind: "supabase_self"; host: string; hasServiceRole: boolean }
   | { kind: "webhooks_summary"; total: number; enabled: number }
   | { kind: "rest_summary"; total: number; enabled: number }
-  | { kind: "env_shell"; requiredEnv: string[]; missingEnv: string[]; approvalRequired: boolean; docsUrl: string | null };
+  | { kind: "env_shell"; requiredEnv: string[]; missingEnv: string[]; approvalRequired: boolean; docsUrl: string | null }
+  | { kind: "app_user_connector"; connectorId: string | null; clientConfigured: boolean; missingEnv: string[]; connectedIdentity: string | null; connectedAt: string | null };
 
 type Supa = SupabaseClient<Database>;
 
@@ -136,6 +141,8 @@ export async function probeBeehiiv(supabase: Supa, orgId: string): Promise<Probe
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: "beehiiv.v0.2.0",
     testable: b.configured,
+    connected: b.configured && b.reachable,
+    missingEnv: b.configured ? [] : ["BEEHIIV_API_KEY", "BEEHIIV_PUBLICATION_ID"].filter((n) => !envPresent(n)),
     diagnostics: {
       kind: "beehiiv",
       publicationName: b.publicationName,
@@ -176,6 +183,8 @@ export async function probeLinkedIn(supabase: Supa, orgId: string): Promise<Prob
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: "linkedin.v0.1.0",
     testable: l.configured,
+    connected: l.configured && l.reachable,
+    missingEnv: envPresent("LINKEDIN_API_KEY") ? [] : ["LINKEDIN_API_KEY"],
     diagnostics: {
       kind: "linkedin",
       identity: l.configured
@@ -241,6 +250,8 @@ export async function probeMeta(
     lastErrorMessage: act.lastErrorMessage,
     adapterVersion: `${platformKey}.v0.1.0`,
     testable: false,
+    connected: cfg.configured && list.length > 0,
+    missingEnv: cfg.configured ? [] : cfg.missing,
     diagnostics: {
       kind: "meta",
       destinations: list.map((d) => ({
@@ -285,6 +296,8 @@ export function probeEnvOnly(def: ProviderDefinition): ProbeResult {
     lastErrorMessage: null,
     adapterVersion: `${def.key}.shell`,
     testable: false,
+    connected: false,
+    missingEnv: missing,
     diagnostics: {
       kind: "env_shell",
       requiredEnv: def.requiredEnv ?? [],
@@ -312,6 +325,8 @@ export async function probeStripe(): Promise<ProbeResult> {
       lastErrorMessage: null,
       adapterVersion: "stripe.v0.0",
       testable: false,
+      connected: false,
+      missingEnv: ["STRIPE_SECRET_KEY"],
       diagnostics: {
         kind: "stripe",
         mode: "unknown",
@@ -373,6 +388,8 @@ export async function probeStripe(): Promise<ProbeResult> {
     lastErrorMessage: errMsg,
     adapterVersion: "stripe.v0.1",
     testable: true,
+    connected: ok,
+    missingEnv: [],
     diagnostics: {
       kind: "stripe",
       mode,
@@ -403,7 +420,9 @@ export function probeSupabaseSelf(): ProbeResult {
     lastErrorAt: null,
     lastErrorMessage: null,
     adapterVersion: "supabase.self",
-    testable: false,
+    testable: ok,
+    connected: ok,
+    missingEnv: ok ? [] : ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY"],
     diagnostics: {
       kind: "supabase_self",
       host,
@@ -617,5 +636,211 @@ export async function probeRestEndpoints(supabase: Supa, orgId: string): Promise
     adapterVersion: "rest.v1",
     testable: false,
     diagnostics: { kind: "rest_summary", total: total ?? 0, enabled: enabled ?? 0 },
+  };
+}
+// -----------------------------------------------------------------------
+// X / Reddit: this project's own per-venture OAuth connections.
+// -----------------------------------------------------------------------
+async function probeSocialOAuth(
+  supabase: Supa,
+  orgId: string,
+  ventureId: string | null,
+  platform: "x" | "reddit",
+): Promise<ProbeResult> {
+  const cfg =
+    platform === "x"
+      ? (await import("@/lib/social/providers/x/config.server")).readXConfigStatus()
+      : (await import("@/lib/social/providers/reddit/config.server")).readRedditConfigStatus();
+  const act = await lastPublicationFor(supabase, orgId, platform);
+  const label = platform === "x" ? "X" : "Reddit";
+  const adapterVersion = `${platform}.v0.1.0`;
+
+  if (!cfg.configured) {
+    return {
+      status: "awaiting_credentials",
+      headline: `${label} app credentials required`,
+      detail: `Missing environment: ${cfg.missing.join(", ")}.`,
+      identity: null,
+      armed: null,
+      grantedCapabilities: [],
+      missingCapabilities: cfg.missing,
+      lastActivityAt: act.lastActivityAt,
+      lastActivityLabel: act.lastActivityAt ? "Last publish" : null,
+      lastErrorAt: act.lastErrorAt,
+      lastErrorMessage: act.lastErrorMessage,
+      adapterVersion,
+      testable: false,
+      connected: false,
+      missingEnv: cfg.missing,
+    };
+  }
+
+  if (!ventureId) {
+    return {
+      status: "ready_to_connect",
+      headline: `${label} app configured`,
+      detail: `No venture selected. Open a venture to connect a ${label} account.`,
+      identity: null,
+      armed: cfg.armed,
+      grantedCapabilities: [],
+      missingCapabilities: ["venture_scope"],
+      lastActivityAt: act.lastActivityAt,
+      lastActivityLabel: act.lastActivityAt ? "Last publish" : null,
+      lastErrorAt: act.lastErrorAt,
+      lastErrorMessage: act.lastErrorMessage,
+      adapterVersion,
+      testable: false,
+      connected: false,
+      missingEnv: [],
+    };
+  }
+
+  const v =
+    platform === "x"
+      ? await (await import("@/lib/social/providers/x")).validateXConnection(orgId, ventureId)
+      : await (await import("@/lib/social/providers/reddit")).validateRedditConnection(orgId, ventureId);
+
+  const status: ProviderStatus = !v.connected
+    ? "ready_to_connect"
+    : !v.reachable
+      ? "authentication_failed"
+      : !v.armed
+        ? "action_needed"
+        : "connected";
+
+  return {
+    status,
+    headline: !v.connected
+      ? "Ready to connect"
+      : !v.reachable
+        ? "Token rejected - reconnect"
+        : !v.armed
+          ? "Connected, publishing disarmed"
+          : "Live and armed",
+    detail: v.message,
+    identity: v.username ? `@${v.username.replace(/^@/, "")}` : v.displayName,
+    armed: v.armed,
+    grantedCapabilities: v.grantedCapabilities,
+    missingCapabilities: v.missingCapabilities,
+    lastActivityAt: act.lastActivityAt,
+    lastActivityLabel: act.lastActivityAt ? "Last publish" : null,
+    lastErrorAt: act.lastErrorAt,
+    lastErrorMessage: act.lastErrorMessage,
+    adapterVersion,
+    testable: v.connected,
+    connected: v.connected,
+    missingEnv: [],
+  };
+}
+
+export function probeX(supabase: Supa, orgId: string, ventureId: string | null): Promise<ProbeResult> {
+  return probeSocialOAuth(supabase, orgId, ventureId, "x");
+}
+
+export function probeReddit(supabase: Supa, orgId: string, ventureId: string | null): Promise<ProbeResult> {
+  return probeSocialOAuth(supabase, orgId, ventureId, "reddit");
+}
+
+// -----------------------------------------------------------------------
+// App User Connector providers (per signed-in operator).
+// -----------------------------------------------------------------------
+export async function probeAppUserConnector(
+  def: ProviderDefinition,
+  userId: string,
+): Promise<ProbeResult> {
+  const { resolveConnectorSetup } = await import("./app-user-connector.server");
+  const setup = resolveConnectorSetup(def.key);
+  const requiredEnv = def.requiredEnv ?? [];
+  const missingEnv = requiredEnv.filter((n) => !envPresent(n));
+
+  // No connector exists for this provider yet (Google Business Profile,
+  // Google Ads). Report the truthful external blocker; never a Connect button
+  // that cannot work.
+  if (!setup) {
+    return {
+      status: def.approvalRequired ? "awaiting_provider_approval" : "awaiting_credentials",
+      headline: "Setup required",
+      detail: def.externalStep ?? "External prerequisites are not met.",
+      identity: null,
+      armed: null,
+      grantedCapabilities: [],
+      missingCapabilities: missingEnv,
+      lastActivityAt: null,
+      lastActivityLabel: null,
+      lastErrorAt: null,
+      lastErrorMessage: null,
+      adapterVersion: `${def.key}.connector`,
+      testable: false,
+      connected: false,
+      missingEnv,
+      diagnostics: {
+        kind: "app_user_connector",
+        connectorId: def.connectorId ?? null,
+        clientConfigured: false,
+        missingEnv,
+        connectedIdentity: null,
+        connectedAt: null,
+      },
+    };
+  }
+
+  if (!setup.clientApiKey || setup.missingEnv.length > 0) {
+    const missing = setup.missingEnv.length > 0 ? setup.missingEnv : [setup.clientApiKeyEnv];
+    return {
+      status: "awaiting_oauth_configuration",
+      headline: "Setup required",
+      detail: `${def.externalStep ?? ""} Missing: ${missing.join(", ")}.`.trim(),
+      identity: null,
+      armed: null,
+      grantedCapabilities: [],
+      missingCapabilities: missing,
+      lastActivityAt: null,
+      lastActivityLabel: null,
+      lastErrorAt: null,
+      lastErrorMessage: null,
+      adapterVersion: `${def.key}.connector`,
+      testable: false,
+      connected: false,
+      missingEnv: missing,
+      diagnostics: {
+        kind: "app_user_connector",
+        connectorId: setup.connectorId,
+        clientConfigured: false,
+        missingEnv: missing,
+        connectedIdentity: null,
+        connectedAt: null,
+      },
+    };
+  }
+
+  const { hasAppUserConnection } = await import("./app-user-connections.server");
+  const link = await hasAppUserConnection(userId, setup.connectorId);
+
+  return {
+    status: link.connected ? "connected" : "ready_to_connect",
+    headline: link.connected ? "Connected for your account" : "Ready to connect",
+    detail: link.connected
+      ? `Your ${def.label} account is linked. Each operator connects their own account.`
+      : `Connector client configured. Use Connect to authorize your own ${def.label} account.`,
+    identity: link.identity,
+    armed: link.connected,
+    grantedCapabilities: link.connected ? (def.requiredScopes ?? []) : [],
+    missingCapabilities: [],
+    lastActivityAt: link.connectedAt,
+    lastActivityLabel: link.connectedAt ? "Connected" : null,
+    lastErrorAt: null,
+    lastErrorMessage: null,
+    adapterVersion: `${def.key}.connector`,
+    testable: link.connected,
+    connected: link.connected,
+    missingEnv: [],
+    diagnostics: {
+      kind: "app_user_connector",
+      connectorId: setup.connectorId,
+      clientConfigured: true,
+      missingEnv: [],
+      connectedIdentity: link.identity,
+      connectedAt: link.connectedAt,
+    },
   };
 }
