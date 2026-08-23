@@ -92,6 +92,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
           : !b.reachable
             ? "Credentials configured but not responding"
             : "Credentials configured and reachable",
+        action: b.configured && b.reachable ? "connected" : "setup_required",
         detail: identityMatches === false
           ? `Publication does not match expected "${data.expectedPublicationName}".`
           : b.message,
@@ -107,6 +108,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
         label: "Beehiiv",
         category: "newsletter",
         tone: "blocked",
+        action: "setup_required",
         headline: "Could not check Beehiiv",
         detail: (err as Error).message,
         identity: null,
@@ -132,6 +134,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
         label: key === "facebook" ? "Facebook Page" : "Instagram Business",
         category: "social",
         tone: "blocked",
+        action: metaBlocked ? "setup_required" : "connect",
         headline: metaBlocked
           ? "Meta credentials not configured"
           : "Awaiting account connection",

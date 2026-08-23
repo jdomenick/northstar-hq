@@ -23,18 +23,14 @@ import type {
 
 const API_BASE = "https://api.x.com/2";
 
-export const X_SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"];
+// Config lives in one place; this adapter never re-derives it.
+import { readXConfigStatus, X_REQUIRED_SCOPES } from "./x/config.server";
+
+export const X_SCOPES = [...X_REQUIRED_SCOPES];
 
 function envStatus(): { configured: boolean; missing: string[]; armed: boolean } {
-  const missing: string[] = [];
-  if (!process.env.X_CLIENT_ID) missing.push("X_CLIENT_ID");
-  if (!process.env.X_CLIENT_SECRET) missing.push("X_CLIENT_SECRET");
-  if (!process.env.X_REDIRECT_URI) missing.push("X_REDIRECT_URI");
-  return {
-    configured: missing.length === 0,
-    missing,
-    armed: process.env.X_PUBLISH_ARMED === "true",
-  };
+  const s = readXConfigStatus();
+  return { configured: s.configured, missing: s.missing, armed: s.armed };
 }
 
 async function xFetch(
