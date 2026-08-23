@@ -233,9 +233,9 @@ function CommandPage() {
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="px-2 py-1.5 text-right font-medium">Leads</th>
-                    <th className="px-2 py-1.5 text-right font-medium">Revenue</th>
-                    <th className="px-3 py-1.5 text-right font-medium">Chg</th>
+                    <th className="w-14 px-2 py-1.5 text-right font-medium">Leads</th>
+                    <th className="w-20 px-2 py-1.5 text-right font-medium">Revenue</th>
+                    <th className="w-16 px-3 py-1.5 text-right font-medium">Chg</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,9 +322,9 @@ function CommandPage() {
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="px-2 py-1.5 font-medium">Status</th>
+                    <th className="w-20 px-2 py-1.5 font-medium">Status</th>
                     <th className="px-2 py-1.5 font-medium">Current issue</th>
-                    <th className="px-3 py-1.5 text-right font-medium">MRR</th>
+                    <th className="w-16 px-3 py-1.5 text-right font-medium">MRR</th>
                   </tr>
                 </thead>
                 <tbody>
