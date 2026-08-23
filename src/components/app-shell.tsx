@@ -14,6 +14,9 @@ import {
   Search,
   PanelLeft,
   Bell,
+  Megaphone,
+  MessageSquare,
+  LayoutGrid,
   CheckSquare,
   ClipboardList,
   Users,
@@ -177,7 +180,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const searchQ = useGlobalSearch(activeOrgId, debouncedQuery);
   const canWrite = can.writeContent(activeMembership?.role);
   const navGroups = visibleGroups(activeMembership?.role);
-  const navItems = navGroups.flatMap((g) => g.items);
+  const navItems = [
+    ...navGroups.flatMap((g) => g.items),
+    ...SECONDARY_NAV.filter((i) => can.viewFinancials(activeMembership?.role) || !i.financial),
+  ];
   const results = searchQ.data;
   const hasQuery = debouncedQuery.length >= 2;
 
@@ -222,7 +228,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside
         className={cn(
           "hidden md:flex print:hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-          collapsed ? "w-[72px]" : "w-[236px]",
+          collapsed ? "w-[68px]" : "w-[185px]",
         )}
       >
         <Link
@@ -268,8 +274,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.to}
+                      key={item.to + (item.hash ?? "")}
                       to={item.to}
+                      hash={item.hash}
                       title={collapsed ? item.label : undefined}
                       aria-current={active ? "page" : undefined}
                       className={cn(
@@ -345,8 +352,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                       const Icon = item.icon;
                       return (
                         <Link
-                          key={item.to}
+                          key={item.to + (item.hash ?? "")}
                           to={item.to}
+                          hash={item.hash}
                           className={cn(
                             "flex items-center gap-3 rounded-md px-2.5 py-2 text-[14px]",
                             active
@@ -485,7 +493,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <CommandGroup heading="Navigate">
             {navItems.map((item) => (
               <CommandItem
-                key={item.to}
+                key={item.to + (item.hash ?? "")}
                 value={`nav-${item.label}`}
                 onSelect={() => goto({ to: item.to })}
               >
