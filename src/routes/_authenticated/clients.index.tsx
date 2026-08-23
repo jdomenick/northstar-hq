@@ -3,7 +3,6 @@ import { useOrg } from "@/lib/org-context";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { EmptyLine, ListRow, NotAvailable, RowList } from "@/components/command-ui";
 import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
-import { Link } from "@tanstack/react-router";
 
 
 export const Route = createFileRoute("/_authenticated/clients/")({
