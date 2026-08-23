@@ -201,7 +201,7 @@ export const xAdapter: SocialProviderAdapter = {
       supportedMediaFormats: [],
       maxMediaCount: 0,
       supportsFetchMetrics: false,
-      supportsVerifyPublication: true,
+      supportsVerifyPublication: false,
       destinationsMayRequireManualApproval: false,
     };
   },
@@ -270,9 +270,6 @@ export const xAdapter: SocialProviderAdapter = {
       providerMessage: null,
       raw: res.body,
     };
-  },
-  async verifyPublication(externalPostId: string): Promise<{ verified: boolean; reason?: string }> {
-    return { verified: false, reason: `verification_requires_connection_scope:${externalPostId ? "ok" : "missing_id"}` };
   },
   async fetchMetrics(_externalPostId: string): Promise<MetricsResult> {
     // Tweet metrics need organic-metrics access on the connected user token
