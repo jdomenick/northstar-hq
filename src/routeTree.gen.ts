@@ -105,6 +105,7 @@ import { Route as AuthenticatedLabsDocumentsIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedLabsDecisionsIdRouteImport } from './routes/_authenticated/labs.decisions.$id'
 import { Route as AuthenticatedLabsCommitmentsIdRouteImport } from './routes/_authenticated/labs.commitments.$id'
 import { Route as AuthenticatedLabsAssessmentIdRouteImport } from './routes/_authenticated/labs.assessment.$id'
+import { Route as ApiPublicOauthXAuthorizeRouteImport } from './routes/api/public/oauth/x/authorize'
 import { Route as ApiPublicOauthMetaDeauthorizeRouteImport } from './routes/api/public/oauth/meta/deauthorize'
 import { Route as ApiPublicOauthMetaDataDeletionRouteImport } from './routes/api/public/oauth/meta/data-deletion'
 import { Route as ApiPublicOauthMetaCallbackRouteImport } from './routes/api/public/oauth/meta/callback'
@@ -635,6 +636,12 @@ const AuthenticatedLabsAssessmentIdRoute =
     path: '/labs/assessment/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicOauthXAuthorizeRoute =
+  ApiPublicOauthXAuthorizeRouteImport.update({
+    id: '/api/public/oauth/x/authorize',
+    path: '/api/public/oauth/x/authorize',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicOauthMetaDeauthorizeRoute =
   ApiPublicOauthMetaDeauthorizeRouteImport.update({
     id: '/api/public/oauth/meta/deauthorize',
@@ -781,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/x/authorize': typeof ApiPublicOauthXAuthorizeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -884,6 +892,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/x/authorize': typeof ApiPublicOauthXAuthorizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -990,6 +999,7 @@ export interface FileRoutesById {
   '/api/public/oauth/meta/callback': typeof ApiPublicOauthMetaCallbackRoute
   '/api/public/oauth/meta/data-deletion': typeof ApiPublicOauthMetaDataDeletionRoute
   '/api/public/oauth/meta/deauthorize': typeof ApiPublicOauthMetaDeauthorizeRoute
+  '/api/public/oauth/x/authorize': typeof ApiPublicOauthXAuthorizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1096,6 +1106,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/x/authorize'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1199,6 +1210,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/x/authorize'
   id:
     | '__root__'
     | '/'
@@ -1304,6 +1316,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/meta/callback'
     | '/api/public/oauth/meta/data-deletion'
     | '/api/public/oauth/meta/deauthorize'
+    | '/api/public/oauth/x/authorize'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1354,6 +1367,7 @@ export interface RootRouteChildren {
   ApiPublicOauthMetaCallbackRoute: typeof ApiPublicOauthMetaCallbackRoute
   ApiPublicOauthMetaDataDeletionRoute: typeof ApiPublicOauthMetaDataDeletionRoute
   ApiPublicOauthMetaDeauthorizeRoute: typeof ApiPublicOauthMetaDeauthorizeRoute
+  ApiPublicOauthXAuthorizeRoute: typeof ApiPublicOauthXAuthorizeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2030,6 +2044,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLabsAssessmentIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/oauth/x/authorize': {
+      id: '/api/public/oauth/x/authorize'
+      path: '/api/public/oauth/x/authorize'
+      fullPath: '/api/public/oauth/x/authorize'
+      preLoaderRoute: typeof ApiPublicOauthXAuthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/oauth/meta/deauthorize': {
       id: '/api/public/oauth/meta/deauthorize'
       path: '/api/public/oauth/meta/deauthorize'
@@ -2398,6 +2419,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicOauthMetaCallbackRoute: ApiPublicOauthMetaCallbackRoute,
   ApiPublicOauthMetaDataDeletionRoute: ApiPublicOauthMetaDataDeletionRoute,
   ApiPublicOauthMetaDeauthorizeRoute: ApiPublicOauthMetaDeauthorizeRoute,
+  ApiPublicOauthXAuthorizeRoute: ApiPublicOauthXAuthorizeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
