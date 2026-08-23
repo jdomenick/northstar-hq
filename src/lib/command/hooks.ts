@@ -159,7 +159,9 @@ export function useCommandOverview(orgId: string | null) {
         approvals,
         milestones,
         pipeline,
+        events,
       ] = await Promise.all([
+
         read("Clients", async () => {
           const { data, error } = await supabase
             .from("revenue_clients")
