@@ -308,6 +308,29 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-sidebar-border p-2">
+          <Link
+            to="/settings"
+            title={collapsed ? (user?.email ?? "Account") : undefined}
+            className={cn(
+              "mb-1 flex h-10 w-full items-center gap-2 rounded-md px-2 hover:bg-sidebar-accent/60",
+              collapsed && "justify-center px-0",
+            )}
+          >
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[9.5px] font-semibold text-primary">
+              {initials || "?"}
+            </span>
+            {!collapsed && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-[11px] text-sidebar-foreground">
+                  {user?.email ?? "Account"}
+                </span>
+                <span className="block truncate text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {activeMembership?.role ?? "operator"}
+                </span>
+              </span>
+            )}
+          </Link>
+
           <button
             onClick={() => setCollapsed((v) => !v)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
