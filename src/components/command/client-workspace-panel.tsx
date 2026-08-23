@@ -48,28 +48,34 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
         bodyClassName="p-2.5"
       >
         {/* Outcome journey */}
-        <div className="grid grid-cols-3 gap-1.5 lg:grid-cols-6">
-          {DEMO_JOURNEY.map((step) => {
+        <div className="flex min-w-0 items-stretch gap-1">
+          {DEMO_JOURNEY.map((step, i) => {
             const Icon = JOURNEY_ICONS[step.key] ?? Users;
             return (
-              <div
-                key={step.key}
-                className="min-w-0 rounded-[6px] border border-border/60 bg-background/40 px-2 py-1.5"
-              >
-                <div
-                  className={cn(
-                    "flex h-5 w-5 items-center justify-center rounded-[4px] border bg-card/60",
-                    JOURNEY_ACCENT[step.key],
-                  )}
-                >
-                  <Icon className="h-3 w-3" strokeWidth={1.9} />
+              <div key={step.key} className="flex min-w-0 flex-1 items-center gap-1">
+                <div className="min-w-0 flex-1 rounded-[6px] border border-border/60 bg-background/40 px-1.5 py-1.5 text-center">
+                  <div
+                    className={cn(
+                      "mx-auto flex h-6 w-6 items-center justify-center rounded-[5px] border bg-card/60",
+                      JOURNEY_ACCENT[step.key],
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" strokeWidth={1.9} />
+                  </div>
+                  <div className="mt-1 truncate text-[8.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                    {step.label}
+                  </div>
+                  <div className="truncate font-display text-[11.5px] leading-tight text-foreground tabular-nums">
+                    {step.value}
+                  </div>
                 </div>
-                <div className="mt-1.5 truncate text-[9.5px] uppercase tracking-[0.12em] text-muted-foreground">
-                  {step.label}
-                </div>
-                <div className="truncate font-display text-[12.5px] leading-tight text-foreground tabular-nums">
-                  {step.value}
-                </div>
+                {i < DEMO_JOURNEY.length - 1 && (
+                  <ChevronRight
+                    aria-hidden="true"
+                    className="h-3 w-3 shrink-0 text-muted-foreground/60"
+                    strokeWidth={2}
+                  />
+                )}
               </div>
             );
           })}
