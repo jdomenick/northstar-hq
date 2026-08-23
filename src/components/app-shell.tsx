@@ -225,8 +225,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               NorthStar Labs
             </div>
             <div className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-              Mission Control
+              Command Center
             </div>
+
           </div>
         </div>
 
