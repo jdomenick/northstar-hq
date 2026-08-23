@@ -139,14 +139,14 @@ export function SamChatHead() {
           onClick={() => setOpen(true)}
           aria-label={`Open ${SAM_NAME}, ${SAM_FULL_NAME}`}
           className={cn(
-            "fixed bottom-5 right-5 z-40 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full p-[3px]",
+            "fixed bottom-5 right-5 z-40 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full",
             "border border-border/70 bg-background shadow-lg transition",
             "hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
             "md:bottom-6 md:right-6",
             glow && "ring-2 ring-primary/70 shadow-[0_0_22px_-4px_var(--color-primary)]",
           )}
         >
-          <img src={SAM_MARK_SRC} alt="" className="h-full w-full object-contain" />
+          <img src={SAM_MARK_SRC} alt="" className="h-full w-full rounded-full object-cover" />
           {glow && (
             <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border border-background bg-primary" />
           )}
@@ -164,7 +164,11 @@ export function SamChatHead() {
           )}
         >
           <header className="flex items-start gap-3 border-b border-border px-4 py-3">
-            <img src={SAM_MARK_SRC} alt="" className="mt-0.5 h-8 w-8 shrink-0 object-contain" />
+            <img
+              src={SAM_MARK_SRC}
+              alt=""
+              className="mt-0.5 h-8 w-8 shrink-0 rounded-full object-cover"
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-[15px] font-semibold text-foreground">
