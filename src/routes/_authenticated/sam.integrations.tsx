@@ -17,6 +17,14 @@ import {
   type TestConnectionResult,
 } from "@/lib/integrations/dashboard.functions";
 import { CATEGORY_ORDER, CATEGORY_LABEL } from "@/lib/integrations/providers";
+import type { IntegrationAction } from "@/lib/integrations/actions";
+import { beginXConnect, disconnectX, beginRedditConnect, disconnectReddit } from "@/lib/content-ops/social-connect.functions";
+import {
+  beginConnectorConnect,
+  completeConnectorConnect,
+  disconnectConnector,
+} from "@/lib/integrations/app-user-connector.functions";
+import { useVentures } from "@/lib/data-hooks";
 
 export const Route = createFileRoute("/_authenticated/sam/integrations")({
   component: IntegrationsPage,
@@ -33,16 +41,27 @@ function IntegrationsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listIntegrationsDashboard);
   const testFn = useServerFn(testIntegrationConnection);
+  const venturesQ = useVentures(activeOrgId ?? undefined);
+  const ventureId = venturesQ.data?.[0]?.id ?? null;
   const rowsQ = useQuery({
     enabled: !!activeOrgId,
-    queryKey: ["integrations-dashboard", activeOrgId],
-    queryFn: () => listFn({ data: { organizationId: activeOrgId! } }),
+    queryKey: ["integrations-dashboard", activeOrgId, ventureId],
+    queryFn: () => listFn({ data: { organizationId: activeOrgId!, ventureId } }),
   });
+
+  const beginX = useServerFn(beginXConnect);
+  const dropX = useServerFn(disconnectX);
+  const beginReddit = useServerFn(beginRedditConnect);
+  const dropReddit = useServerFn(disconnectReddit);
+  const beginConnector = useServerFn(beginConnectorConnect);
+  const completeConnector = useServerFn(completeConnectorConnect);
+  const dropConnector = useServerFn(disconnectConnector);
 
   const [connecting, setConnecting] = useState<null | "facebook" | "instagram">(null);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<Record<string, TestConnectionResult>>({});
   const [detailRow, setDetailRow] = useState<IntegrationRow | null>(null);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
 
   // Support deep-link from Mission Control: /sam/integrations?open=<key>
   useEffect(() => {
@@ -73,6 +92,121 @@ function IntegrationsPage() {
     },
   });
 
+  const refresh = () =>
+    qc.invalidateQueries({ queryKey: ["integrations-dashboard", activeOrgId, ventureId] });
+
+  const waitForConnectorCode = (popup: Window, connectorId: string) =>
+    new Promise<string | null>((resolve, reject) => {
+      let poll: number | undefined;
+      const cleanup = () => {
+        window.removeEventListener("message", onMessage);
+        if (poll !== undefined) window.clearInterval(poll);
+      };
+      const onMessage = (event: MessageEvent) => {
+        const payload = event.data as { type?: string; connectorId?: string; code?: string | null };
+        if (
+          event.origin !== window.location.origin ||
+          event.source !== popup ||
+          payload?.connectorId !== connectorId ||
+          (payload?.type !== "appUserConnectorOAuthComplete" &&
+            payload?.type !== "appUserConnectorOAuthFailed")
+        ) {
+          return;
+        }
+        cleanup();
+        if (payload.type === "appUserConnectorOAuthComplete") {
+          resolve(typeof payload.code === "string" ? payload.code : null);
+          return;
+        }
+        popup.close();
+        reject(new Error("Authorization failed."));
+      };
+      window.addEventListener("message", onMessage);
+      poll = window.setInterval(() => {
+        if (!popup.closed) return;
+        cleanup();
+        reject(new Error("Authorization window closed before completion."));
+      }, 500);
+    });
+
+  const runAction = async (rowKey: string, action: IntegrationAction) => {
+    if (!activeOrgId) return;
+    setConnectError(null);
+    setActionBusy(rowKey);
+    try {
+      if (action.kind === "oauth_connect") {
+        if (action.provider === "facebook" || action.provider === "instagram") {
+          await startMetaConnect(action.provider);
+          return;
+        }
+        if (!ventureId) throw new Error("No venture in this organization yet.");
+        const payload = {
+          data: { organizationId: activeOrgId, ventureId, returnPath: "/sam/integrations" },
+        };
+        const res =
+          action.provider === "x" ? await beginX(payload) : await beginReddit(payload);
+        if (!res.ok || !res.authorizeUrl) {
+          throw new Error(
+            res.missing.length
+              ? `Setup required. Missing: ${res.missing.join(", ")}`
+              : (res.reason ?? "Could not start authorization."),
+          );
+        }
+        window.location.href = res.authorizeUrl;
+        return;
+      }
+      if (action.kind === "oauth_disconnect") {
+        if (!ventureId) throw new Error("No venture in this organization yet.");
+        const payload = { data: { organizationId: activeOrgId, ventureId } };
+        if (action.provider === "x") await dropX(payload);
+        else if (action.provider === "reddit") await dropReddit(payload);
+        await refresh();
+        return;
+      }
+      if (action.kind === "connector_connect") {
+        const popup = window.open("", "northstar-connector-oauth", "width=600,height=720");
+        if (!popup) throw new Error("Popup blocked. Allow popups and try again.");
+        let code: string | null;
+        try {
+          const res = await beginConnector({
+            data: { organizationId: activeOrgId, connectorId: action.connectorId },
+          });
+          if (!res.ok || !res.authorizationUrl) {
+            throw new Error(
+              res.missingEnv.length
+                ? `Setup required. Missing: ${res.missingEnv.join(", ")}`
+                : (res.reason ?? "Could not start authorization."),
+            );
+          }
+          const completion = waitForConnectorCode(popup, action.connectorId);
+          popup.location.href = res.authorizationUrl;
+          code = await completion;
+        } catch (err) {
+          popup.close();
+          throw err;
+        }
+        if (code) {
+          await completeConnector({
+            data: { organizationId: activeOrgId, connectorId: action.connectorId, code },
+          });
+        }
+        await refresh();
+        return;
+      }
+      if (action.kind === "connector_disconnect") {
+        await dropConnector({
+          data: { organizationId: activeOrgId, connectorId: action.connectorId },
+        });
+        await refresh();
+        return;
+      }
+    } catch (err) {
+      setConnectError((err as Error).message);
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
   const startMetaConnect = async (which: "facebook" | "instagram") => {
     if (!activeOrgId) return;
     setConnecting(which);
@@ -81,7 +215,7 @@ function IntegrationsPage() {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
       if (!token) throw new Error("Not signed in");
-      const redirectUri = `${window.location.origin}/integrations`;
+      const redirectUri = `${window.location.origin}/sam/integrations`;
       const res = await fetch(
         `/api/public/oauth/meta/authorize?organizationId=${encodeURIComponent(activeOrgId)}&redirectUri=${encodeURIComponent(redirectUri)}`,
         { headers: { Authorization: `Bearer ${token}` } },
@@ -137,6 +271,7 @@ function IntegrationsPage() {
                         key={r.key}
                         row={r}
                         busy={
+                          actionBusy === r.key ||
                           (r.key === "facebook" && connecting === "facebook") ||
                           (r.key === "instagram" && connecting === "instagram") ||
                           (testMut.isPending && testMut.variables === r.key)
@@ -144,6 +279,7 @@ function IntegrationsPage() {
                         onMetaConnect={() =>
                           startMetaConnect(r.key === "instagram" ? "instagram" : "facebook")
                         }
+                        onAction={(a) => void runAction(r.key, a)}
                         onTest={() =>
                           testableKeys.has(r.key as TestableKey) &&
                           testMut.mutate(r.key as TestableKey)
@@ -223,6 +359,7 @@ function IntegrationCard({
   row,
   busy,
   onMetaConnect,
+  onAction,
   onTest,
   testResult,
   onDetails,
@@ -230,6 +367,7 @@ function IntegrationCard({
   row: IntegrationRow;
   busy: boolean;
   onMetaConnect: () => void;
+  onAction: (action: IntegrationAction) => void;
   onTest: () => void;
   testResult: TestConnectionResult | null;
   onDetails: () => void;
@@ -313,33 +451,50 @@ function IntegrationCard({
             {busy ? "Testing..." : "Test connection"}
           </button>
         ) : null}
-        {row.action.kind === "start_meta_oauth" ? (
-          <button
-            disabled={busy}
-            onClick={onMetaConnect}
-            className="rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90 disabled:opacity-50"
-          >
-            {busy ? "..." : row.status === "connected" ? "Manage" : "Connect"}
-          </button>
-        ) : null}
-        {row.action.kind === "manage_link" ? (
-          <Link
-            to={row.action.href}
-            className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60"
-          >
-            {row.action.label}
-          </Link>
-        ) : null}
-        {row.action.kind === "ask_lovable" ? (
-          <div className="text-[11.5px] text-muted-foreground italic">
-            {row.action.message}
-          </div>
-        ) : null}
-        {row.action.kind === "none" && (row.status === "ready_to_connect" || row.status === "awaiting_provider_approval") ? (
-          <span className="text-[11.5px] text-muted-foreground/70">
-            {row.externalStep ? "See details" : "Ready"}
-          </span>
-        ) : null}
+        {row.actions.map((action, i) => {
+          if (action.kind === "test" || action.kind === "none") return null;
+          if (action.kind === "manage_link") {
+            return (
+              <Link
+                key={`${action.kind}-${i}`}
+                to={action.href}
+                className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60"
+              >
+                {action.label}
+              </Link>
+            );
+          }
+          if (action.kind === "setup_required") {
+            return (
+              <button
+                key={`${action.kind}-${i}`}
+                onClick={onDetails}
+                className="rounded-md border border-dashed border-border px-3 py-1.5 text-left text-[11.5px] text-muted-foreground hover:bg-secondary/60"
+                title={action.externalStep}
+              >
+                Setup required
+                {action.missingEnv.length ? `: ${action.missingEnv.join(", ")}` : ""}
+              </button>
+            );
+          }
+          const primary = i === 0;
+          return (
+            <button
+              key={`${action.kind}-${i}`}
+              disabled={busy}
+              onClick={() =>
+                action.kind === "start_meta_oauth" ? onMetaConnect() : onAction(action)
+              }
+              className={
+                primary
+                  ? "rounded-md bg-foreground px-3 py-1.5 text-[12px] text-background hover:opacity-90 disabled:opacity-50"
+                  : "rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground hover:bg-secondary/60 disabled:opacity-50"
+              }
+            >
+              {busy ? "..." : action.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
