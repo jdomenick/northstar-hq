@@ -96,9 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Modules",
     items: [
-      { to: "/sam", label: "SAM", icon: Sparkles },
       { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
-      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/labs/assessments", label: "Assessments", icon: Inbox },
       { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
       { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
@@ -109,15 +107,17 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Operations",
     items: [
-      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-
-      { to: "/sam/control", label: "SAM Control", icon: Gauge },
-      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
       { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
       { to: "/labs/goals", label: "Goals", icon: Target },
+    ],
+  },
+  {
+    heading: "Knowledge",
+    items: [
+      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
       { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
       { to: "/labs/documents", label: "Documents", icon: FileText },
     ],
@@ -125,9 +125,14 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "System",
     items: [
+      { to: "/sam", label: "SAM Core", icon: Sparkles },
+      { to: "/sam/control", label: "SAM Control", icon: Gauge },
+      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
+      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
+
 ];
 
 function visibleGroups(role: Role | undefined | null): NavGroup[] {
