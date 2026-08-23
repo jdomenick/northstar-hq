@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Bell, Download } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
-import { KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
+import { DemoBadge, KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
 import { DONUT_COLORS, DonutChart, TrendChart } from "@/components/command/charts";
 import { ClientWorkspacePanel } from "@/components/command/client-workspace-panel";
 import { ModulePreviewRow } from "@/components/command/module-preview-row";
