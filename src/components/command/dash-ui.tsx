@@ -29,7 +29,7 @@ export function Panel({
     <section
       id={id}
       className={cn(
-        "flex min-w-0 flex-col rounded-[7px] border border-border/70 bg-card/60",
+        "flex min-w-0 flex-col overflow-hidden rounded-[7px] border border-border/70 bg-card/60",
         className,
       )}
     >
