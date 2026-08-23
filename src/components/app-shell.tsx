@@ -358,8 +358,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
 
           <Link
-            to="/labs/mission-control"
-            aria-label="NorthStar Labs Mission Control"
+            to="/command"
+            aria-label="NorthStar Command Center"
+
             className="flex min-w-0 items-center gap-2 md:hidden"
           >
             <img src={northstarLogo.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
