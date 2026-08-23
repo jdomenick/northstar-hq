@@ -96,9 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Modules",
     items: [
-      { to: "/sam", label: "SAM", icon: Sparkles },
       { to: "/sam/content", label: "Content Ops", icon: ClipboardList },
-      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/labs/assessments", label: "Assessments", icon: Inbox },
       { to: "/labs/proposals", label: "Proposals", icon: FileText, financial: true },
       { to: "/labs/billing", label: "Billing", icon: DollarSign, financial: true },
@@ -109,15 +107,17 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Operations",
     items: [
-      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
       { to: "/labs/mission-control", label: "Mission Control", icon: Rocket },
-
-      { to: "/sam/control", label: "SAM Control", icon: Gauge },
-      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/labs/ventures", label: "Ventures", icon: Building2 },
       { to: "/labs/accountability", label: "Accountability", icon: ShieldCheck },
       { to: "/labs/decisions", label: "Decisions", icon: GitBranch },
       { to: "/labs/goals", label: "Goals", icon: Target },
+    ],
+  },
+  {
+    heading: "Knowledge",
+    items: [
+      { to: "/labs", label: "Executive Brief", icon: Gauge, exact: true },
       { to: "/labs/knowledge", label: "Knowledge", icon: BookOpen },
       { to: "/labs/documents", label: "Documents", icon: FileText },
     ],
@@ -125,9 +125,14 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "System",
     items: [
+      { to: "/sam", label: "SAM Core", icon: Sparkles },
+      { to: "/sam/control", label: "SAM Control", icon: Gauge },
+      { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
+      { to: "/sam/integrations", label: "Integrations", icon: Plug },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
+
 ];
 
 function visibleGroups(role: Role | undefined | null): NavGroup[] {
@@ -358,8 +363,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
 
           <Link
-            to="/labs/mission-control"
-            aria-label="NorthStar Labs Mission Control"
+            to="/command"
+            aria-label="NorthStar Command Center"
+
             className="flex min-w-0 items-center gap-2 md:hidden"
           >
             <img src={northstarLogo.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
