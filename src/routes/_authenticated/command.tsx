@@ -181,7 +181,7 @@ function CommandPage() {
                 value={k.value}
                 delta={k.delta}
                 series={k.series}
-                demo
+                hint="Demo data"
               />
             ))}
             <KpiCard
