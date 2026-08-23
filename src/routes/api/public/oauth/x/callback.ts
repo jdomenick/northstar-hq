@@ -22,8 +22,10 @@ type StateRow = {
   consumed_at: string | null;
 };
 
-function backTo(redirectUri: string, params: Record<string, string>): Response {
-  const url = new URL(redirectUri);
+// `returnPath` is always a same-origin relative path (enforced when the
+// state row was created), so this can never become an open redirect.
+function backTo(returnPath: string, base: string, params: Record<string, string>): Response {
+  const url = new URL(returnPath.startsWith("/") ? returnPath : "/", base);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   return Response.redirect(url.toString(), 302);
 }
@@ -93,7 +95,7 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
             redirectUri: cfg.redirectUri!,
           });
         } catch (err) {
-          return backTo(state.redirect_uri, {
+          return backTo(state.redirect_uri, request.url, {
             x_connect: "failed",
             reason: (err as Error).message,
           });
@@ -132,7 +134,7 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
           socialAccountId: null,
         });
 
-        return backTo(state.redirect_uri, { x_connect: "connected" });
+        return backTo(state.redirect_uri, request.url, { x_connect: "connected" });
       },
     },
   },
