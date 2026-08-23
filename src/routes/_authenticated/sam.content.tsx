@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { PageBody, PageHeader } from "@/components/page-header";
 import {
   EditorialSkeleton,
@@ -21,6 +22,7 @@ import { listContentItems } from "@/lib/content-ops/content.functions";
 import { listStrategies } from "@/lib/content-ops/strategy.functions";
 import { listLearnings } from "@/lib/content-ops/learnings.functions";
 import { listContentOpsConnections } from "@/lib/content-ops/connections.functions";
+import { ConnectionActions } from "@/components/content-ops/connection-actions";
 
 export const Route = createFileRoute("/_authenticated/sam/content")({
   component: ContentOpsWorkspace,
@@ -99,6 +101,21 @@ function ContentOpsWorkspace() {
       }),
   });
 
+  // Surface the outcome of the X OAuth round trip once, then clean the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get("x_connect");
+    if (!result) return;
+    if (result === "connected") toast.success("X account connected.");
+    else toast.error(`X connection failed: ${params.get("reason") ?? "unknown error"}`);
+    params.delete("x_connect");
+    params.delete("reason");
+    const next = params.toString();
+    window.history.replaceState({}, "", window.location.pathname + (next ? `?${next}` : ""));
+    void connectionsQ.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const autonomy = autonomyQ.data;
 
   const autonomyLine = useMemo(() => {
@@ -163,11 +180,15 @@ function ContentOpsWorkspace() {
                       ? "attention"
                       : "muted";
                 const toneLabel =
-                  c.tone === "configured"
+                  c.action === "connected"
                     ? "connected"
-                    : c.tone === "blocked"
-                      ? "action needed"
-                      : "not built";
+                    : c.action === "connect"
+                      ? "not connected"
+                      : c.action === "reconnect"
+                        ? "reconnect required"
+                        : c.action === "setup_required"
+                          ? "setup required"
+                          : "not built";
                 return (
                   <QuietPanel key={c.key}>
                     <div className="flex items-start justify-between gap-3">
@@ -201,7 +222,13 @@ function ContentOpsWorkspace() {
                         ) : null}
                       </div>
                     ) : null}
+                    <ConnectionActions
+                      connection={c}
+                      organizationId={organizationId!}
+                      ventureId={ventureId!}
+                    />
                   </QuietPanel>
+
                 );
               })}
             </div>

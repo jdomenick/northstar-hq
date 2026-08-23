@@ -9523,6 +9523,148 @@ export type Database = {
           },
         ]
       }
+      social_oauth_credentials: {
+        Row: {
+          access_token_encrypted: string
+          connected_by: string | null
+          created_at: string
+          external_account_id: string | null
+          external_display_name: string | null
+          external_username: string | null
+          granted_scopes: string[]
+          id: string
+          organization_id: string
+          platform: string
+          refresh_token_encrypted: string | null
+          revoked_at: string | null
+          social_account_id: string | null
+          token_expires_at: string | null
+          updated_at: string
+          venture_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          connected_by?: string | null
+          created_at?: string
+          external_account_id?: string | null
+          external_display_name?: string | null
+          external_username?: string | null
+          granted_scopes?: string[]
+          id?: string
+          organization_id: string
+          platform: string
+          refresh_token_encrypted?: string | null
+          revoked_at?: string | null
+          social_account_id?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          venture_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          connected_by?: string | null
+          created_at?: string
+          external_account_id?: string | null
+          external_display_name?: string | null
+          external_username?: string | null
+          granted_scopes?: string[]
+          id?: string
+          organization_id?: string
+          platform?: string
+          refresh_token_encrypted?: string | null
+          revoked_at?: string | null
+          social_account_id?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          venture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_oauth_credentials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_oauth_credentials_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_oauth_credentials_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_oauth_states: {
+        Row: {
+          code_verifier: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          organization_id: string
+          platform: string
+          purpose: string
+          redirect_uri: string
+          requested_by: string | null
+          requested_scopes: string[]
+          state: string
+          venture_id: string | null
+        }
+        Insert: {
+          code_verifier: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          organization_id: string
+          platform: string
+          purpose?: string
+          redirect_uri: string
+          requested_by?: string | null
+          requested_scopes?: string[]
+          state: string
+          venture_id?: string | null
+        }
+        Update: {
+          code_verifier?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          organization_id?: string
+          platform?: string
+          purpose?: string
+          redirect_uri?: string
+          requested_by?: string | null
+          requested_scopes?: string[]
+          state?: string
+          venture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_oauth_states_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_oauth_states_venture_id_fkey"
+            columns: ["venture_id"]
+            isOneToOne: false
+            referencedRelation: "ventures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_publication_attempts: {
         Row: {
           attempt_number: number

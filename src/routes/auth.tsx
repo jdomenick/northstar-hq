@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { Moon, Sun } from "lucide-react";
+import northstarLogo from "@/assets/northstar-labs-logo.png.asset.json";
+import { useSiteTheme } from "@/lib/marketing/site-theme";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -40,6 +43,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Sign-in is a public surface, so it gets the same true light / true dark
+  // tokens as the marketing site, persisted under its own key. The
+  // authenticated app theme is untouched.
+  const { theme, toggleTheme } = useSiteTheme("nsl-auth-theme");
 
   useEffect(() => {
     if (loading || !user) return;
@@ -84,18 +91,29 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="nsl-site flex min-h-screen bg-background" data-theme={theme}>
       <div className="mx-auto flex w-full max-w-md flex-col justify-center px-6 py-16">
-        <div className="mb-14 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground text-background text-[13px] font-semibold">
-            N
-          </div>
-          <div className="leading-tight">
-            <div className="font-display text-[18px]">NorthStar Labs</div>
-            <div className="text-[9.5px] uppercase tracking-[0.2em] text-muted-foreground/80">
-              Executive OS
-            </div>
-          </div>
+        <div className="mb-14 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img
+              src={northstarLogo.url}
+              alt="NorthStar Labs"
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+            <span className="font-display text-[18px] leading-none text-foreground">
+              NorthStar Labs
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
         </div>
 
         <h1 className="font-display text-[36px] leading-tight text-foreground">

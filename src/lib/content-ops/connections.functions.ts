@@ -18,11 +18,25 @@ export type ConnectionStatusTone =
   | "blocked"
   | "not_implemented";
 
+// What the operator can actually do from the card right now.
+//   none            - nothing actionable (managed elsewhere / not built)
+//   setup_required  - app credentials missing; an operator cannot fix in-app
+//   connect         - adapter ready, no account connected
+//   reconnect       - account connected but token/permissions need re-auth
+//   connected       - live; disconnect is the only action
+export type ConnectionAction =
+  | "none"
+  | "setup_required"
+  | "connect"
+  | "reconnect"
+  | "connected";
+
 export interface ContentOpsConnectionStatus {
   key: string;                       // stable identifier (beehiiv, facebook, ...)
   label: string;                     // display name
   category: "newsletter" | "social";
   tone: ConnectionStatusTone;
+  action: ConnectionAction;
   headline: string;                  // one-line human status
   detail: string;                    // supporting sentence
   identity: string | null;           // e.g. publication name, page name
@@ -31,6 +45,7 @@ export interface ContentOpsConnectionStatus {
   missingCapabilities: string[];
   adapterVersion: string | null;
 }
+
 
 const Input = z.object({
   organizationId: z.string().uuid(),
@@ -77,6 +92,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
           : !b.reachable
             ? "Credentials configured but not responding"
             : "Credentials configured and reachable",
+        action: b.configured && b.reachable ? "connected" : "setup_required",
         detail: identityMatches === false
           ? `Publication does not match expected "${data.expectedPublicationName}".`
           : b.message,
@@ -92,6 +108,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
         label: "Beehiiv",
         category: "newsletter",
         tone: "blocked",
+        action: "setup_required",
         headline: "Could not check Beehiiv",
         detail: (err as Error).message,
         identity: null,
@@ -117,6 +134,7 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
         label: key === "facebook" ? "Facebook Page" : "Instagram Business",
         category: "social",
         tone: "blocked",
+        action: metaBlocked ? "setup_required" : "none",
         headline: metaBlocked
           ? "Meta credentials not configured"
           : "Awaiting account connection",
@@ -131,27 +149,111 @@ export const listContentOpsConnections = createServerFn({ method: "POST" })
       });
     }
 
-    // ---- LinkedIn / X / Reddit -----------------------------------------
-    const upcoming: Array<{ key: string; label: string }> = [
-      { key: "linkedin", label: "LinkedIn" },
-      { key: "x", label: "X" },
-      { key: "reddit", label: "Reddit" },
-    ];
-    for (const p of upcoming) {
+    // ---- LinkedIn (workspace connector, no per-operator OAuth) ---------
+    try {
+      const { validateLinkedInCredentials } = await import(
+        "@/lib/social/providers/linkedin"
+      );
+      const li = await validateLinkedInCredentials();
       results.push({
-        key: p.key,
-        label: p.label,
+        key: "linkedin",
+        label: "LinkedIn",
         category: "social",
-        tone: "not_implemented",
-        headline: "Adapter not yet built",
-        detail: `${p.label} publishing is on the roadmap. No credentials collected, no publish path armed.`,
+        tone: li.configured && li.reachable ? "configured" : "blocked",
+        action: li.configured && li.reachable ? "connected" : "setup_required",
+        headline: !li.configured
+          ? "Connector not configured"
+          : !li.reachable
+            ? "Connector configured but not responding"
+            : "Connected",
+        detail: li.message,
+        identity: li.displayName ?? li.memberId,
+        armed: li.configured ? li.armed : null,
+        grantedCapabilities: li.grantedCapabilities,
+        missingCapabilities: li.missingCapabilities,
+        adapterVersion: "linkedin.v0.1.0",
+      });
+    } catch (err) {
+      results.push({
+        key: "linkedin",
+        label: "LinkedIn",
+        category: "social",
+        tone: "blocked",
+        action: "setup_required",
+        headline: "Could not check LinkedIn",
+        detail: (err as Error).message,
         identity: null,
         armed: null,
         grantedCapabilities: [],
         missingCapabilities: [],
-        adapterVersion: null,
+        adapterVersion: "linkedin.v0.1.0",
       });
     }
+
+    // ---- X (per-venture OAuth 2.0 user context with PKCE) --------------
+    try {
+      const { validateXConnection } = await import("@/lib/social/providers/x");
+      const x = await validateXConnection(data.organizationId, data.ventureId);
+      results.push({
+        key: "x",
+        label: "X",
+        category: "social",
+        tone: x.connected && x.reachable ? "configured" : "blocked",
+        action: !x.configured
+          ? "setup_required"
+          : !x.connected
+            ? "connect"
+            : !x.reachable
+              ? "reconnect"
+              : "connected",
+        headline: !x.configured
+          ? "Setup required"
+          : !x.connected
+            ? "No account connected"
+            : !x.reachable
+              ? "Reconnect required"
+              : `Connected${x.username ? ` as @${x.username}` : ""}`,
+        detail: x.message,
+        identity: x.username ? `@${x.username}` : x.displayName,
+        armed: x.configured ? x.armed : null,
+        grantedCapabilities: x.grantedCapabilities,
+        missingCapabilities: x.missingCapabilities,
+        adapterVersion: "x.v0.1.0",
+      });
+    } catch (err) {
+      results.push({
+        key: "x",
+        label: "X",
+        category: "social",
+        tone: "blocked",
+        action: "setup_required",
+        headline: "Could not check X",
+        detail: (err as Error).message,
+        identity: null,
+        armed: null,
+        grantedCapabilities: [],
+        missingCapabilities: [],
+        adapterVersion: "x.v0.1.0",
+      });
+    }
+
+    // ---- Reddit (not built) --------------------------------------------
+    results.push({
+      key: "reddit",
+      label: "Reddit",
+      category: "social",
+      tone: "not_implemented",
+      action: "none",
+      headline: "Adapter not yet built",
+      detail:
+        "Reddit publishing is on the roadmap. No credentials collected, no publish path armed.",
+      identity: null,
+      armed: null,
+      grantedCapabilities: [],
+      missingCapabilities: [],
+      adapterVersion: null,
+    });
+
 
     return results;
   });
