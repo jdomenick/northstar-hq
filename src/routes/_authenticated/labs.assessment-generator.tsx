@@ -4,6 +4,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import northstarLogo from "@/assets/northstar-labs-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/labs/assessment-generator")({
   component: AssessmentGeneratorPage,
@@ -78,5 +79,5 @@ function AssessmentGeneratorPage() {
 
 function Field({label,value,onChange}:{label:string;value:string;onChange:(v:string)=>void}) { return <label className="block"><span className="text-[11px] font-medium uppercase tracking-[.16em] text-muted-foreground">{label}</span><input className="mt-2 h-10 w-full border border-border bg-background px-3 text-sm" value={value} onChange={e=>onChange(e.target.value)}/></label>; }
 function Area({label,value,onChange}:{label:string;value:string;onChange:(v:string)=>void}) { return <label className="mt-4 block"><span className="text-[11px] font-medium uppercase tracking-[.16em] text-muted-foreground">{label}</span><Textarea className="mt-2" rows={4} value={value} onChange={e=>onChange(e.target.value)}/></label>; }
-function Report({title,children}:{title:string;children:React.ReactNode}) { return <section className="break-inside-avoid"><h2 className="border-b border-border pb-2 font-display text-xl font-semibold">{title}</h2><div className="mt-4 text-[14px] leading-7">{children}</div></section>; }
-function Metric({label,value}:{label:string;value:string}) { return <div className="border border-border p-4"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 font-display text-xl font-semibold">{value}</div></div>; }
+function Report({title,children}:{title:string;children:React.ReactNode}) { return <section className="break-inside-avoid"><h2 className="border-b border-primary/30 pb-2 font-display text-xl font-semibold text-primary">{title}</h2><div className="mt-4 text-[14px] leading-7 text-foreground">{children}</div></section>; }
+function Metric({label,value}:{label:string;value:string}) { return <div className="nsl-report-panel break-inside-avoid p-4"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 font-display text-xl font-semibold text-primary">{value}</div></div>; }
