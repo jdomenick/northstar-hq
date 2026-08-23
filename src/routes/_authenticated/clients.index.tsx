@@ -56,11 +56,8 @@ function ClientsIndex() {
                   {health.map((c) => (
                     <ListRow
                       key={c.id}
-                      title={
-                        <Link to="/clients/$clientId" params={{ clientId: c.id }}>
-                          {c.name}
-                        </Link>
-                      }
+                      title={c.name}
+
                       meta={[
                         c.status,
                         c.modules.length ? c.modules.join(", ") : "No module records",
