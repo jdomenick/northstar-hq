@@ -39,7 +39,7 @@ function AssessmentGeneratorPage() {
   const constraints = areas.filter(([,v]) => v.trim()).map(([k,v]) => `${k}: ${v}`);
 
   return <>
-    <PageHeader eyebrow="NorthStar Labs" title="Assessment Generator" description="Enter what we know, then generate a consistent client-ready assessment." actions={<Button variant="outline" size="sm" asChild><Link to="/labs/assessments"><ArrowLeft className="mr-2 h-4 w-4"/>Requests</Link></Button>} />
+    <div className="print:hidden"><PageHeader eyebrow="NorthStar Labs" title="Assessment Generator" description="Enter what we know, then generate a consistent client-ready assessment." actions={<Button variant="outline" size="sm" asChild><Link to="/labs/assessments"><ArrowLeft className="mr-2 h-4 w-4"/>Requests</Link></Button>} /></div>
     <PageBody>
       <div className="print:hidden">
         <Section title="Client & goals"><div className="grid gap-4 md:grid-cols-2">{([['company','Company'],['contact','Primary contact'],['industry','Industry'],['website','Website']] as [keyof Form,string][]).map(([k,l])=><Field key={k} label={l} value={form[k]} onChange={(v)=>set(k,v)}/>)}</div><Area label="Business goals" value={form.goals} onChange={(v)=>set('goals',v)}/></Section>

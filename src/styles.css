@@ -186,3 +186,18 @@
     0 1px 0 oklch(1 0 0 / 0.05) inset,
     0 20px 40px -24px oklch(0 0 0 / 0.6);
 }
+
+
+/* Printed documents (e.g. the Assessment Generator output) must stay legible
+   on paper. Browsers drop dark backgrounds when printing, so invert the
+   surface tokens to ink-on-paper for print only. */
+@media print {
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.18 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.18 0 0);
+    --muted-foreground: oklch(0.42 0 0);
+    --border: oklch(0.82 0 0);
+  }
+}

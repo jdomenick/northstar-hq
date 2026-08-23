@@ -193,7 +193,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "hidden md:flex print:hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
           collapsed ? "w-[72px]" : "w-[236px]",
         )}
       >
@@ -335,7 +335,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-xl md:flex md:gap-3 md:px-6">
+        <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-xl print:hidden md:flex md:gap-3 md:px-6">
           <button
             className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-accent md:hidden"
             onClick={() => setMobileOpen(true)}
