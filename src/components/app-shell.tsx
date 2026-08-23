@@ -50,6 +50,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useGlobalSearch, type SearchHit } from "@/lib/data-hooks";
 import { can, type Role } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
+import { SamChatHead } from "@/components/sam/sam-chat-head";
+
 
 type NavItem = {
   to:
@@ -418,6 +420,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+
+      <SamChatHead />
+
 
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
         <CommandInput
