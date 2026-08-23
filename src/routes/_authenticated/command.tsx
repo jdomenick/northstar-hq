@@ -224,7 +224,7 @@ function CommandPage() {
             </Panel>
 
             <Panel title="Top Clients by Revenue" demo bodyClassName="p-0">
-              <table className="w-full text-left text-[11px]">
+              <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
@@ -313,7 +313,7 @@ function CommandPage() {
                 No clients on record yet.
               </div>
             ) : (
-              <table className="w-full text-left text-[11px]">
+              <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>

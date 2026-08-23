@@ -98,7 +98,7 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
 
       <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.35fr_1fr]">
         <Panel title="Channel Performance (MTD)" demo bodyClassName="p-0">
-          <table className="w-full text-left text-[11px]">
+          <table className="w-full table-fixed text-left text-[11px]">
             <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
               <tr className="border-b border-border/50">
                 <th className="px-3 py-1.5 font-medium">Channel</th>
