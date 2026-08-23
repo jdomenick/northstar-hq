@@ -40,9 +40,8 @@ export function useSamAttention(orgId: string | null) {
           .from("operator_tasks")
           .select("id", { count: "exact", head: true })
           .eq("organization_id", org)
-          .eq("requires_approval", true)
-          .is("approved_at", null)
-          .neq("status", "done"),
+          .eq("status", "needs_approval"),
+
       ]);
 
       if (jobs.error && approvals.error) return EMPTY;
