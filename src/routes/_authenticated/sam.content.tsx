@@ -201,7 +201,13 @@ function ContentOpsWorkspace() {
                         ) : null}
                       </div>
                     ) : null}
+                    <ConnectionActions
+                      connection={c}
+                      organizationId={organizationId!}
+                      ventureId={ventureId!}
+                    />
                   </QuietPanel>
+
                 );
               })}
             </div>
