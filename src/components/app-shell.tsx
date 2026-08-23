@@ -125,7 +125,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "System",
     items: [
-      { to: "/sam", label: "SAM Core", icon: Sparkles },
+      { to: "/sam", label: "SAM", icon: Sparkles },
       { to: "/sam/control", label: "SAM Control", icon: Gauge },
       { to: "/sam/memory", label: "SAM Memory", icon: Sparkles },
       { to: "/sam/integrations", label: "Integrations", icon: Plug },
