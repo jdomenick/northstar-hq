@@ -54,6 +54,7 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as ProposalTokenIndexRouteImport } from './routes/proposal.$token.index'
 import { Route as AuthenticatedSamIndexRouteImport } from './routes/_authenticated/sam.index'
 import { Route as AuthenticatedLabsIndexRouteImport } from './routes/_authenticated/labs.index'
+import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as ProposalTokenPaymentReturnRouteImport } from './routes/proposal.$token.payment-return'
 import { Route as OauthConnectorReturnRouteImport } from './routes/oauth/connector/return'
 import { Route as ClientInviteTokenRouteImport } from './routes/client.invite.$token'
@@ -345,6 +346,12 @@ const AuthenticatedLabsIndexRoute = AuthenticatedLabsIndexRouteImport.update({
   path: '/labs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClientsIndexRoute =
+  AuthenticatedClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ProposalTokenPaymentReturnRoute =
   ProposalTokenPaymentReturnRouteImport.update({
     id: '/payment-return',
@@ -770,6 +777,7 @@ export interface FileRoutesByFullPath {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/clients/': typeof AuthenticatedClientsIndexRoute
   '/labs/': typeof AuthenticatedLabsIndexRoute
   '/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
@@ -877,6 +885,7 @@ export interface FileRoutesByTo {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/clients': typeof AuthenticatedClientsIndexRoute
   '/labs': typeof AuthenticatedLabsIndexRoute
   '/sam': typeof AuthenticatedSamIndexRoute
   '/proposal/$token': typeof ProposalTokenIndexRoute
@@ -987,6 +996,7 @@ export interface FileRoutesById {
   '/client/invite/$token': typeof ClientInviteTokenRoute
   '/oauth/connector/return': typeof OauthConnectorReturnRoute
   '/proposal/$token/payment-return': typeof ProposalTokenPaymentReturnRoute
+  '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/labs/': typeof AuthenticatedLabsIndexRoute
   '/_authenticated/sam/': typeof AuthenticatedSamIndexRoute
   '/proposal/$token/': typeof ProposalTokenIndexRoute
@@ -1097,6 +1107,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/clients/'
     | '/labs/'
     | '/sam/'
     | '/proposal/$token/'
@@ -1204,6 +1215,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/clients'
     | '/labs'
     | '/sam'
     | '/proposal/$token'
@@ -1313,6 +1325,7 @@ export interface FileRouteTypes {
     | '/client/invite/$token'
     | '/oauth/connector/return'
     | '/proposal/$token/payment-return'
+    | '/_authenticated/clients/'
     | '/_authenticated/labs/'
     | '/_authenticated/sam/'
     | '/proposal/$token/'
@@ -1723,6 +1736,13 @@ declare module '@tanstack/react-router' {
       path: '/labs'
       fullPath: '/labs/'
       preLoaderRoute: typeof AuthenticatedLabsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients/': {
+      id: '/_authenticated/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/proposal/$token/payment-return': {
@@ -2348,6 +2368,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSamControlRoute: typeof AuthenticatedSamControlRoute
   AuthenticatedSamIntegrationsRoute: typeof AuthenticatedSamIntegrationsRouteWithChildren
   AuthenticatedSamMemoryRoute: typeof AuthenticatedSamMemoryRoute
+  AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLabsIndexRoute: typeof AuthenticatedLabsIndexRoute
   AuthenticatedSamIndexRoute: typeof AuthenticatedSamIndexRoute
   AuthenticatedLabsAssessmentIdRoute: typeof AuthenticatedLabsAssessmentIdRoute
@@ -2391,6 +2412,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSamIntegrationsRoute:
     AuthenticatedSamIntegrationsRouteWithChildren,
   AuthenticatedSamMemoryRoute: AuthenticatedSamMemoryRoute,
+  AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLabsIndexRoute: AuthenticatedLabsIndexRoute,
   AuthenticatedSamIndexRoute: AuthenticatedSamIndexRoute,
   AuthenticatedLabsAssessmentIdRoute: AuthenticatedLabsAssessmentIdRoute,
