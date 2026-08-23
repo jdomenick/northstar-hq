@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Bell, Download } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
-import { KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
+import { DemoBadge, KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
 import { DONUT_COLORS, DonutChart, TrendChart } from "@/components/command/charts";
 import { ClientWorkspacePanel } from "@/components/command/client-workspace-panel";
 import { ModulePreviewRow } from "@/components/command/module-preview-row";
@@ -173,6 +173,12 @@ function CommandPage() {
       <div className="grid min-w-0 gap-2.5 xl:grid-cols-[1.18fr_1fr]">
         <div className="flex min-w-0 flex-col gap-2.5">
           {/* KPI row */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground">
+              Portfolio metrics
+            </span>
+            <DemoBadge />
+          </div>
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-6">
             {DEMO_COMMAND_KPIS.map((k) => (
               <KpiCard
@@ -181,7 +187,6 @@ function CommandPage() {
                 value={k.value}
                 delta={k.delta}
                 series={k.series}
-                demo
               />
             ))}
             <KpiCard
@@ -198,7 +203,7 @@ function CommandPage() {
           </div>
 
           {/* Charts + top clients */}
-          <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.25fr_0.85fr_1.15fr]">
+          <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.1fr_0.8fr_1.4fr]">
             <Panel title="Revenue Trend" subtitle="Trailing 12 months" demo bodyClassName="p-2.5">
               <TrendChart data={DEMO_REVENUE_TREND} valuePrefix="$" />
             </Panel>
@@ -224,13 +229,13 @@ function CommandPage() {
             </Panel>
 
             <Panel title="Top Clients by Revenue" demo bodyClassName="p-0">
-              <table className="w-full text-left text-[11px]">
+              <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="px-2 py-1.5 text-right font-medium">Leads</th>
-                    <th className="px-2 py-1.5 text-right font-medium">Revenue</th>
-                    <th className="px-3 py-1.5 text-right font-medium">Chg</th>
+                    <th className="w-11 px-2 py-1.5 text-right font-medium">Leads</th>
+                    <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
+                    <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -313,13 +318,13 @@ function CommandPage() {
                 No clients on record yet.
               </div>
             ) : (
-              <table className="w-full text-left text-[11px]">
+              <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="px-2 py-1.5 font-medium">Status</th>
+                    <th className="w-20 px-2 py-1.5 font-medium">Status</th>
                     <th className="px-2 py-1.5 font-medium">Current issue</th>
-                    <th className="px-3 py-1.5 text-right font-medium">MRR</th>
+                    <th className="w-16 px-3 py-1.5 text-right font-medium">MRR</th>
                   </tr>
                 </thead>
                 <tbody>

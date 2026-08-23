@@ -29,7 +29,7 @@ export function Panel({
     <section
       id={id}
       className={cn(
-        "flex min-w-0 flex-col rounded-[7px] border border-border/70 bg-card/60",
+        "flex min-w-0 flex-col overflow-hidden rounded-[7px] border border-border/70 bg-card/60",
         className,
       )}
     >
@@ -154,17 +154,21 @@ export function KpiCard({
   hint?: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-col justify-between rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5">
+    <div className="flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5">
       <div className="flex items-start justify-between gap-1.5">
-        <div className="truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground break-words">
           {label}
         </div>
-        {demo && <DemoBadge />}
+        {demo && (
+          <span className="shrink-0">
+            <DemoBadge />
+          </span>
+        )}
       </div>
-      <div className="mt-1.5 flex items-end justify-between gap-2">
+      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
         <div
           className={cn(
-            "font-display text-[20px] leading-none tabular-nums",
+            "min-w-0 truncate font-display text-[17px] leading-none tabular-nums",
             tone === "alert" ? "text-destructive" : "text-foreground",
           )}
         >
@@ -194,7 +198,7 @@ export function MiniStat({
 }) {
   return (
     <div className="min-w-0">
-      <div className="truncate text-[9.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="text-[9px] font-medium uppercase leading-[1.25] tracking-[0.08em] text-muted-foreground break-words">
         {label}
       </div>
       <div
