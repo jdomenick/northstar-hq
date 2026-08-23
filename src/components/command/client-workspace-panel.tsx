@@ -3,6 +3,7 @@
 
 import {
   Calendar,
+  ChevronRight,
   DollarSign,
   MessageSquare,
   Megaphone,
