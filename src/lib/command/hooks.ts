@@ -90,6 +90,11 @@ type PipelineRow = Pick<
   "id" | "client_id" | "name" | "stage" | "value_cents" | "expected_close" | "next_action" | "source"
 >;
 
+type EventRow = Pick<
+  Database["public"]["Tables"]["client_workspace_events"]["Row"],
+  "id" | "client_id" | "title" | "event_type" | "occurred_at"
+>;
+
 export interface CommandOverview {
   clients: Source<ClientRow[]>;
   leads: Source<LeadRow[]>;
@@ -100,16 +105,41 @@ export interface CommandOverview {
   approvals: Source<TaskRow[]>;
   milestones: Source<MilestoneRow[]>;
   pipeline: Source<PipelineRow[]>;
+  events: Source<EventRow[]>;
   /** No calls/messaging system of record is wired into this project yet. */
   conversations: Source<never>;
   /** No scheduling system of record is wired into this project yet. */
   appointments: Source<never>;
 }
 
+/**
+ * Standalone NorthStar products that are not wired into this project's data
+ * layer. They are declared here as adapter boundaries so Command can report a
+ * truthful Not Connected state instead of guessing.
+ */
+export const MODULE_ADAPTERS: { name: string; reason: string }[] = [
+  {
+    name: "CAM",
+    reason:
+      "CAM runs as a standalone product. No acquisition data source is connected to Command yet.",
+  },
+  {
+    name: "CCM",
+    reason:
+      "CCM runs as a standalone product. No calls or messaging data source is connected to Command yet.",
+  },
+  {
+    name: "CRM",
+    reason:
+      "Standalone CRM is not connected. Pipeline shown in Command comes from NorthStar revenue records only.",
+  },
+];
+
 const NO_COMMS =
   "No calls or messaging system is connected to Command. Connect a communications source to report here.";
 const NO_SCHEDULING =
   "No scheduling system is connected to Command. Connect a calendar or booking source to report here.";
+
 
 export function useCommandOverview(orgId: string | null) {
   return useQuery({
