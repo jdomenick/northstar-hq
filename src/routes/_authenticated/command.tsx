@@ -199,26 +199,89 @@ function CommandPage() {
         </Section>
 
         <Section
-          title="Clients"
-          hint="Each client opens a unified workspace"
+          title="Client health"
+          hint="Modules holding records, current issue, last meaningful activity"
           action={<DrillLink to="/clients">View all</DrillLink>}
         >
-          <SourceView source={d.clients} empty="No clients on record yet.">
-            {(rows) => (
-              <RowList>
-                {rows.slice(0, 8).map((c) => (
-                  <ListRow
-                    key={c.id}
-                    title={c.name}
-                    meta={`${c.status}${c.mrr_cents ? ` · ${money(c.mrr_cents)} MRR` : ""}`}
-                    to={`/clients/${c.id}`}
-                    right="Workspace"
-                  />
-                ))}
-              </RowList>
-            )}
-          </SourceView>
+          {d.clients.status !== "ok" ? (
+            <NotAvailable reason={d.clients.reason ?? "Client records are unavailable."} />
+          ) : health.length === 0 ? (
+            <EmptyLine>No clients on record yet.</EmptyLine>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-[12.5px]">
+                <thead className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+                  <tr className="border-b border-border/60">
+                    <th className="py-2 pr-4 font-medium">Client</th>
+                    <th className="py-2 pr-4 font-medium">Status</th>
+                    <th className="py-2 pr-4 font-medium">Modules</th>
+                    <th className="py-2 pr-4 font-medium">Current issue</th>
+                    <th className="py-2 pr-4 font-medium">Last activity</th>
+                    <th className="py-2 font-medium">MRR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {health.slice(0, 12).map((c) => (
+                    <tr key={c.id} className="border-b border-border/40 last:border-0">
+                      <td className="py-2.5 pr-4">
+                        <Link
+                          to="/clients/$clientId"
+                          params={{ clientId: c.id }}
+                          className="text-foreground underline-offset-4 hover:underline"
+                        >
+                          {c.name}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">{c.status}</td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">
+                        {c.modules.length ? c.modules.join(", ") : "No module records"}
+                      </td>
+                      <td
+                        className={
+                          c.issue ? "py-2.5 pr-4 text-foreground" : "py-2.5 pr-4 text-muted-foreground"
+                        }
+                      >
+                        {c.issue ?? "Nothing outstanding"}
+                      </td>
+                      <td className="py-2.5 pr-4 text-muted-foreground">
+                        {c.lastActivityAt
+                          ? `${new Date(c.lastActivityAt).toLocaleDateString()}${c.lastActivityLabel ? ` · ${c.lastActivityLabel}` : ""}`
+                          : "No recorded activity"}
+                      </td>
+                      <td className="py-2.5 text-muted-foreground">
+                        {c.mrrCents ? money(c.mrrCents) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Section>
+
+        <Section
+          title="Approvals and decisions"
+          hint="Operator tasks explicitly waiting on a decision"
+          action={<DrillLink to="/labs/mission-control">Mission Control</DrillLink>}
+        >
+          {d.approvals.status !== "ok" ? (
+            <NotAvailable reason={d.approvals.reason ?? "Approvals are unavailable."} />
+          ) : approvals.length === 0 ? (
+            <EmptyLine>No approvals are waiting.</EmptyLine>
+          ) : (
+            <RowList>
+              {approvals.slice(0, 8).map((t) => (
+                <ListRow
+                  key={t.id}
+                  title={t.title}
+                  meta={`${t.kind} · ${t.status}${t.due_at ? ` · due ${new Date(t.due_at).toLocaleDateString()}` : ""}`}
+                  right={t.priority}
+                />
+              ))}
+            </RowList>
+          )}
+        </Section>
+
 
         <Section title="Modules" hint="Product surfaces operated from Command">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
