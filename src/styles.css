@@ -188,16 +188,55 @@
 }
 
 
+/* Client-facing assessment report.
+   The report is a document, not app chrome: it always renders as ink on paper
+   (white background, NorthStar navy accents, charcoal body text) whether it is
+   viewed on screen inside the dark app shell, emailed, or printed. Overriding
+   the semantic tokens on this scope keeps every Tailwind utility inside the
+   report consistent without hardcoding colors in the component. */
+.nsl-report {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.26 0.012 258);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.26 0.012 258);
+  --muted: oklch(0.972 0.008 250);
+  --muted-foreground: oklch(0.5 0.018 255);
+  --primary: oklch(0.44 0.13 255);
+  --primary-foreground: oklch(1 0 0);
+  --border: oklch(0.9 0.014 250);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.nsl-report-panel {
+  background-color: oklch(0.975 0.01 248);
+  border: 1px solid oklch(0.91 0.016 250);
+}
+
 /* Printed documents (e.g. the Assessment Generator output) must stay legible
    on paper. Browsers drop dark backgrounds when printing, so invert the
    surface tokens to ink-on-paper for print only. */
 @media print {
   :root {
     --background: oklch(1 0 0);
-    --foreground: oklch(0.18 0 0);
+    --foreground: oklch(0.26 0.012 258);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.18 0 0);
-    --muted-foreground: oklch(0.42 0 0);
-    --border: oklch(0.82 0 0);
+    --card-foreground: oklch(0.26 0.012 258);
+    --muted-foreground: oklch(0.5 0.018 255);
+    --border: oklch(0.9 0.014 250);
+    --primary: oklch(0.44 0.13 255);
+  }
+
+  /* Keep the light section backgrounds when printing instead of letting the
+     browser strip them out. */
+  .nsl-report,
+  .nsl-report-panel {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page {
+    margin: 14mm;
   }
 }
+
