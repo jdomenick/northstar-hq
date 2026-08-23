@@ -33,6 +33,10 @@ export interface ProbeResult {
   lastErrorMessage: string | null;
   adapterVersion: string | null;
   testable: boolean;
+  // True only when a real credential/token/database row proves the link.
+  connected?: boolean;
+  // Exact env names the runtime still needs. Drives the Setup required action.
+  missingEnv?: string[];
   diagnostics?: IntegrationDiagnostics;
 }
 
@@ -46,7 +50,8 @@ export type IntegrationDiagnostics =
   | { kind: "supabase_self"; host: string; hasServiceRole: boolean }
   | { kind: "webhooks_summary"; total: number; enabled: number }
   | { kind: "rest_summary"; total: number; enabled: number }
-  | { kind: "env_shell"; requiredEnv: string[]; missingEnv: string[]; approvalRequired: boolean; docsUrl: string | null };
+  | { kind: "env_shell"; requiredEnv: string[]; missingEnv: string[]; approvalRequired: boolean; docsUrl: string | null }
+  | { kind: "app_user_connector"; connectorId: string | null; clientConfigured: boolean; missingEnv: string[]; connectedIdentity: string | null; connectedAt: string | null };
 
 type Supa = SupabaseClient<Database>;
 
@@ -285,6 +290,8 @@ export function probeEnvOnly(def: ProviderDefinition): ProbeResult {
     lastErrorMessage: null,
     adapterVersion: `${def.key}.shell`,
     testable: false,
+    connected: false,
+    missingEnv: missing,
     diagnostics: {
       kind: "env_shell",
       requiredEnv: def.requiredEnv ?? [],
@@ -312,6 +319,8 @@ export async function probeStripe(): Promise<ProbeResult> {
       lastErrorMessage: null,
       adapterVersion: "stripe.v0.0",
       testable: false,
+      connected: false,
+      missingEnv: ["STRIPE_SECRET_KEY"],
       diagnostics: {
         kind: "stripe",
         mode: "unknown",
@@ -373,6 +382,8 @@ export async function probeStripe(): Promise<ProbeResult> {
     lastErrorMessage: errMsg,
     adapterVersion: "stripe.v0.1",
     testable: true,
+    connected: ok,
+    missingEnv: [],
     diagnostics: {
       kind: "stripe",
       mode,
@@ -403,7 +414,9 @@ export function probeSupabaseSelf(): ProbeResult {
     lastErrorAt: null,
     lastErrorMessage: null,
     adapterVersion: "supabase.self",
-    testable: false,
+    testable: ok,
+    connected: ok,
+    missingEnv: ok ? [] : ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY"],
     diagnostics: {
       kind: "supabase_self",
       host,

@@ -50,6 +50,10 @@ export interface ProviderDefinition {
   docsUrl?: string;
   // Route in this app to manage the integration (if not the default drawer).
   managePath?: string;
+  // Lovable App User Connector id, when this provider connects per signed-in
+  // user through the connector gateway. Absent means no connector exists for
+  // this provider yet and the card must show a truthful Setup required state.
+  connectorId?: string;
   // Short description shown in the detail drawer.
   description: string;
   // Provider-supplied capability approval status.
@@ -115,12 +119,13 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
     category: "publishing",
     auth: "oauth_app",
     capabilities: ["publish", "delete", "metrics"],
-    requiredEnv: ["X_CLIENT_ID", "X_CLIENT_SECRET"],
+    requiredEnv: ["X_CLIENT_ID", "X_CLIENT_SECRET", "X_REDIRECT_URI"],
+    optionalEnv: ["X_PUBLISH_ARMED"],
     requiredScopes: ["tweet.read", "tweet.write", "users.read", "offline.access"],
     approvalRequired: true,
-    externalStep: "Requires an X (Twitter) developer OAuth 2.0 app with elevated access; add X_CLIENT_ID and X_CLIENT_SECRET.",
+    externalStep: "Create an X developer OAuth 2.0 app (confidential client) and set X_CLIENT_ID, X_CLIENT_SECRET, and X_REDIRECT_URI to https://northstarlabshq.com/api/public/oauth/x/callback.",
     docsUrl: "https://developer.x.com/en/docs/x-api",
-    description: "Post tweets via X API v2 (adapter shell wired for activation on credentials).",
+    description: "Post to X via API v2 using a per-venture OAuth 2.0 PKCE connection.",
   },
   {
     key: "reddit",
@@ -128,11 +133,12 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
     category: "publishing",
     auth: "oauth_app",
     capabilities: ["publish", "read"],
-    requiredEnv: ["REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET"],
-    requiredScopes: ["submit", "identity", "read"],
-    externalStep: "Requires a Reddit script or web-app credential pair (client id + secret).",
+    requiredEnv: ["REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_REDIRECT_URI"],
+    optionalEnv: ["REDDIT_PUBLISH_ARMED"],
+    requiredScopes: ["identity", "read", "submit"],
+    externalStep: "Create a Reddit 'web app' at reddit.com/prefs/apps and set REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, and REDDIT_REDIRECT_URI to https://northstarlabshq.com/api/public/oauth/reddit/callback.",
     docsUrl: "https://www.reddit.com/dev/api",
-    description: "Submit to subreddits via the Reddit OAuth API (adapter shell).",
+    description: "Submit link and text posts to subreddits via a per-venture Reddit OAuth connection.",
   },
   {
     key: "google_business_profile",
@@ -142,7 +148,7 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
     capabilities: ["publish", "read", "metrics"],
     requiredEnv: ["GOOGLE_BUSINESS_PROFILE_APP_USER_CONNECTOR_CLIENT_API_KEY"],
     approvalRequired: true,
-    externalStep: "Requires Google Cloud OAuth client + allowlisting for the Business Profile API, then an App User Connector client.",
+    externalStep: "Google does not currently offer a Business Profile App User Connector. It needs Google Cloud OAuth client credentials plus Business Profile API allowlisting approval from Google before a connector client can be linked.",
     docsUrl: "https://developers.google.com/my-business",
     description: "Publish posts and manage locations on Google Business Profile per signed-in user.",
   },
@@ -154,7 +160,7 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
     capabilities: ["read", "write", "metrics"],
     requiredEnv: ["GOOGLE_ADS_APP_USER_CONNECTOR_CLIENT_API_KEY", "GOOGLE_ADS_DEVELOPER_TOKEN"],
     approvalRequired: true,
-    externalStep: "Requires a Google Ads developer token (approval required by Google) and an OAuth client.",
+    externalStep: "Requires a Google Ads developer token approved by Google plus an OAuth client. No Google Ads App User Connector is available yet, so the connection cannot be completed from this page until both exist.",
     docsUrl: "https://developers.google.com/google-ads/api/docs/start",
     description: "Report and manage Google Ads campaigns via the Google Ads API.",
   },
@@ -171,7 +177,8 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/gmail.readonly",
     ],
-    externalStep: "Ask Lovable to configure the google_mail App User Connector client for this project.",
+    connectorId: "google_mail",
+    externalStep: "A workspace admin must configure the google_mail App User Connector client in Connectors settings. Once linked, Connect works from this page with no code change.",
     docsUrl: "https://developers.google.com/gmail/api",
     description: "Per-user Gmail access (read, threads, drafts) via App User Connector.",
   },
@@ -186,7 +193,8 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/calendar.readonly",
     ],
-    externalStep: "Ask Lovable to configure the google_calendar App User Connector client for this project.",
+    connectorId: "google_calendar",
+    externalStep: "A workspace admin must configure the google_calendar App User Connector client in Connectors settings. Once linked, Connect works from this page with no code change.",
     docsUrl: "https://developers.google.com/calendar",
     description: "Per-user Google Calendar events and availability via App User Connector.",
   },
@@ -203,7 +211,8 @@ export const INTEGRATION_PROVIDERS: ProviderDefinition[] = [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/drive.readonly",
     ],
-    externalStep: "Ask Lovable to configure the google_drive App User Connector client for this project.",
+    connectorId: "google_drive",
+    externalStep: "A workspace admin must configure the google_drive App User Connector client in Connectors settings. Once linked, Connect works from this page with no code change.",
     docsUrl: "https://developers.google.com/drive",
     description: "Per-user Google Drive file access via App User Connector.",
   },
