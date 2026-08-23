@@ -159,12 +159,16 @@ export function KpiCard({
         <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground [overflow-wrap:anywhere]">
           {label}
         </div>
-        {demo && <DemoBadge />}
+        {demo && (
+          <span className="shrink-0">
+            <DemoBadge />
+          </span>
+        )}
       </div>
-      <div className="mt-1.5 flex items-end justify-between gap-2">
+      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
         <div
           className={cn(
-            "font-display text-[20px] leading-none tabular-nums",
+            "min-w-0 truncate font-display text-[17px] leading-none tabular-nums",
             tone === "alert" ? "text-destructive" : "text-foreground",
           )}
         >
