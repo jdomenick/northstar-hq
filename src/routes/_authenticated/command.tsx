@@ -79,7 +79,9 @@ function CommandPage() {
   }
 
   const d = q.data;
+  const health = deriveClientHealth(d);
   const clients = d.clients.data ?? [];
+
   const activeClients = clients.filter((c) => c.status === "active");
   const invoices = d.invoices.data ?? [];
   const openInvoices = invoices.filter((i) => i.status === "open");
