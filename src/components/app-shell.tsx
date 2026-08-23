@@ -419,6 +419,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1">{children}</main>
       </div>
 
+      <SamChatHead />
+
+
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
         <CommandInput
           placeholder="Search ventures, projects, decisions, docs, people…"
