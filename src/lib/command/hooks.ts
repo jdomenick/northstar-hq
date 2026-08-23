@@ -257,6 +257,16 @@ export function useCommandOverview(orgId: string | null) {
           if (error) throw error;
           return (data ?? []) as PipelineRow[];
         }),
+        read("Client activity", async () => {
+          const { data, error } = await supabase
+            .from("client_workspace_events")
+            .select("id,client_id,title,event_type,occurred_at")
+            .eq("organization_id", org)
+            .order("occurred_at", { ascending: false })
+            .limit(200);
+          if (error) throw error;
+          return (data ?? []) as EventRow[];
+        }),
       ]);
 
       return {
@@ -269,9 +279,11 @@ export function useCommandOverview(orgId: string | null) {
         approvals,
         milestones,
         pipeline,
+        events,
         conversations: notConnected<never>(NO_COMMS),
         appointments: notConnected<never>(NO_SCHEDULING),
       };
+
     },
   });
 }
