@@ -156,7 +156,7 @@ export function KpiCard({
   return (
     <div className="flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5">
       <div className="flex items-start justify-between gap-1.5">
-        <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground [overflow-wrap:anywhere]">
+        <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground break-words">
           {label}
         </div>
         {demo && (
@@ -198,7 +198,7 @@ export function MiniStat({
 }) {
   return (
     <div className="min-w-0">
-      <div className="text-[9px] font-medium uppercase leading-[1.25] tracking-[0.08em] text-muted-foreground [overflow-wrap:anywhere]">
+      <div className="text-[9px] font-medium uppercase leading-[1.25] tracking-[0.08em] text-muted-foreground break-words">
         {label}
       </div>
       <div
