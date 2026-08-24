@@ -184,6 +184,11 @@ export interface ActivityRow {
 export interface CamReport {
   leads: number | null;
   qualifiedLeads: number | null;
+  appointments: number | null;
+  customers: number | null;
+  /** CAM reports revenue in major currency units; stored here as cents. */
+  revenueCents: number | null;
+  /** CAM does not report ad spend today. Stays null; never fabricated. */
   spendCents: number | null;
   cplCents: number | null;
   roas: number | null;
@@ -191,6 +196,7 @@ export interface CamReport {
   channels: ChannelRow[];
   activity: ActivityRow[];
 }
+
 
 export interface CcmReport {
   conversations: number | null;
