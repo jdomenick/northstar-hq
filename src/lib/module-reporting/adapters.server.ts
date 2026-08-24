@@ -4,6 +4,7 @@
  */
 
 import { fetchModuleReport } from "./fetcher";
+import { resolveRange, type ResolvedRange } from "./range";
 import {
   MODULE_KEYS,
   MODULE_URL_ENV,
@@ -51,6 +52,7 @@ export interface DashboardRequest {
 async function loadModule<T>(
   module: ModuleKey,
   req: DashboardRequest,
+  resolved: ResolvedRange,
 ): Promise<ModuleSource<T>> {
   const externalId = req.externalIds[module] ?? null;
   if (req.clientScoped && !externalId) {
@@ -64,7 +66,7 @@ async function loadModule<T>(
     baseUrl: envValue(MODULE_URL_ENV[module]),
     secret: envValue(REPORTING_SECRET_ENV),
     externalId,
-    range: req.range ?? null,
+    resolved,
   });
 }
 
@@ -72,11 +74,13 @@ async function loadModule<T>(
 export async function loadModuleDashboard(
   req: DashboardRequest,
 ): Promise<ModuleDashboard> {
+  // One clock for all four sources so the windows line up.
+  const resolved = resolveRange(req.range ?? null);
   const [cam, ccm, crm, sam] = await Promise.all([
-    loadModule<CamReport>("cam", req),
-    loadModule<CcmReport>("ccm", req),
-    loadModule<CrmReport>("crm", req),
-    loadModule<SamReport>("sam", req),
+    loadModule<CamReport>("cam", req, resolved),
+    loadModule<CcmReport>("ccm", req, resolved),
+    loadModule<CrmReport>("crm", req, resolved),
+    loadModule<SamReport>("sam", req, resolved),
   ]);
   return { cam, ccm, crm, sam };
 }
