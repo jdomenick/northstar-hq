@@ -10,6 +10,11 @@ import { actorName } from "@/lib/actor-names";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { ModuleConnectionsCard } from "@/components/command/module-connections-card";
 import { useCommandOverview } from "@/lib/command/hooks";
+import {
+  useAppearance,
+  type FontSizePreference,
+  type ThemePreference,
+} from "@/lib/appearance";
 
 import {
   useOrganization,
@@ -86,13 +91,15 @@ function SettingsPage() {
           <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
           <TabsContent value="sam"><SamSettingsTab /></TabsContent>
           <TabsContent value="integrations"><ModuleReportingTab /></TabsContent>
-          {["accountability","notifications","security","appearance"].map((v) => (
+          <TabsContent value="appearance"><AppearanceTab /></TabsContent>
+          {["accountability","notifications","security"].map((v) => (
             <TabsContent key={v} value={v}>
               <p className="text-[13.5px] text-muted-foreground">
                 This section connects in a future phase.
               </p>
             </TabsContent>
           ))}
+
 
         </Tabs>
       </PageBody>
@@ -639,5 +646,110 @@ function Fld({ label, children }: { label: string; children: React.ReactNode }) 
       <div className="mb-1 text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">{label}</div>
       {children}
     </label>
+  );
+}
+// ─────────────────────────────────────────────────────────────
+// Appearance
+// ─────────────────────────────────────────────────────────────
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; hint: string }[] = [
+  { value: "light", label: "Light", hint: "White surfaces, charcoal type" },
+  { value: "dark", label: "Dark", hint: "NorthStar obsidian" },
+  { value: "system", label: "System", hint: "Follow OS preference" },
+];
+
+const FONT_OPTIONS: { value: FontSizePreference; label: string; hint: string }[] = [
+  { value: "compact", label: "Compact", hint: "Denser interface type" },
+  { value: "default", label: "Default", hint: "Current sizing" },
+  { value: "large", label: "Large", hint: "Easier to read" },
+];
+
+function AppearanceTab() {
+  const { theme, resolvedTheme, fontSize, setTheme, setFontSize } = useAppearance();
+
+  return (
+    <div className="max-w-3xl space-y-10">
+      <Section title="Theme" hint="Applies across Command Center, Client Workspace, CRM, navigation, Settings, and SAM Messenger.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {THEME_OPTIONS.map((o) => (
+            <OptionCard
+              key={o.value}
+              label={o.label}
+              hint={o.hint}
+              active={theme === o.value}
+              onSelect={() => setTheme(o.value)}
+            >
+              <div className="mt-3 flex gap-1.5">
+                <span className={`h-6 flex-1 rounded-sm border border-border ${o.value === "light" ? "bg-white" : o.value === "dark" ? "bg-[oklch(0.11_0.008_255)]" : "bg-gradient-to-r from-white to-[oklch(0.11_0.008_255)]"}`} />
+              </div>
+            </OptionCard>
+          ))}
+        </div>
+        <p className="mt-3 text-[12px] text-muted-foreground">
+          Currently showing the {resolvedTheme} theme.
+        </p>
+      </Section>
+
+      <Section title="Font size" hint="Scales interface typography without changing the density of the dashboards.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {FONT_OPTIONS.map((o) => (
+            <OptionCard
+              key={o.value}
+              label={o.label}
+              hint={o.hint}
+              active={fontSize === o.value}
+              onSelect={() => setFontSize(o.value)}
+            >
+              <div
+                className="mt-3 truncate text-foreground/80"
+                style={{ fontSize: o.value === "compact" ? 12 : o.value === "large" ? 16 : 14 }}
+              >
+                Revenue this month
+              </div>
+            </OptionCard>
+          ))}
+        </div>
+      </Section>
+
+      <p className="text-[12px] text-muted-foreground">
+        Your appearance preferences are saved on this device and applied immediately.
+      </p>
+    </div>
+  );
+}
+
+function OptionCard({
+  label,
+  hint,
+  active,
+  onSelect,
+  children,
+}: {
+  label: string;
+  hint: string;
+  active: boolean;
+  onSelect: () => void;
+  children?: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={active}
+      className={`rounded-md border p-3 text-left transition ${
+        active
+          ? "border-foreground bg-secondary/50"
+          : "border-border bg-card/40 hover:border-foreground/40 hover:bg-secondary/30"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13px] font-medium text-foreground">{label}</span>
+        <span
+          className={`h-2 w-2 rounded-full ${active ? "bg-foreground" : "bg-transparent border border-border"}`}
+        />
+      </div>
+      <div className="mt-0.5 text-[11.5px] text-muted-foreground">{hint}</div>
+      {children}
+    </button>
   );
 }
