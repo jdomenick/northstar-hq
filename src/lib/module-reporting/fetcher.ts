@@ -58,6 +58,7 @@ export function buildReportingUrl(
   baseUrl: string,
   externalId: string | null,
   resolved: ResolvedRange,
+  applicationId: string | null = null,
 ): string {
   const url = new URL(REPORTING_PATH, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
   const q = url.searchParams;
