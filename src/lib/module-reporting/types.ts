@@ -30,9 +30,23 @@ export const MODULE_URL_ENV: Record<ModuleKey, string> = {
   sam: "SAM_REPORTING_URL",
 };
 
+/**
+ * Deployed production base URLs. Environment values override these, so a
+ * staging or self-hosted deployment can still be pointed elsewhere.
+ */
+export const MODULE_URL_DEFAULT: Record<ModuleKey, string> = {
+  cam: "https://camleadconversion.lovable.app",
+  ccm: "https://communicationmanager.lovable.app",
+  crm: "https://northstar-connect-suite.lovable.app",
+  sam: "https://sam-core.lovable.app",
+};
+
+/** Optional env fallback. Vault name `northstar_reporting_secret` is primary. */
 export const REPORTING_SECRET_ENV = "NORTHSTAR_REPORTING_SECRET";
+export const REPORTING_SECRET_VAULT_NAME = "northstar_reporting_secret";
 export const REPORTING_SECRET_HEADER = "X-NorthStar-Reporting-Secret";
 export const REPORTING_PATH = "/api/public/reporting/hq-dashboard";
+
 
 export type SourceStatus = "ok" | "not_connected" | "unavailable";
 
