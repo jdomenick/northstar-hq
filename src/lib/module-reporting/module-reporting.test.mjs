@@ -1,5 +1,5 @@
 // Cross-app module reporting tests. No network, no database.
-// Run: node --test src/lib/module-reporting/module-reporting.test.mjs
+// Run: bun test src/lib/module-reporting/module-reporting.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
