@@ -9,6 +9,7 @@
  * ModuleSource with a truthful reason.
  */
 
+import { isUuid, resolveRange, type ResolvedRange } from "./range";
 import {
   MODULE_LABELS,
   MODULE_NORMALIZERS,
@@ -32,20 +33,61 @@ export interface ModuleFetchConfig {
   baseUrl: string | null | undefined;
   secret: string | null | undefined;
   externalId?: string | null;
-  /** Reporting window passed through to the source, when known. */
+  /** HQ dashboard range key (mtd | 30d | qtd | ytd). */
   range?: string | null;
+  /** Pre-resolved window, so all four modules share one clock. */
+  resolved?: ResolvedRange;
   timeoutMs?: number;
   fetchImpl?: FetchImpl;
 }
 
+/**
+ * Every source owns a different scope/window contract. This builds the exact
+ * query each one documents, rather than a generic external_id + range pair.
+ *
+ * CAM: optional `client` (org UUID or slug), `period` shorthand where supported,
+ *      otherwise explicit `start`/`end`.
+ * CCM: requires `tenant_id` (UUID) or `tenant_slug`, plus `from`/`to`.
+ * CRM: `business_id` accepting UUID, slug or `all`, plus `from`/`to`.
+ * SAM: optional `organization_id`, plus `from`/`to`.
+ */
 export function buildReportingUrl(
+  module: ModuleKey,
   baseUrl: string,
-  externalId?: string | null,
-  range?: string | null,
+  externalId: string | null,
+  resolved: ResolvedRange,
 ): string {
   const url = new URL(REPORTING_PATH, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
-  if (externalId) url.searchParams.set("external_id", externalId);
-  if (range) url.searchParams.set("range", range);
+  const q = url.searchParams;
+  const id = externalId && externalId.trim() !== "" ? externalId.trim() : null;
+
+  switch (module) {
+    case "cam":
+      if (id) q.set("client", id);
+      if (resolved.camPeriod) {
+        q.set("period", resolved.camPeriod);
+      } else {
+        q.set("start", resolved.startIso);
+        q.set("end", resolved.endIso);
+      }
+      break;
+    case "ccm":
+      // CCM has no portfolio-wide selector; callers must scope it.
+      if (id) q.set(isUuid(id) ? "tenant_id" : "tenant_slug", id);
+      q.set("from", resolved.startIso);
+      q.set("to", resolved.endIso);
+      break;
+    case "crm":
+      q.set("business_id", id ?? "all");
+      q.set("from", resolved.startIso);
+      q.set("to", resolved.endIso);
+      break;
+    case "sam":
+      if (id) q.set("organization_id", id);
+      q.set("from", resolved.startIso);
+      q.set("to", resolved.endIso);
+      break;
+  }
   return url.toString();
 }
 
@@ -59,8 +101,16 @@ export function buildReportingHeaders(secret: string): Record<string, string> {
 export async function fetchModuleReport<T>(
   config: ModuleFetchConfig,
 ): Promise<ModuleSource<T>> {
-  const { module, baseUrl, secret, externalId = null, range = null } = config;
+  const { module, baseUrl, secret, externalId = null } = config;
   const label = MODULE_LABELS[module];
+  const resolved = config.resolved ?? resolveRange(config.range ?? null);
+
+  if (module === "ccm" && !externalId) {
+    return moduleNotConnected<T>(
+      module,
+      `${label} reporting requires a tenant scope. Select a client with a mapped ${label} ID to read live data.`,
+    );
+  }
 
   if (!baseUrl) {
     return moduleNotConnected<T>(
@@ -77,7 +127,7 @@ export async function fetchModuleReport<T>(
 
   let url: string;
   try {
-    url = buildReportingUrl(baseUrl, externalId, range);
+    url = buildReportingUrl(module, baseUrl, externalId, resolved);
   } catch {
     return moduleUnavailable<T>(module, `${label} reporting URL is not a valid URL.`);
   }
@@ -104,8 +154,16 @@ export async function fetchModuleReport<T>(
     }
 
     const payload = await res.json();
-    const normalize = MODULE_NORMALIZERS[module] as (p: unknown) => T;
-    return moduleOk<T>(module, normalize(payload), normalizeVersion(payload), externalId);
+    const normalize = MODULE_NORMALIZERS[module] as (
+      p: unknown,
+      ctx: { externalId: string | null },
+    ) => T;
+    return moduleOk<T>(
+      module,
+      normalize(payload, { externalId }),
+      normalizeVersion(payload),
+      externalId,
+    );
   } catch (err) {
     const message =
       err instanceof Error && err.name === "AbortError"
