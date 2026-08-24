@@ -92,7 +92,7 @@ export function useSaveModuleConnection() {
           external_id: input.externalId.trim(),
           external_name: input.externalName?.trim() || null,
           active: input.active ?? true,
-          metadata: input.metadata ?? {},
+          metadata: (input.metadata ?? {}) as never,
         },
         { onConflict: "client_id,module" },
       );
