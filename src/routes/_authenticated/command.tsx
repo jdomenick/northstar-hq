@@ -16,7 +16,15 @@ import {
   DEMO_TOP_CLIENTS,
 } from "@/lib/command/demo-data";
 import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
+import { useModuleDashboard } from "@/lib/command/module-hooks";
+import { StatusChip } from "@/components/command/source-state";
+import {
+  MODULE_KEYS,
+  MODULE_LABELS,
+  formatCount,
+} from "@/lib/module-reporting/types";
 import { DetailSheet, type DetailPayload } from "@/components/command/detail-sheet";
+
 
 export const Route = createFileRoute("/_authenticated/command")({
   component: CommandPage,
