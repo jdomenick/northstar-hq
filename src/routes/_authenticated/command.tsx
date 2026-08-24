@@ -13,7 +13,6 @@ import {
   DEMO_OPERATIONAL_CARDS,
   DEMO_REVENUE_BY_SOURCE,
   DEMO_REVENUE_TREND,
-  DEMO_TOP_CLIENTS,
 } from "@/lib/command/demo-data";
 import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
@@ -149,6 +148,10 @@ function CommandPage() {
     );
   }
 
+  const topClients = useMemo(
+    () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
+    [health],
+  );
   const donutTotal = DEMO_REVENUE_BY_SOURCE.reduce((n, s) => n + s.value, 0);
 
   return (
