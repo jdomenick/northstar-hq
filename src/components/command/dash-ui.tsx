@@ -10,7 +10,6 @@ export function Panel({
   title,
   subtitle,
   action,
-  demo,
   className,
   bodyClassName,
   children,
@@ -21,7 +20,6 @@ export function Panel({
   title?: string;
   subtitle?: string;
   action?: ReactNode;
-  demo?: boolean;
   className?: string;
   bodyClassName?: string;
   children: ReactNode;
@@ -63,7 +61,6 @@ export function Panel({
                 <h2 className="truncate text-[11.5px] font-medium tracking-[0.02em] text-foreground">
                   {title}
                 </h2>
-                {demo && <DemoBadge />}
               </div>
               {subtitle && (
                 <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -83,17 +80,6 @@ export function Panel({
 }
 
 
-/** Marks any surface rendering centralized demo data. */
-export function DemoBadge() {
-  return (
-    <span
-      title="Sample data. Not wired to a live source yet."
-      className="rounded-[3px] border border-border/70 px-1 py-px text-[8.5px] font-medium uppercase tracking-[0.16em] text-muted-foreground"
-    >
-      Demo
-    </span>
-  );
-}
 
 export function Delta({ value }: { value: number }) {
   const up = value >= 0;
@@ -169,7 +155,6 @@ export function KpiCard({
   delta,
   series,
   tone = "default",
-  demo,
   hint,
   onSelect,
 }: {
@@ -178,7 +163,6 @@ export function KpiCard({
   delta?: number;
   series?: number[];
   tone?: "default" | "alert";
-  demo?: boolean;
   hint?: string;
   onSelect?: () => void;
 }) {
@@ -199,12 +183,8 @@ export function KpiCard({
         <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground break-words">
           {label}
         </div>
-        {demo && (
-          <span className="shrink-0">
-            <DemoBadge />
-          </span>
-        )}
       </div>
+
       <div className="mt-1.5 flex w-full flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
         <div
           className={cn(

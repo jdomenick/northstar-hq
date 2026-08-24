@@ -95,6 +95,11 @@ type EventRow = Pick<
   "id" | "client_id" | "title" | "event_type" | "occurred_at"
 >;
 
+type AutomationRow = Pick<
+  Database["public"]["Tables"]["automation_definitions"]["Row"],
+  "id" | "name" | "enabled" | "status"
+>;
+
 export interface CommandOverview {
   clients: Source<ClientRow[]>;
   leads: Source<LeadRow[]>;
@@ -106,11 +111,13 @@ export interface CommandOverview {
   milestones: Source<MilestoneRow[]>;
   pipeline: Source<PipelineRow[]>;
   events: Source<EventRow[]>;
+  automations: Source<AutomationRow[]>;
   /** No calls/messaging system of record is wired into this project yet. */
   conversations: Source<never>;
   /** No scheduling system of record is wired into this project yet. */
   appointments: Source<never>;
 }
+
 
 /**
  * Standalone NorthStar products that are not wired into this project's data
@@ -160,6 +167,8 @@ export function useCommandOverview(orgId: string | null) {
         milestones,
         pipeline,
         events,
+        automations,
+
       ] = await Promise.all([
 
         read("Clients", async () => {
@@ -272,6 +281,15 @@ export function useCommandOverview(orgId: string | null) {
           if (error) throw error;
           return (data ?? []) as EventRow[];
         }),
+        read("Automations", async () => {
+          const { data, error } = await supabase
+            .from("automation_definitions")
+            .select("id,name,enabled,status")
+            .eq("organization_id", org)
+            .is("deleted_at", null);
+          if (error) throw error;
+          return (data ?? []) as AutomationRow[];
+        }),
       ]);
 
       return {
@@ -285,6 +303,8 @@ export function useCommandOverview(orgId: string | null) {
         milestones,
         pipeline,
         events,
+        automations,
+
         conversations: notConnected<never>(NO_COMMS),
         appointments: notConnected<never>(NO_SCHEDULING),
       };
@@ -525,4 +545,114 @@ export function money(cents: number, currency = "usd"): string {
     currency: currency.toUpperCase(),
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+// ───── Real HQ revenue aggregates
+//
+// Every figure below comes from billing_invoices rows that belong to a
+// non-archived client on the active roster. Nothing is sampled or estimated.
+// When there is no paid revenue the series is returned zero filled so the
+// chart keeps its structure without implying activity.
+
+export interface RevenuePoint {
+  label: string;
+  value: number;
+}
+
+const MONTH_LABELS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** Invoices restricted to clients currently on the roster (non-archived). */
+function realInvoices(d: CommandOverview): InvoiceRow[] {
+  const ids = new Set((d.clients.data ?? []).map((c) => c.id));
+  return (d.invoices.data ?? []).filter((i) => i.client_id && ids.has(i.client_id));
+}
+
+/** Collected revenue in dollars for each of the trailing 12 months. */
+export function deriveRevenueTrend(d: CommandOverview): RevenuePoint[] {
+  const now = new Date();
+  const buckets: RevenuePoint[] = [];
+  const index = new Map<string, number>();
+  for (let i = 11; i >= 0; i -= 1) {
+    const dt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    const key = `${dt.getUTCFullYear()}-${dt.getUTCMonth()}`;
+    index.set(key, buckets.length);
+    buckets.push({ label: MONTH_LABELS[dt.getUTCMonth()] as string, value: 0 });
+  }
+
+  for (const inv of realInvoices(d)) {
+    const paid = inv.amount_paid_cents ?? 0;
+    if (paid <= 0 || !inv.paid_at) continue;
+    const dt = new Date(inv.paid_at);
+    if (Number.isNaN(dt.getTime())) continue;
+    const slot = index.get(`${dt.getUTCFullYear()}-${dt.getUTCMonth()}`);
+    if (slot === undefined) continue;
+    const bucket = buckets[slot];
+    if (bucket) bucket.value += paid / 100;
+  }
+  return buckets;
+}
+
+/**
+ * Collected revenue attributed to the pipeline source recorded for the client.
+ * Clients without a recorded source are grouped as "Unattributed". Returns an
+ * empty list when no revenue has been collected.
+ */
+export function deriveRevenueBySource(d: CommandOverview): { name: string; value: number }[] {
+  const sourceByClient = new Map<string, string>();
+  for (const p of d.pipeline.data ?? []) {
+    if (p.client_id && p.source && !sourceByClient.has(p.client_id)) {
+      sourceByClient.set(p.client_id, p.source);
+    }
+  }
+
+  const totals = new Map<string, number>();
+  for (const inv of realInvoices(d)) {
+    const paid = inv.amount_paid_cents ?? 0;
+    if (paid <= 0 || !inv.client_id) continue;
+    const name = sourceByClient.get(inv.client_id) ?? "Unattributed";
+    totals.set(name, (totals.get(name) ?? 0) + paid / 100);
+  }
+
+  return [...totals.entries()]
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+/** Collected revenue in cents for the current calendar month. */
+export function deriveRevenueMtdCents(d: CommandOverview): number {
+  const now = new Date();
+  return realInvoices(d).reduce((sum, inv) => {
+    const paid = inv.amount_paid_cents ?? 0;
+    if (paid <= 0 || !inv.paid_at) return sum;
+    const dt = new Date(inv.paid_at);
+    if (Number.isNaN(dt.getTime())) return sum;
+    return dt.getUTCFullYear() === now.getUTCFullYear() && dt.getUTCMonth() === now.getUTCMonth()
+      ? sum + paid
+      : sum;
+  }, 0);
+}
+
+/** Month-over-month change, or null when the prior month collected nothing. */
+export function deriveRevenueDeltaPct(trend: RevenuePoint[]): number | null {
+  if (trend.length < 2) return null;
+  const current = trend[trend.length - 1]?.value ?? 0;
+  const previous = trend[trend.length - 2]?.value ?? 0;
+  if (previous <= 0) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+/** Automation job volume bucketed into twelve two-hour slots over 24 hours. */
+export function deriveJobSeries(d: CommandOverview): number[] {
+  const buckets = new Array<number>(12).fill(0);
+  const start = Date.now() - 24 * 60 * 60 * 1000;
+  for (const job of d.jobs24h.data ?? []) {
+    const t = new Date(job.created_at).getTime();
+    if (Number.isNaN(t) || t < start) continue;
+    const slot = Math.min(11, Math.floor((t - start) / (2 * 60 * 60 * 1000)));
+    buckets[slot] = (buckets[slot] ?? 0) + 1;
+  }
+  return buckets;
 }

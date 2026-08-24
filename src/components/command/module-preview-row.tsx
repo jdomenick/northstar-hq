@@ -1,22 +1,15 @@
 // Lower module preview row: CAM, CCM, NorthStar CRM, Operations Center,
 // SAM Core.
 //
-// Each module card reads live values from the read-through module dashboard
-// when that source returned data. When a source is not connected or is
-// unavailable the card keeps the clearly marked demo layout and shows the
-// truthful reason. Values are never silently substituted.
+// Every card reads the live read-through module dashboard, plus HQ-native
+// automation records for Operations. Nothing here is sampled. When a source
+// answered but did not report a metric the card shows a real zero and the
+// status chip plus source note carry the truthful state of the connection.
 
 import { Link } from "@tanstack/react-router";
 import { MiniAreaChart, MiniBarChart } from "@/components/command/charts";
 import { MiniStat, Panel } from "@/components/command/dash-ui";
 import { SourceNote, StatusChip } from "@/components/command/source-state";
-import {
-  DEMO_CAM,
-  DEMO_CCM,
-  DEMO_CRM,
-  DEMO_OPERATIONS,
-  DEMO_SAM_CORE,
-} from "@/lib/command/demo-data";
 import {
   formatCents,
   formatCount,
@@ -24,6 +17,16 @@ import {
   type ModuleSource,
   type TrendPoint,
 } from "@/lib/module-reporting/types";
+
+export interface OperationsSnapshot {
+  automations: number;
+  jobs24h: number;
+  failed24h: number;
+  approvals: number;
+  series: number[];
+}
+
+const ZERO_SERIES = new Array<number>(12).fill(0);
 
 function StatGrid({
   stats,
@@ -44,102 +47,79 @@ function StatGrid({
   );
 }
 
-function seriesFrom(points: TrendPoint[], fallback: number[]): number[] {
-  return points.length >= 2 ? points.map((p) => p.value) : fallback;
+/** Real points when the source reported a series, otherwise a flat zero line. */
+function seriesFrom(points: TrendPoint[]): number[] {
+  return points.length >= 2 ? points.map((p) => p.value) : ZERO_SERIES;
 }
 
-/** "Live" when the source answered, otherwise the demo marker plus a reason. */
-function sourceHeader<T>(source: ModuleSource<T> | undefined) {
-  if (!source) return { live: false, chip: null as React.ReactNode };
-  return {
-    live: source.status === "ok",
-    chip: <StatusChip status={source.status} title={source.reason ?? undefined} />,
-  };
+function chipOf<T>(source: ModuleSource<T> | undefined) {
+  if (!source) return null;
+  return <StatusChip status={source.status} title={source.reason ?? undefined} />;
 }
 
-export function ModulePreviewRow({ dashboard }: { dashboard?: ModuleDashboard }) {
+const count = (v: number | null | undefined) => formatCount(v ?? 0) ?? "0";
+const cents = (v: number | null | undefined) => formatCents(v ?? 0) ?? "$0";
+
+export function ModulePreviewRow({
+  dashboard,
+  operations,
+}: {
+  dashboard?: ModuleDashboard;
+  operations?: OperationsSnapshot;
+}) {
   const cam = dashboard?.cam;
   const ccm = dashboard?.ccm;
   const crm = dashboard?.crm;
   const sam = dashboard?.sam;
 
-  const camHead = sourceHeader(cam);
-  const ccmHead = sourceHeader(ccm);
-  const crmHead = sourceHeader(crm);
-  const samHead = sourceHeader(sam);
+  const camStats = [
+    { label: "Leads", value: count(cam?.data?.leads) },
+    { label: "Qualified", value: count(cam?.data?.qualifiedLeads) },
+    { label: "CPL", value: cents(cam?.data?.cplCents) },
+  ];
 
-  const camStats = camHead.live
-    ? [
-        { label: "Leads", value: formatCount(cam?.data?.leads ?? null) ?? "Not reported" },
-        {
-          label: "Qualified",
-          value: formatCount(cam?.data?.qualifiedLeads ?? null) ?? "Not reported",
-        },
-        { label: "CPL", value: formatCents(cam?.data?.cplCents ?? null) ?? "Not reported" },
-      ]
-    : DEMO_CAM.stats;
+  const ccmStats = [
+    { label: "Conversations", value: count(ccm?.data?.conversations) },
+    { label: "Appointments", value: count(ccm?.data?.appointments) },
+    {
+      label: "Avg Response",
+      value: `${Math.round((ccm?.data?.avgResponseSeconds ?? 0) / 60)}m`,
+    },
+  ];
 
-  const ccmStats = ccmHead.live
-    ? [
-        {
-          label: "Conversations",
-          value: formatCount(ccm?.data?.conversations ?? null) ?? "Not reported",
-        },
-        {
-          label: "Appointments",
-          value: formatCount(ccm?.data?.appointments ?? null) ?? "Not reported",
-        },
-        {
-          label: "Avg Response",
-          value:
-            ccm?.data?.avgResponseSeconds == null
-              ? "Not reported"
-              : `${Math.round(ccm.data.avgResponseSeconds / 60)}m`,
-        },
-      ]
-    : DEMO_CCM.stats;
+  const crmStats = [
+    { label: "Customers", value: count(crm?.data?.customers) },
+    { label: "Open Deals", value: count(crm?.data?.openDeals) },
+    { label: "Pipeline", value: cents(crm?.data?.pipelineValueCents) },
+  ];
 
-  const crmStats = crmHead.live
-    ? [
-        { label: "Customers", value: formatCount(crm?.data?.customers ?? null) ?? "Not reported" },
-        { label: "Open Deals", value: formatCount(crm?.data?.openDeals ?? null) ?? "Not reported" },
-        {
-          label: "Pipeline",
-          value: formatCents(crm?.data?.pipelineValueCents ?? null) ?? "Not reported",
-        },
-      ]
-    : DEMO_CRM.stats;
-
-  const samStats = samHead.live
-    ? [
-        { label: "Status", value: sam?.data?.status ?? "Not reported" },
-        { label: "Consumers", value: formatCount(sam?.data?.consumers ?? null) ?? "Not reported" },
-        { label: "Events", value: formatCount(sam?.data?.events ?? null) ?? "Not reported" },
-        {
-          label: "Success",
-          value:
-            sam?.data?.successRatePct == null
-              ? "Not reported"
-              : `${sam.data.successRatePct.toFixed(1)}%`,
-        },
-      ]
-    : DEMO_SAM_CORE.stats;
+  const samStats = [
+    { label: "Status", value: sam?.data?.status ?? "Offline" },
+    { label: "Consumers", value: count(sam?.data?.consumers) },
+    { label: "Events", value: count(sam?.data?.events) },
+    { label: "Success", value: `${(sam?.data?.successRatePct ?? 0).toFixed(1)}%` },
+  ];
 
   const crmStages =
-    crmHead.live && (crm?.data?.stages.length ?? 0) > 0
+    (crm?.data?.stages.length ?? 0) > 0
       ? (crm?.data?.stages ?? [])
-      : DEMO_CRM.stages;
+      : [{ label: "No deals", value: 0 }];
 
+  const opsStats = [
+    { label: "Automations", value: String(operations?.automations ?? 0) },
+    { label: "Jobs (24h)", value: String(operations?.jobs24h ?? 0) },
+    { label: "Approvals", value: String(operations?.approvals ?? 0) },
+    { label: "Failed Workflows", value: String(operations?.failed24h ?? 0) },
+  ];
 
   return (
     <div id="modules" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-5">
       <Panel
         id="cam"
         title="CAM Dashboard"
-        demo={!camHead.live}
         action={
           <div className="flex items-center gap-1.5">
-            {camHead.chip}
+            {chipOf(cam)}
             <ModuleLink to="/sam/content">Open</ModuleLink>
           </div>
         }
@@ -149,17 +129,16 @@ export function ModulePreviewRow({ dashboard }: { dashboard?: ModuleDashboard })
         <div className="mt-2 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
           Leads Over Time
         </div>
-        <MiniAreaChart series={seriesFrom(cam?.data?.trend ?? [], DEMO_CAM.series)} />
+        <MiniAreaChart series={seriesFrom(cam?.data?.trend ?? [])} />
         {cam && <SourceNote source={cam} />}
       </Panel>
 
       <Panel
         id="ccm"
         title="CCM Dashboard"
-        demo={!ccmHead.live}
         action={
           <div className="flex items-center gap-1.5">
-            {ccmHead.chip}
+            {chipOf(ccm)}
             <ModuleLink to="/sam/content">Open</ModuleLink>
           </div>
         }
@@ -169,17 +148,16 @@ export function ModulePreviewRow({ dashboard }: { dashboard?: ModuleDashboard })
         <div className="mt-2 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
           Conversations Over Time
         </div>
-        <MiniAreaChart series={seriesFrom(ccm?.data?.trend ?? [], DEMO_CCM.series)} />
+        <MiniAreaChart series={seriesFrom(ccm?.data?.trend ?? [])} />
         {ccm && <SourceNote source={ccm} />}
       </Panel>
 
       <Panel
         id="crm"
         title="NorthStar CRM"
-        demo={!crmHead.live}
         action={
           <div className="flex items-center gap-1.5">
-            {crmHead.chip}
+            {chipOf(crm)}
             <ModuleLink to="/clients">Open</ModuleLink>
           </div>
         }
@@ -196,25 +174,26 @@ export function ModulePreviewRow({ dashboard }: { dashboard?: ModuleDashboard })
       <Panel
         id="operations"
         title="Operations Center"
-        demo
         bodyClassName="p-2.5"
         action={<ModuleLink to="/sam/control">Open</ModuleLink>}
       >
-        <StatGrid stats={DEMO_OPERATIONS.stats} cols={2} />
+        <StatGrid stats={opsStats} cols={2} />
         <div className="mt-2 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
-          System Load
+          Job Volume (24h)
         </div>
-        <MiniAreaChart series={DEMO_OPERATIONS.series} height={54} />
+        <MiniAreaChart series={operations?.series ?? ZERO_SERIES} height={54} />
+        <p className="mt-1.5 text-[9.5px] text-muted-foreground">
+          NorthStar automation records, last 24 hours.
+        </p>
       </Panel>
 
       <Panel
         id="sam-core"
         title="System / SAM Core"
-        demo={!samHead.live}
         bodyClassName="p-2.5"
         action={
           <div className="flex items-center gap-1.5">
-            {samHead.chip}
+            {chipOf(sam)}
             <ModuleLink to="/sam">Open</ModuleLink>
           </div>
         }

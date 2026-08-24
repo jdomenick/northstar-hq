@@ -1,9 +1,10 @@
 // Unified Client Workspace panel rendered beside the Command Center.
 //
-// When a client is selected and its module mappings resolve, the outcome
-// journey, channel performance and activity feed are built from live CAM, CCM,
-// CRM and SAM Core reads plus HQ-native revenue. Anything a source does not
-// return stays visibly unavailable instead of falling back to a number.
+// The outcome journey, KPI row, channel table and activity feed are built
+// entirely from live CAM, CCM, CRM and SAM Core reads plus HQ-native revenue.
+// A source that answered without a metric is shown as a real zero. A source
+// that could not be reached keeps its truthful status and reason instead of
+// a number.
 
 import {
   Calendar,
@@ -20,16 +21,11 @@ import { DetailSheet, type DetailPayload } from "@/components/command/detail-she
 import { Delta, KpiCard, Panel, StatusDot } from "@/components/command/dash-ui";
 import { StatusChip } from "@/components/command/source-state";
 import {
-  DEMO_CHANNEL_PERFORMANCE,
-  DEMO_JOURNEY,
-  DEMO_RECENT_ACTIVITY,
-  DEMO_WORKSPACE_KPIS,
-} from "@/lib/command/demo-data";
-import {
   MODULE_LABELS,
   buildOutcomeJourney,
   countLive,
   formatCents,
+  formatCount,
   mergeActivity,
   mergeChannelPerformance,
   type ModuleDashboard,
@@ -74,53 +70,84 @@ export function ClientWorkspacePanel({
   hqRevenueCents?: number | null;
   clientScoped?: boolean;
 }) {
-  const name = clientName ?? "No client selected";
+  const name = clientName ?? "Portfolio";
   const [detail, setDetail] = useState<DetailPayload | null>(null);
 
-  const live = Boolean(dashboard && clientScoped && countLive(dashboard) > 0);
-  const journey = live && dashboard ? buildOutcomeJourney(dashboard, hqRevenueCents) : null;
-  const liveChannels = live && dashboard ? mergeChannelPerformance(dashboard) : [];
-  const liveActivity = live && dashboard ? mergeActivity(dashboard) : [];
+  const liveCount = dashboard ? countLive(dashboard) : 0;
+  const journey = dashboard ? buildOutcomeJourney(dashboard, hqRevenueCents ?? 0) : [];
+  const channels = dashboard ? mergeChannelPerformance(dashboard) : [];
+  const activity = dashboard ? mergeActivity(dashboard) : [];
+
+  const num = (v: number | null | undefined) => formatCount(v ?? 0) ?? "0";
+  const cents = (v: number | null | undefined) => formatCents(v ?? 0) ?? "$0";
+
+  const kpis: { key: string; label: string; value: string; series?: number[]; note: string }[] =
+    dashboard
+      ? [
+          {
+            key: "leads",
+            label: "Leads",
+            value: num(dashboard.cam.data?.leads),
+            series: (dashboard.cam.data?.trend ?? []).map((p) => p.value),
+            note: dashboard.cam.reason ?? "Read live from CAM.",
+          },
+          {
+            key: "conversations",
+            label: "Conversations",
+            value: num(dashboard.ccm.data?.conversations),
+            series: (dashboard.ccm.data?.trend ?? []).map((p) => p.value),
+            note: dashboard.ccm.reason ?? "Read live from CCM.",
+          },
+          {
+            key: "appointments",
+            label: "Appointments",
+            value: num(dashboard.ccm.data?.appointments),
+            note: dashboard.ccm.reason ?? "Read live from CCM.",
+          },
+          {
+            key: "deals",
+            label: "Open Deals",
+            value: num(dashboard.crm.data?.openDeals),
+            note: dashboard.crm.reason ?? "Read live from NorthStar CRM.",
+          },
+          {
+            key: "revenue",
+            label: "Revenue (NorthStar)",
+            value: cents(hqRevenueCents),
+            note: "Collected invoice payments on NorthStar billing records.",
+          },
+        ]
+      : [];
 
   return (
     <div className="flex min-w-0 flex-col gap-2.5">
       <Panel
         title={`Client Workspace - ${name}`}
-        subtitle="Unified View"
-        demo={!live}
+        subtitle={clientScoped ? "Unified View" : "Portfolio view"}
         bodyClassName="p-2.5"
-        action={live ? <StatusChip status="ok" /> : undefined}
+        action={<StatusChip status={liveCount > 0 ? "ok" : "not_connected"} />}
       >
         {/* Outcome journey */}
         <div className="flex min-w-0 items-stretch gap-1">
-          {(journey ?? DEMO_JOURNEY).map((step, i, arr) => {
+          {journey.map((step, i, arr) => {
             const Icon = JOURNEY_ICONS[step.key] ?? Users;
-            const value = "value" in step ? step.value : null;
-            const shown = value ?? "n/a";
-            const reason = "reason" in step ? step.reason : null;
-            const source = "source" in step ? step.source : null;
+            const shown = step.value ?? "0";
             return (
               <div key={step.key} className="flex min-w-0 flex-1 items-center gap-1">
                 <button
                   type="button"
-                  title={reason ?? undefined}
+                  title={step.reason ?? undefined}
                   onClick={() =>
                     setDetail({
                       title: step.label,
                       subtitle: name,
-                      demo: !live,
                       value: shown,
-                      rows: arr.map((s2) => ({
-                        label: s2.label,
-                        value: ("value" in s2 ? s2.value : null) ?? "Not available",
-                      })),
-                      note: live
-                        ? reason ??
-                          (source
-                            ? `Source: ${source === "hq" ? "NorthStar HQ" : MODULE_LABELS[source]}`
-                            : null) ??
-                          undefined
-                        : "Sample data. This outcome chain is not wired to a live source yet.",
+                      rows: arr.map((s2) => ({ label: s2.label, value: s2.value ?? "0" })),
+                      note:
+                        step.reason ??
+                        (step.source
+                          ? `Source: ${step.source === "hq" ? "NorthStar HQ" : MODULE_LABELS[step.source]}`
+                          : undefined),
                     })
                   }
                   className="min-w-0 flex-1 rounded-[6px] border border-border/60 bg-background/40 px-1.5 py-1.5 text-center transition-colors hover:border-primary/50 hover:bg-background/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
@@ -138,7 +165,7 @@ export function ClientWorkspacePanel({
                   <div
                     className={cn(
                       "truncate font-display text-[11.5px] leading-tight tabular-nums",
-                      value ? "text-foreground" : "text-muted-foreground",
+                      step.value ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
                     {shown}
@@ -154,27 +181,28 @@ export function ClientWorkspacePanel({
               </div>
             );
           })}
+          {journey.length === 0 && (
+            <p className="w-full py-4 text-center text-[10.5px] text-muted-foreground">
+              Reading module sources.
+            </p>
+          )}
         </div>
 
         {/* KPI row */}
         <div className="mt-2.5 grid grid-cols-2 gap-1.5 md:grid-cols-3 xl:grid-cols-5">
-          {DEMO_WORKSPACE_KPIS.map((k) => (
+          {kpis.map((k) => (
             <KpiCard
               key={k.key}
               label={k.label}
               value={k.value}
-              delta={k.delta}
-              series={k.series}
-              demo
+              {...(k.series ? { series: k.series } : {})}
               onSelect={() =>
                 setDetail({
                   title: k.label,
                   subtitle: name,
-                  demo: true,
                   value: k.value,
-                  delta: k.delta,
-                  series: k.series,
-                  note: "Sample data. This metric is not wired to a live source yet.",
+                  ...(k.series ? { series: k.series } : {}),
+                  note: k.note,
                 })
               }
             />
@@ -185,152 +213,95 @@ export function ClientWorkspacePanel({
       <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.35fr_1fr]">
         <Panel
           title="Channel Performance (MTD)"
-          demo={!live}
           bodyClassName="p-0"
-          action={live ? <StatusChip status={dashboard?.cam.status ?? "not_connected"} /> : undefined}
+          action={<StatusChip status={dashboard?.cam.status ?? "not_connected"} />}
         >
-          {live && liveChannels.length === 0 ? (
-            <p className="px-3 py-3 text-[10.5px] text-muted-foreground">
-              {dashboard?.cam.status === "ok"
-                ? "CAM did not report channel performance for this range."
-                : (dashboard?.cam.reason ?? "Channel performance is not available.")}
-            </p>
-          ) : (
-            <table className="w-full table-fixed text-left text-[11px]">
-              <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
-                <tr className="border-b border-border/50">
-                  <th className="px-3 py-1.5 font-medium">Channel</th>
-                  <th className="w-12 px-2 py-1.5 text-right font-medium">Leads</th>
-                  <th className="w-12 px-2 py-1.5 text-right font-medium">Appts</th>
-                  <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
-                  <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
+          <table className="w-full table-fixed text-left text-[11px]">
+            <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+              <tr className="border-b border-border/50">
+                <th className="px-3 py-1.5 font-medium">Channel</th>
+                <th className="w-12 px-2 py-1.5 text-right font-medium">Leads</th>
+                <th className="w-12 px-2 py-1.5 text-right font-medium">Appts</th>
+                <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
+                <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
+              </tr>
+            </thead>
+            <tbody>
+              {channels.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-3 text-[10.5px] text-muted-foreground">
+                    {dashboard?.cam.status === "ok"
+                      ? "CAM did not report channel performance for this range."
+                      : (dashboard?.cam.reason ?? "Channel performance is not available.")}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {live
-                  ? liveChannels.map((r) => {
-                      const revenue = formatCents(r.revenueCents) ?? "n/a";
-                      return (
-                        <tr
-                          key={r.channel}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() =>
-                            setDetail({
-                              title: r.channel,
-                              subtitle: `${name} channel`,
-                              value: revenue,
-                              delta: r.changePct ?? undefined,
-                              rows: [
-                                { label: "Leads", value: r.leads === null ? "n/a" : String(r.leads) },
-                                {
-                                  label: "Appointments",
-                                  value: r.appointments === null ? "n/a" : String(r.appointments),
-                                },
-                                { label: "Revenue", value: revenue },
-                              ],
-                              note: "Source: CAM acquisition reporting.",
-                            })
-                          }
-                          className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
-                        >
-                          <td className="truncate px-3 py-1.5 text-foreground">{r.channel}</td>
-                          <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
-                            {r.leads ?? "n/a"}
-                          </td>
-                          <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
-                            {r.appointments ?? "n/a"}
-                          </td>
-                          <td className="px-2 py-1.5 text-right tabular-nums text-foreground">
-                            {revenue}
-                          </td>
-                          <td className="px-3 py-1.5 text-right">
-                            {r.changePct === null ? (
-                              <span className="text-[10px] text-muted-foreground">n/a</span>
-                            ) : (
-                              <Delta value={r.changePct} />
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  : DEMO_CHANNEL_PERFORMANCE.map((r) => (
-                      <tr
-                        key={r.channel}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() =>
-                          setDetail({
-                            title: r.channel,
-                            subtitle: `${name} channel`,
-                            demo: true,
-                            value: r.revenue,
-                            delta: r.delta,
-                            rows: [
-                              { label: "Leads", value: String(r.leads) },
-                              { label: "Appointments", value: String(r.appts) },
-                              { label: "Revenue", value: r.revenue },
-                            ],
-                            note: "Sample data. Channel performance is not wired to a live source yet.",
-                          })
-                        }
-                        className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
-                      >
-                        <td className="truncate px-3 py-1.5 text-foreground">{r.channel}</td>
-                        <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
-                          {r.leads}
-                        </td>
-                        <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
-                          {r.appts}
-                        </td>
-                        <td className="px-2 py-1.5 text-right tabular-nums text-foreground">
-                          {r.revenue}
-                        </td>
-                        <td className="px-3 py-1.5 text-right">
-                          <Delta value={r.delta} />
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          )}
+              ) : (
+                channels.map((r) => {
+                  const revenue = cents(r.revenueCents);
+                  return (
+                    <tr
+                      key={r.channel}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() =>
+                        setDetail({
+                          title: r.channel,
+                          subtitle: `${name} channel`,
+                          value: revenue,
+                          ...(r.changePct === null ? {} : { delta: r.changePct }),
+                          rows: [
+                            { label: "Leads", value: num(r.leads) },
+                            { label: "Appointments", value: num(r.appointments) },
+                            { label: "Revenue", value: revenue },
+                          ],
+                          note: "Source: CAM acquisition reporting.",
+                        })
+                      }
+                      className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
+                    >
+                      <td className="truncate px-3 py-1.5 text-foreground">{r.channel}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
+                        {num(r.leads)}
+                      </td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
+                        {num(r.appointments)}
+                      </td>
+                      <td className="px-2 py-1.5 text-right tabular-nums text-foreground">
+                        {revenue}
+                      </td>
+                      <td className="px-3 py-1.5 text-right">
+                        {r.changePct === null ? (
+                          <span className="text-[10px] text-muted-foreground">No change data</span>
+                        ) : (
+                          <Delta value={r.changePct} />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </Panel>
 
-        <Panel title="Recent Activity" demo={!live} bodyClassName="p-0">
-          {live ? (
-            liveActivity.length === 0 ? (
-              <p className="px-3 py-3 text-[10.5px] text-muted-foreground">
-                No activity reported by the connected modules for this range.
-              </p>
-            ) : (
-              <ul className="divide-y divide-border/30">
-                {liveActivity.map((a, i) => (
-                  <li
-                    key={`${a.source}-${a.title}-${i}`}
-                    className="flex items-start gap-2 px-3 py-[7px] transition-colors hover:bg-muted/40"
-                  >
-                    <StatusDot tone={a.tone} />
-                    <div className="min-w-0">
-                      <div className="truncate text-[11px] text-foreground">{a.title}</div>
-                      <div className="truncate text-[9.5px] text-muted-foreground">
-                        {MODULE_LABELS[a.source]} - {a.meta ?? relativeTime(a.occurredAt)}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )
+        <Panel title="Recent Activity" bodyClassName="p-0">
+          {activity.length === 0 ? (
+            <p className="px-3 py-3 text-[10.5px] text-muted-foreground">
+              No activity reported by the connected modules for this range.
+            </p>
           ) : (
             <ul className="divide-y divide-border/30">
-              {DEMO_RECENT_ACTIVITY.map((a) => (
+              {activity.map((a, i) => (
                 <li
-                  key={a.title + a.meta}
+                  key={`${a.source}-${a.title}-${i}`}
                   className="flex items-start gap-2 px-3 py-[7px] transition-colors hover:bg-muted/40"
                 >
                   <StatusDot tone={a.tone} />
                   <div className="min-w-0">
                     <div className="truncate text-[11px] text-foreground">{a.title}</div>
-                    <div className="truncate text-[9.5px] text-muted-foreground">{a.meta}</div>
+                    <div className="truncate text-[9.5px] text-muted-foreground">
+                      {MODULE_LABELS[a.source]} - {a.meta ?? relativeTime(a.occurredAt)}
+                    </div>
                   </div>
                 </li>
               ))}

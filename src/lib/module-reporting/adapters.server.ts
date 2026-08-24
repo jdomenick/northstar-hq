@@ -12,6 +12,8 @@ import {
   MODULE_URL_DEFAULT,
   MODULE_URL_ENV,
   moduleNotConnected,
+  moduleOk,
+  moduleUnavailable,
   type CamReport,
   type CcmReport,
   type CrmReport,
@@ -61,6 +63,11 @@ export interface DashboardRequest {
   samApplicationId?: string | null;
   /** True when a specific client is selected, so an unmapped module is truthful. */
   clientScoped: boolean;
+  /**
+   * Portfolio view only. CCM has no portfolio-wide selector, so HQ fans out
+   * across every mapped active tenant and sums the results.
+   */
+  ccmPortfolioIds?: string[];
   range?: string | null;
 }
 
@@ -87,6 +94,97 @@ async function loadModule<T>(
   });
 }
 
+/** Sums a list of nullable numbers, returning null when nothing was reported. */
+function addNullable(a: number | null, b: number | null): number | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return a + b;
+}
+
+/**
+ * Merges per-tenant CCM reports into one portfolio figure. Counts are summed,
+ * average response time is weighted by conversation volume, and trends are
+ * summed per label. Nothing is invented: a field none of the tenants reported
+ * stays null.
+ */
+export function mergeCcmReports(reports: CcmReport[]): CcmReport {
+  const merged: CcmReport = {
+    conversations: null,
+    avgResponseSeconds: null,
+    appointments: null,
+    bookingFailures: null,
+    trend: [],
+    activity: [],
+  };
+
+  let weightedResponse = 0;
+  let responseWeight = 0;
+  const trend = new Map<string, number>();
+
+  for (const r of reports) {
+    merged.conversations = addNullable(merged.conversations, r.conversations);
+    merged.appointments = addNullable(merged.appointments, r.appointments);
+    merged.bookingFailures = addNullable(merged.bookingFailures, r.bookingFailures);
+    if (r.avgResponseSeconds !== null) {
+      const weight = r.conversations && r.conversations > 0 ? r.conversations : 1;
+      weightedResponse += r.avgResponseSeconds * weight;
+      responseWeight += weight;
+    }
+    for (const point of r.trend) {
+      trend.set(point.label, (trend.get(point.label) ?? 0) + point.value);
+    }
+    merged.activity.push(...r.activity);
+  }
+
+  merged.avgResponseSeconds = responseWeight > 0 ? weightedResponse / responseWeight : null;
+  merged.trend = [...trend.entries()].map(([label, value]) => ({ label, value }));
+  return merged;
+}
+
+/** Portfolio CCM: fan out across mapped tenants and merge. */
+async function loadCcmPortfolio(
+  ids: string[],
+  resolved: ResolvedRange,
+  secret: string | null,
+): Promise<ModuleSource<CcmReport>> {
+  const results = await Promise.all(
+    ids.map((externalId) =>
+      fetchModuleReport<CcmReport>({
+        module: "ccm",
+        baseUrl: moduleBaseUrl("ccm"),
+        secret,
+        externalId,
+        resolved,
+      }),
+    ),
+  );
+
+  const okReports = results
+    .filter((r) => r.status === "ok" && r.data !== null)
+    .map((r) => r.data as CcmReport);
+
+  if (okReports.length === 0) {
+    const firstReason = results.find((r) => r.reason)?.reason ?? null;
+    const anyUnavailable = results.some((r) => r.status === "unavailable");
+    return anyUnavailable
+      ? moduleUnavailable<CcmReport>(
+          "ccm",
+          firstReason ?? "No mapped CCM tenant answered the reporting request.",
+        )
+      : moduleNotConnected<CcmReport>(
+          "ccm",
+          firstReason ?? "No mapped CCM tenant answered the reporting request.",
+        );
+  }
+
+  return moduleOk<CcmReport>(
+    "ccm",
+    mergeCcmReports(okReports),
+    results.find((r) => r.version)?.version ?? null,
+    null,
+  );
+}
+
 /** Fetches all four modules concurrently. One failure never blocks the rest. */
 export async function loadModuleDashboard(
   req: DashboardRequest,
@@ -94,14 +192,18 @@ export async function loadModuleDashboard(
   // One clock for all four sources so the windows line up.
   const resolved = resolveRange(req.range ?? null);
   const { secret } = await resolveReportingSecret();
+  const portfolioCcm = !req.clientScoped && (req.ccmPortfolioIds?.length ?? 0) > 0;
   const [cam, ccm, crm, sam] = await Promise.all([
     loadModule<CamReport>("cam", req, resolved, secret),
-    loadModule<CcmReport>("ccm", req, resolved, secret),
+    portfolioCcm
+      ? loadCcmPortfolio(req.ccmPortfolioIds as string[], resolved, secret)
+      : loadModule<CcmReport>("ccm", req, resolved, secret),
     loadModule<CrmReport>("crm", req, resolved, secret),
     loadModule<SamReport>("sam", req, resolved, secret),
   ]);
   return { cam, ccm, crm, sam };
 }
+
 
 export interface ModuleProbeResult {
   module: ModuleKey;
