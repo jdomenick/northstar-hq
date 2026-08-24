@@ -33,6 +33,8 @@ export interface ModuleFetchConfig {
   baseUrl: string | null | undefined;
   secret: string | null | undefined;
   externalId?: string | null;
+  /** SAM Core only: optional application scope stored in connection metadata. */
+  applicationId?: string | null;
   /** HQ dashboard range key (mtd | 30d | qtd | ytd). */
   range?: string | null;
   /** Pre-resolved window, so all four modules share one clock. */
