@@ -67,6 +67,10 @@ function CommandPage() {
   const d = q.data;
   const clients = d?.clients.data ?? [];
   const health = useMemo(() => (d ? deriveClientHealth(d) : []), [d]);
+  const topClients = useMemo(
+    () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
+    [health],
+  );
 
   const activeClients = clients.filter((c) => c.status === "active");
   const jobs = d?.jobs24h.data ?? [];
@@ -147,10 +151,6 @@ function CommandPage() {
     );
   }
 
-  const topClients = useMemo(
-    () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
-    [health],
-  );
   const donutTotal = DEMO_REVENUE_BY_SOURCE.reduce((n, s) => n + s.value, 0);
 
   return (
