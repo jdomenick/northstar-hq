@@ -115,6 +115,100 @@
     "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* ---------------------------------------------------------------------------
+   Internal app light theme.
+
+   Selected in Settings > Appearance (Light / Dark / System). The provider sets
+   data-app-theme on <html>. Dark is the obsidian palette defined on :root
+   above; light below is the same NorthStar identity translated to ink on
+   white: white surfaces, light-gray panels, charcoal-navy type, the same
+   electric blue signal accent (darkened just enough to stay legible on white).
+--------------------------------------------------------------------------- */
+:root[data-app-theme="light"] {
+  color-scheme: light;
+  --background: oklch(0.995 0.001 255);
+  --foreground: oklch(0.22 0.014 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.014 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.014 260);
+  --primary: oklch(0.5 0.16 255);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.962 0.003 250);
+  --secondary-foreground: oklch(0.25 0.014 260);
+  --muted: oklch(0.968 0.003 250);
+  --muted-foreground: oklch(0.48 0.014 258);
+  --accent: oklch(0.952 0.012 252);
+  --accent-foreground: oklch(0.24 0.014 260);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.55 0.14 155);
+  --warning: oklch(0.63 0.14 68);
+  --brand-ok: oklch(0.52 0.15 240);
+  --brand-warn: oklch(0.3 0.014 260);
+  --brand-danger: oklch(0.55 0.2 27);
+  --border: oklch(0.24 0.014 260 / 13%);
+  --input: oklch(0.24 0.014 260 / 18%);
+  --ring: oklch(0.5 0.16 255 / 45%);
+  /* Chart series stay distinguishable and legible against white surfaces. */
+  --chart-1: oklch(0.52 0.17 255);
+  --chart-2: oklch(0.55 0.14 155);
+  --chart-3: oklch(0.65 0.14 68);
+  --chart-4: oklch(0.55 0.2 27);
+  --chart-5: oklch(0.55 0.02 258);
+  --sidebar: oklch(0.975 0.002 250);
+  --sidebar-foreground: oklch(0.3 0.014 260);
+  --sidebar-primary: oklch(0.5 0.16 255);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.24 0.014 260 / 6%);
+  --sidebar-accent-foreground: oklch(0.2 0.014 260);
+  --sidebar-border: oklch(0.24 0.014 260 / 11%);
+  --sidebar-ring: oklch(0.5 0.16 255 / 45%);
+}
+
+/* Hairline utilities are authored for the dark canvas; invert them on light. */
+:root[data-app-theme="light"] .hairline,
+:root[data-app-theme="light"] .rule-ink {
+  border-color: oklch(0.24 0.014 260 / 14%);
+}
+:root[data-app-theme="light"] .signal-blue {
+  color: oklch(0.52 0.15 240);
+}
+:root[data-app-theme="light"] .signal-dot {
+  background-color: oklch(0.52 0.15 240);
+  box-shadow: 0 0 8px oklch(0.52 0.15 240 / 0.4);
+}
+:root[data-app-theme="light"] .surface-elevated {
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 0.8) inset,
+    0 18px 36px -28px oklch(0.2 0.02 260 / 0.35);
+}
+:root[data-app-theme="light"] ::selection {
+  background: oklch(0.5 0.16 255);
+  color: oklch(1 0 0);
+}
+
+/* ---------------------------------------------------------------------------
+   Interface type scale (Settings > Appearance > Font Size).
+
+   Default preserves current sizing exactly. Compact and Large scale the whole
+   interface typography modestly. The dense dashboards mix rem and fixed px
+   type, so the root font-size handles rem-based text and a small zoom carries
+   the fixed px scale with it, keeping proportions and layout intact.
+--------------------------------------------------------------------------- */
+:root[data-app-density="compact"] {
+  font-size: 15px;
+}
+:root[data-app-density="compact"] body {
+  zoom: 0.93;
+}
+:root[data-app-density="large"] {
+  font-size: 17px;
+}
+:root[data-app-density="large"] body {
+  zoom: 1.08;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -126,9 +220,10 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.6;
   }
+
   h1, h2, h3, h4 {
     letter-spacing: 0;
     font-family: var(--font-display);
