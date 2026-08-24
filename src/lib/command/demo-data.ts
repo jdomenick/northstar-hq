@@ -77,8 +77,6 @@ export const DEMO_OPERATIONAL_CARDS: {
 
 /* ---------------------------- Client Workspace ---------------------------- */
 
-export const DEMO_WORKSPACE_CLIENT = "Acme Plumbing";
-
 export const DEMO_JOURNEY: { key: string; label: string; value: string }[] = [
   { key: "acquisition", label: "Acquisition", value: "$18.4k spend" },
   { key: "leads", label: "Leads", value: "318" },
