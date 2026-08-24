@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth-context";
 import { OrgProvider } from "@/lib/org-context";
 import { Toaster } from "@/components/ui/sonner";
+import { AppearanceProvider } from "@/lib/appearance";
+
 
 function NotFoundComponent() {
   return (
