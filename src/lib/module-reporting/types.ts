@@ -184,6 +184,11 @@ export interface ActivityRow {
 export interface CamReport {
   leads: number | null;
   qualifiedLeads: number | null;
+  appointments: number | null;
+  customers: number | null;
+  /** CAM reports revenue in major currency units; stored here as cents. */
+  revenueCents: number | null;
+  /** CAM does not report ad spend today. Stays null; never fabricated. */
   spendCents: number | null;
   cplCents: number | null;
   roas: number | null;
@@ -191,6 +196,7 @@ export interface CamReport {
   channels: ChannelRow[];
   activity: ActivityRow[];
 }
+
 
 export interface CcmReport {
   conversations: number | null;
@@ -231,55 +237,13 @@ export interface ModuleDashboard {
 /* ------------------------------ normalizers ------------------------------- */
 
 export function normalizeVersion(payload: unknown): string | null {
-  return str(pick(payload, "version", "schema_version", "api_version"));
+  return str(pick(payload, "contract_version", "version", "schema_version", "api_version"));
 }
 
-/** Source payloads may nest under `data`, `report`, or `result`. */
-export function unwrapPayload(payload: unknown): unknown {
-  const rec = asRecord(payload);
-  if (!rec) return payload;
-  for (const key of ["data", "report", "result", "dashboard"]) {
-    const inner = asRecord(rec[key]);
-    if (inner) return inner;
-  }
-  return rec;
-}
 
-function normalizeTrend(value: unknown): TrendPoint[] {
-  return list(value)
-    .map((point) => {
-      if (typeof point === "number") return null;
-      const label = str(pick(point, "label", "name", "period", "date", "stage"));
-      const v = num(pick(point, "value", "count", "total", "amount"));
-      if (label === null || v === null) return null;
-      return { label, value: v };
-    })
-    .filter((p): p is TrendPoint => p !== null);
-}
 
-function centsOf(source: unknown, ...keys: string[]): number | null {
-  const centsKeys = keys.map((k) => `${k}_cents`);
-  const cents = num(pick(source, ...centsKeys));
-  if (cents !== null) return Math.round(cents);
-  const major = num(pick(source, ...keys));
-  return major === null ? null : Math.round(major * 100);
-}
 
-function normalizeChannels(value: unknown): ChannelRow[] {
-  return list(value)
-    .map((row) => {
-      const channel = str(pick(row, "channel", "source", "name"));
-      if (!channel) return null;
-      return {
-        channel,
-        leads: num(pick(row, "leads", "lead_count")),
-        appointments: num(pick(row, "appointments", "appts", "booked")),
-        revenueCents: centsOf(row, "revenue", "value"),
-        changePct: num(pick(row, "change_pct", "delta", "change")),
-      };
-    })
-    .filter((r): r is ChannelRow => r !== null);
-}
+
 
 function toneOf(value: unknown): ActivityTone {
   const raw = (str(value) ?? "").toLowerCase();
@@ -289,84 +253,298 @@ function toneOf(value: unknown): ActivityTone {
   return "muted";
 }
 
-export function normalizeActivity(module: ModuleKey, value: unknown): ActivityRow[] {
-  return list(value)
-    .map((row) => {
-      const title = str(pick(row, "title", "message", "event", "summary", "name"));
-      if (!title) return null;
-      return {
-        source: module,
-        title,
-        meta: str(pick(row, "meta", "detail", "description", "channel")),
-        occurredAt: isoDate(pick(row, "occurred_at", "created_at", "timestamp", "at")),
-        tone: toneOf(pick(row, "tone", "status", "severity", "level")),
-      };
-    })
-    .filter((r): r is ActivityRow => r !== null);
+
+/* -------------------- contract-specific normalizers ----------------------- */
+
+export interface NormalizeContext {
+  /** Mapped external id used for the request, when the read was client scoped. */
+  externalId?: string | null;
 }
 
-export function normalizeCam(payload: unknown): CamReport {
-  const p = unwrapPayload(payload);
-  return {
-    leads: num(pick(p, "leads", "total_leads", "lead_count")),
-    qualifiedLeads: num(pick(p, "qualified_leads", "qualified")),
-    spendCents: centsOf(p, "spend", "ad_spend"),
-    cplCents: centsOf(p, "cpl", "cost_per_lead"),
-    roas: num(pick(p, "roas", "return_on_ad_spend")),
-    trend: normalizeTrend(pick(p, "trend", "leads_trend", "acquisition_trend", "series")),
-    channels: normalizeChannels(pick(p, "channels", "sources", "channel_performance")),
-    activity: normalizeActivity("cam", pick(p, "activity", "recent_activity", "events")),
-  };
+/** Sums a list of nullable numbers. Returns null when nothing was reported. */
+function sumOrNull(values: (number | null)[]): number | null {
+  const present = values.filter((v): v is number => v !== null);
+  return present.length === 0 ? null : present.reduce((a, b) => a + b, 0);
 }
 
-export function normalizeCcm(payload: unknown): CcmReport {
-  const p = unwrapPayload(payload);
-  const responseMinutes = num(pick(p, "avg_response_minutes", "response_minutes"));
-  return {
-    conversations: num(pick(p, "conversations", "conversation_count", "total_conversations")),
-    avgResponseSeconds:
-      num(pick(p, "avg_response_seconds", "response_seconds", "avg_response_time_seconds")) ??
-      (responseMinutes === null ? null : Math.round(responseMinutes * 60)),
-    appointments: num(pick(p, "appointments", "booked_appointments", "bookings")),
-    bookingFailures: num(pick(p, "booking_failures", "failed_bookings", "errors")),
-    trend: normalizeTrend(pick(p, "trend", "conversations_trend", "channel_trend", "series")),
-    activity: normalizeActivity(
-      "ccm",
-      pick(p, "activity", "recent_activity", "communications", "recent_communications"),
+/** Reads a source "availability object": { available: boolean, value?: number }. */
+function availableNumber(value: unknown): number | null {
+  const rec = asRecord(value);
+  if (!rec) return num(value);
+  if (rec["available"] !== true) return null;
+  return num(rec["value"]);
+}
+
+function activityRow(
+  module: ModuleKey,
+  title: string,
+  meta: string | null,
+  occurredAt: string | null,
+  tone: ActivityTone,
+): ActivityRow {
+  return { source: module, title, meta, occurredAt, tone };
+}
+
+function joinMeta(parts: (string | null)[]): string | null {
+  const kept = parts.filter((p): p is string => Boolean(p));
+  return kept.length === 0 ? null : kept.join(" · ");
+}
+
+/* --------------------------------- CAM ------------------------------------ */
+
+function camMatchesClient(report: unknown, externalId: string): boolean {
+  const client = pick(report, "client");
+  const keys = [
+    str(pick(client, "organization_id")),
+    str(pick(client, "slug")),
+    str(pick(client, "external_key")),
+  ];
+  return keys.some((k) => k !== null && k.toLowerCase() === externalId.toLowerCase());
+}
+
+function camActivity(report: unknown): ActivityRow[] {
+  const clientName = str(pick(pick(report, "client"), "name"));
+  const leads = list(pick(report, "recent_leads")).map((row) =>
+    activityRow(
+      "cam",
+      str(pick(row, "name", "full_name", "summary", "email")) ?? "New lead captured",
+      joinMeta([clientName, str(pick(row, "source", "campaign", "status"))]),
+      isoDate(pick(row, "created_at", "captured_at", "at", "occurred_at")),
+      "ok",
     ),
+  );
+  const failures = list(pick(report, "delivery_failures")).map((row) =>
+    activityRow(
+      "cam",
+      str(pick(row, "summary", "message", "reason", "error", "type")) ?? "Lead routing failure",
+      joinMeta([clientName, str(pick(row, "destination", "channel", "status"))]),
+      isoDate(pick(row, "failed_at", "created_at", "at", "occurred_at")),
+      "alert",
+    ),
+  );
+  return [...leads, ...failures];
+}
+
+function camTrend(reports: unknown[]): TrendPoint[] {
+  const byDate = new Map<string, number>();
+  for (const report of reports) {
+    for (const point of list(pick(report, "trend"))) {
+      const label = str(pick(point, "date", "label"));
+      const value = num(pick(point, "leads"));
+      if (label === null || value === null) continue;
+      byDate.set(label, (byDate.get(label) ?? 0) + value);
+    }
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([label, value]) => ({ label, value }));
+}
+
+function camChannels(reports: unknown[]): ChannelRow[] {
+  const bySource = new Map<string, number>();
+  for (const report of reports) {
+    for (const row of list(pick(report, "source_breakdown"))) {
+      const channel = str(pick(row, "source"));
+      const leads = num(pick(row, "leads"));
+      if (channel === null || leads === null) continue;
+      bySource.set(channel, (bySource.get(channel) ?? 0) + leads);
+    }
+  }
+  return [...bySource.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([channel, leads]) => ({
+      channel,
+      leads,
+      appointments: null,
+      revenueCents: null,
+      changePct: null,
+    }));
+}
+
+/**
+ * CAM contract: { status, source, contract_version, clients: [ { client, totals,
+ * campaigns, trend, source_breakdown, recent_leads, delivery_failures } ] }.
+ * Scoped reads select the matching client report; unscoped reads aggregate.
+ * CAM `revenue` is major currency units. Spend, CPL and ROAS are not reported.
+ */
+export function normalizeCam(payload: unknown, ctx: NormalizeContext = {}): CamReport {
+  const p = asRecord(payload) ?? {};
+  const all = list(pick(p, "clients"));
+  const externalId = ctx.externalId ?? null;
+
+  let selected: unknown[] = all;
+  if (externalId) {
+    const matched = all.filter((r) => camMatchesClient(r, externalId));
+    selected = matched.length > 0 ? matched : all.length === 1 ? all : [];
+  }
+
+  const totals = selected.map((r) => pick(r, "totals"));
+  const revenueMajor = sumOrNull(totals.map((t) => num(pick(t, "revenue"))));
+
+  return {
+    leads: sumOrNull(totals.map((t) => num(pick(t, "leads")))),
+    qualifiedLeads: sumOrNull(totals.map((t) => num(pick(t, "qualified_leads")))),
+    appointments: sumOrNull(totals.map((t) => num(pick(t, "appointments")))),
+    customers: sumOrNull(totals.map((t) => num(pick(t, "customers")))),
+    revenueCents: revenueMajor === null ? null : Math.round(revenueMajor * 100),
+    spendCents: null,
+    cplCents: null,
+    roas: null,
+    trend: camTrend(selected),
+    channels: camChannels(selected),
+    activity: selected.flatMap((r) => camActivity(r)),
   };
 }
 
+/* --------------------------------- CCM ------------------------------------ */
+
+/**
+ * CCM contract: { version: 'ccm.hq-dashboard.v1', tenant, metrics: { interactions,
+ * calls, sms, appointments, booking_outcomes, channel_trend, recent_activity,
+ * operational_failures } }. CCM requires a tenant scope, so this normalizer only
+ * ever runs on a client-scoped response.
+ */
+export function normalizeCcm(payload: unknown): CcmReport {
+  const p = asRecord(payload) ?? {};
+  const metrics = pick(p, "metrics");
+  const sms = pick(metrics, "sms");
+  const appointments = pick(metrics, "appointments");
+  const failures = list(pick(metrics, "operational_failures"));
+
+  const trend = list(pick(metrics, "channel_trend"))
+    .map((point) => {
+      const label = str(pick(point, "date"));
+      const calls = num(pick(point, "calls"));
+      const smsCount = num(pick(point, "sms"));
+      if (label === null || (calls === null && smsCount === null)) return null;
+      return { label, value: (calls ?? 0) + (smsCount ?? 0) };
+    })
+    .filter((p2): p2 is TrendPoint => p2 !== null);
+
+  const activity = list(pick(metrics, "recent_activity")).map((row) =>
+    activityRow(
+      "ccm",
+      str(pick(row, "summary", "type")) ?? "Communication event",
+      joinMeta([str(pick(row, "type")), str(pick(row, "direction"))]),
+      isoDate(pick(row, "at")),
+      toneOf(pick(row, "status")),
+    ),
+  );
+
+  const failureRows = failures.map((row) =>
+    activityRow(
+      "ccm",
+      str(pick(row, "summary", "message", "reason", "type")) ?? "Communication failure",
+      joinMeta([str(pick(row, "type")), str(pick(row, "direction"))]),
+      isoDate(pick(row, "at", "occurred_at", "created_at")),
+      "alert",
+    ),
+  );
+
+  return {
+    conversations: num(pick(pick(metrics, "interactions"), "total")),
+    avgResponseSeconds: availableNumber(pick(sms, "average_response_seconds")),
+    appointments: num(pick(appointments, "booked")),
+    bookingFailures: failures.length === 0 ? null : failures.length,
+    trend,
+    activity: [...activity, ...failureRows],
+  };
+}
+
+/* --------------------------------- CRM ------------------------------------ */
+
+/**
+ * NorthStar CRM contract: { contract_version: 'northstar.crm.hq-dashboard.v1',
+ * scope, businesses, metrics, recent_activity, operational_failures }.
+ * Monetary values are major currency units. Deal value is pipeline value, not
+ * recognized revenue, so attributable revenue stays unavailable.
+ */
 export function normalizeCrm(payload: unknown): CrmReport {
-  const p = unwrapPayload(payload);
+  const p = asRecord(payload) ?? {};
+  const metrics = pick(p, "metrics");
+
+  const pipelineMajor = num(pick(metrics, "open_pipeline_value"));
+
+  const stages = list(pick(metrics, "deals_by_stage"))
+    .map((row) => {
+      const label = str(pick(row, "stage_name"));
+      const value = num(pick(row, "deal_count"));
+      if (label === null || value === null) return null;
+      return { label, value };
+    })
+    .filter((s): s is TrendPoint => s !== null);
+
+  const activity = list(pick(p, "recent_activity")).map((row) =>
+    activityRow(
+      "crm",
+      str(pick(row, "summary", "title", "type")) ?? "CRM activity",
+      joinMeta([str(pick(row, "type")), str(pick(row, "business_name", "entity"))]),
+      isoDate(pick(row, "at", "occurred_at", "created_at")),
+      toneOf(pick(row, "status")),
+    ),
+  );
+
+  const failureRows = list(pick(p, "operational_failures")).map((row) =>
+    activityRow(
+      "crm",
+      str(pick(row, "summary", "message", "reason", "type")) ?? "CRM operational failure",
+      str(pick(row, "type")),
+      isoDate(pick(row, "at", "occurred_at", "created_at")),
+      "alert",
+    ),
+  );
+
   return {
-    customers: num(pick(p, "customers", "customer_count", "active_customers")),
-    openDeals: num(pick(p, "open_deals", "deals_open", "open_opportunities")),
-    pipelineValueCents: centsOf(p, "pipeline_value", "pipeline"),
-    wonInRange: num(pick(p, "won", "won_mtd", "won_in_range", "closed_won")),
-    attributableRevenueCents: centsOf(p, "attributable_revenue", "closed_won_value"),
-    stages: normalizeTrend(pick(p, "stages", "deals_by_stage", "pipeline_stages")),
-    activity: normalizeActivity("crm", pick(p, "activity", "recent_activity", "events")),
+    customers: num(pick(metrics, "customers_total")),
+    openDeals: num(pick(metrics, "open_deals")),
+    pipelineValueCents: pipelineMajor === null ? null : Math.round(pipelineMajor * 100),
+    wonInRange: num(pick(metrics, "won_deals_in_range")),
+    // CRM exposes revenue_recognized as an explicit unavailable object.
+    attributableRevenueCents: null,
+    stages,
+    activity: [...activity, ...failureRows],
   };
 }
 
+/* ------------------------------- SAM Core --------------------------------- */
+
+/**
+ * SAM Core contract: { contract_version: 'hq-dashboard.v1', runtime, organizations,
+ * applications, totals, active_work, recent_failures, attention, recent_activity }.
+ */
 export function normalizeSam(payload: unknown): SamReport {
-  const p = unwrapPayload(payload);
-  const successRate = num(pick(p, "success_rate_pct", "success_rate", "successRate"));
+  const p = asRecord(payload) ?? {};
+  const runtime = pick(p, "runtime");
+  const totals = pick(p, "totals");
+  const applications = list(pick(p, "applications"));
+
+  const successRate = availableNumber(pick(totals, "success_rate"));
+  const avgSeconds = availableNumber(pick(totals, "average_processing_seconds"));
+
+  const rows = (value: unknown, tone: ActivityTone, fallback: string) =>
+    list(value).map((row) =>
+      activityRow(
+        "sam",
+        str(pick(row, "summary", "message", "title", "reason", "type")) ?? fallback,
+        joinMeta([str(pick(row, "application_name", "application_slug")), str(pick(row, "type"))]),
+        isoDate(pick(row, "at", "occurred_at", "created_at", "failed_at")),
+        tone,
+      ),
+    );
+
   return {
-    status: str(pick(p, "status", "health", "system_status")),
-    consumers: num(pick(p, "consumers", "registered_consumers")),
-    events: num(pick(p, "events", "events_24h", "event_count")),
-    tasksProcessed: num(pick(p, "tasks_processed", "tasks_processed_24h", "work_items")),
+    status: str(pick(runtime, "status")),
+    consumers: applications.length === 0 ? null : applications.length,
+    events: num(pick(totals, "events_in_range")) ?? num(pick(totals, "events_24h")),
+    tasksProcessed: num(pick(totals, "processed_in_range")),
     successRatePct:
       successRate === null ? null : successRate <= 1 ? successRate * 100 : successRate,
-    avgProcessingMs:
-      num(pick(p, "avg_processing_ms", "processing_ms", "avg_latency_ms")) ??
-      (() => {
-        const seconds = num(pick(p, "avg_processing_seconds"));
-        return seconds === null ? null : Math.round(seconds * 1000);
-      })(),
-    failures: normalizeActivity("sam", pick(p, "failures", "attention", "incidents")),
+    avgProcessingMs: avgSeconds === null ? null : Math.round(avgSeconds * 1000),
+    failures: [
+      ...rows(pick(p, "recent_failures"), "alert", "SAM Core failure"),
+      ...rows(pick(p, "attention"), "warn", "Needs attention"),
+      ...rows(pick(p, "recent_activity"), "muted", "SAM Core activity"),
+    ],
   };
 }
 
@@ -376,6 +554,7 @@ export const MODULE_NORMALIZERS = {
   crm: normalizeCrm,
   sam: normalizeSam,
 } as const;
+
 
 /* ------------------------------ aggregation ------------------------------- */
 
