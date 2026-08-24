@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  MODULE_URL_DEFAULT,
   REPORTING_SECRET_HEADER,
   buildOutcomeJourney,
   mergeActivity,
@@ -563,4 +564,28 @@ test("activity merges across sources newest first", () => {
 test("live module count reflects only ok sources", () => {
   assert.equal(countLive(dashboardFixture()), 3);
   assert.equal(formatCents(null), null);
+});
+
+/* --------------------------- SAM application scope ------------------------ */
+
+test("SAM query sends organization_id plus optional application_id", () => {
+  const APP_UUID = "8c9d0e1f-2a3b-4c5d-8e9f-0a1b2c3d4e5f";
+  const withApp = new URL(
+    buildReportingUrl("sam", "https://sam.example.com", TENANT_UUID, resolveRange("30d", NOW), APP_UUID),
+  );
+  assert.equal(withApp.searchParams.get("organization_id"), TENANT_UUID);
+  assert.equal(withApp.searchParams.get("application_id"), APP_UUID);
+  assert.equal(withApp.searchParams.get("from"), "2026-07-25T02:00:00.000Z");
+
+  const withoutApp = new URL(
+    buildReportingUrl("sam", "https://sam.example.com", TENANT_UUID, resolveRange("30d", NOW)),
+  );
+  assert.equal(withoutApp.searchParams.get("application_id"), null);
+});
+
+test("deployed production base URLs are the defaults", () => {
+  assert.equal(MODULE_URL_DEFAULT.cam, "https://camleadconversion.lovable.app");
+  assert.equal(MODULE_URL_DEFAULT.ccm, "https://communicationmanager.lovable.app");
+  assert.equal(MODULE_URL_DEFAULT.crm, "https://northstar-connect-suite.lovable.app");
+  assert.equal(MODULE_URL_DEFAULT.sam, "https://sam-core.lovable.app");
 });
