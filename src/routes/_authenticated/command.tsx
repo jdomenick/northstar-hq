@@ -216,33 +216,60 @@ function CommandPage() {
       <div className="grid min-w-0 gap-2.5 xl:grid-cols-[1.18fr_1fr]">
         <div className="flex min-w-0 flex-col gap-2.5">
           {/* KPI row */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground">
               Portfolio metrics
             </span>
-            <DemoBadge />
+            <span className="flex flex-wrap items-center gap-1">
+              {MODULE_KEYS.map((m) => (
+                <span key={m} className="inline-flex items-center gap-1">
+                  <span className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {MODULE_LABELS[m]}
+                  </span>
+                  <StatusChip
+                    status={dashboard?.[m].status ?? "not_connected"}
+                    title={dashboard?.[m].reason ?? "Module reporting has not been read yet."}
+                  />
+                </span>
+              ))}
+            </span>
+            <Link
+              to="/settings"
+              className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              Configure
+            </Link>
           </div>
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-6">
-            {DEMO_COMMAND_KPIS.map((k) => (
-              <KpiCard
-                key={k.key}
-                label={k.label}
-                value={k.value}
-                delta={k.delta}
-                series={k.series}
-                onSelect={() =>
-                  setDetail({
-                    title: k.label,
-                    subtitle: DATE_RANGES.find((r) => r.value === range)?.label,
-                    demo: true,
-                    value: k.value,
-                    delta: k.delta,
-                    series: k.series,
-                    note: "Sample data. This metric is not wired to a live source yet.",
-                  })
-                }
-              />
-            ))}
+            {DEMO_COMMAND_KPIS.map((k) => {
+              const liveValue = liveKpi[k.key];
+              const isLive = typeof liveValue === "string";
+              return (
+                <KpiCard
+                  key={k.key}
+                  label={k.label}
+                  value={isLive ? liveValue : k.value}
+                  delta={isLive ? undefined : k.delta}
+                  series={isLive ? undefined : k.series}
+                  demo={!isLive}
+                  hint={isLive ? "Live module source" : undefined}
+                  onSelect={() =>
+                    setDetail({
+                      title: k.label,
+                      subtitle: DATE_RANGES.find((r) => r.value === range)?.label,
+                      demo: !isLive,
+                      value: isLive ? liveValue : k.value,
+                      delta: isLive ? undefined : k.delta,
+                      series: isLive ? undefined : k.series,
+                      note: isLive
+                        ? "Read live from the connected module source."
+                        : "Sample data. This metric is not wired to a live source yet.",
+                    })
+                  }
+                />
+              );
+            })}
+
             <KpiCard
               label="Active Clients"
               value={q.isLoading ? "-" : String(activeClients.length)}
