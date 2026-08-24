@@ -506,7 +506,7 @@ function CommandPage() {
 
       {/* Lower module preview row */}
       <div className="mt-2.5">
-        <ModulePreviewRow />
+        <ModulePreviewRow dashboard={dashboard} />
       </div>
 
       <DetailSheet detail={detail} onOpenChange={(o) => !o && setDetail(null)} />
