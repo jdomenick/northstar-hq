@@ -10,8 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getModuleDashboard,
   getModuleEnvStatus,
+  probeModuleReporting,
   type ModuleDashboardResult,
   type ModuleEnvStatus,
+  type ModuleProbeRow,
 } from "@/lib/module-reporting/module-reporting.functions";
 import type { ModuleKey } from "@/lib/module-reporting/types";
 
@@ -22,6 +24,7 @@ export interface ClientModuleConnection {
   external_id: string;
   external_name: string | null;
   active: boolean;
+  metadata: Record<string, unknown> | null;
   updated_at: string;
 }
 
@@ -59,7 +62,7 @@ export function useClientModuleConnections(orgId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_module_connections")
-        .select("id,client_id,module,external_id,external_name,active,updated_at")
+        .select("id,client_id,module,external_id,external_name,active,metadata,updated_at")
         .eq("organization_id", orgId as string);
       if (error) throw error;
       return (data ?? []) as ClientModuleConnection[];
@@ -74,6 +77,7 @@ export interface SaveModuleConnectionInput {
   externalId: string;
   externalName?: string | null;
   active?: boolean;
+  metadata?: Record<string, unknown> | null;
 }
 
 export function useSaveModuleConnection() {
@@ -88,6 +92,7 @@ export function useSaveModuleConnection() {
           external_id: input.externalId.trim(),
           external_name: input.externalName?.trim() || null,
           active: input.active ?? true,
+          metadata: input.metadata ?? {},
         },
         { onConflict: "client_id,module" },
       );
@@ -114,5 +119,14 @@ export function useDeleteModuleConnection() {
       void qc.invalidateQueries({ queryKey: ["command.modules.mapping"] });
       void qc.invalidateQueries({ queryKey: ["command.modules"] });
     },
+  });
+}
+
+/** Acceptance probe: hits the four production endpoints server-side. */
+export function useModuleProbe() {
+  const probe = useServerFn(probeModuleReporting);
+  return useMutation<ModuleProbeRow[], Error, { organizationId: string; clientId: string | null }>({
+    mutationFn: (input) =>
+      probe({ data: { organizationId: input.organizationId, clientId: input.clientId } }),
   });
 }
