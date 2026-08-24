@@ -22,6 +22,7 @@ export function useRevenueClients(orgId: string | null) {
       const { data, error } = await supabase
         .from("revenue_clients").select("*")
         .eq("organization_id", orgId!)
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
