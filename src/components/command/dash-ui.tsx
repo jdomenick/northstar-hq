@@ -2,8 +2,8 @@
 // These are presentation-only and fully data driven so CAM, CCM, CRM,
 // Operations and SAM Core can bind real sources later without UI changes.
 
-import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Panel({
@@ -15,6 +15,8 @@ export function Panel({
   bodyClassName,
   children,
   id,
+  collapsible = true,
+  defaultOpen = true,
 }: {
   title?: string;
   subtitle?: string;
@@ -24,7 +26,13 @@ export function Panel({
   bodyClassName?: string;
   children: ReactNode;
   id?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const canCollapse = collapsible && Boolean(title);
+  const isOpen = canCollapse ? open : true;
+
   return (
     <section
       id={id}
@@ -35,26 +43,45 @@ export function Panel({
     >
       {(title || action) && (
         <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h2 className="truncate text-[11.5px] font-medium tracking-[0.02em] text-foreground">
-                {title}
-              </h2>
-              {demo && <DemoBadge />}
-            </div>
-            {subtitle && (
-              <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                {subtitle}
-              </div>
+          <div className="flex min-w-0 items-center gap-1.5">
+            {canCollapse && (
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-label={isOpen ? `Collapse ${title}` : `Expand ${title}`}
+                onClick={() => setOpen((v) => !v)}
+                className="grid h-4 w-4 shrink-0 place-items-center rounded-[4px] text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                <ChevronDown
+                  className={cn("h-3 w-3 transition-transform", !isOpen && "-rotate-90")}
+                  strokeWidth={2}
+                />
+              </button>
             )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h2 className="truncate text-[11.5px] font-medium tracking-[0.02em] text-foreground">
+                  {title}
+                </h2>
+                {demo && <DemoBadge />}
+              </div>
+              {subtitle && (
+                <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {subtitle}
+                </div>
+              )}
+            </div>
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </header>
       )}
-      <div className={cn("min-w-0 flex-1 p-3", bodyClassName)}>{children}</div>
+      {isOpen && (
+        <div className={cn("min-w-0 flex-1 p-3", bodyClassName)}>{children}</div>
+      )}
     </section>
   );
 }
+
 
 /** Marks any surface rendering centralized demo data. */
 export function DemoBadge() {
@@ -144,6 +171,7 @@ export function KpiCard({
   tone = "default",
   demo,
   hint,
+  onSelect,
 }: {
   label: string;
   value: string;
@@ -152,10 +180,22 @@ export function KpiCard({
   tone?: "default" | "alert";
   demo?: boolean;
   hint?: string;
+  onSelect?: () => void;
 }) {
+  const interactive = typeof onSelect === "function";
+  const Tag = interactive ? "button" : "div";
   return (
-    <div className="flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5">
-      <div className="flex items-start justify-between gap-1.5">
+    <Tag
+      {...(interactive
+        ? { type: "button" as const, onClick: onSelect, "aria-label": `${label} details` }
+        : {})}
+      className={cn(
+        "flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5 text-left",
+        interactive &&
+          "cursor-pointer transition-colors hover:border-primary/50 hover:bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+      )}
+    >
+      <div className="flex w-full items-start justify-between gap-1.5">
         <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground break-words">
           {label}
         </div>
@@ -165,7 +205,7 @@ export function KpiCard({
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
+      <div className="mt-1.5 flex w-full flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
         <div
           className={cn(
             "min-w-0 truncate font-display text-[17px] leading-none tabular-nums",
@@ -177,15 +217,16 @@ export function KpiCard({
         {typeof delta === "number" && <Delta value={delta} />}
       </div>
       {series ? (
-        <div className="mt-1.5">
+        <div className="mt-1.5 w-full">
           <Sparkline data={series} tone={tone === "alert" ? "destructive" : "primary"} />
         </div>
       ) : hint ? (
-        <div className="mt-1.5 truncate text-[10px] text-muted-foreground">{hint}</div>
+        <div className="mt-1.5 w-full truncate text-[10px] text-muted-foreground">{hint}</div>
       ) : null}
-    </div>
+    </Tag>
   );
 }
+
 
 export function MiniStat({
   label,

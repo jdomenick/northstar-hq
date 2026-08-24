@@ -108,7 +108,7 @@ function ModuleLink({ to, children }: { to: string; children: string }) {
   return (
     <Link
       to={to}
-      className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
+      className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
     >
       {children}
     </Link>

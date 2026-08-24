@@ -10,7 +10,9 @@ import {
   Users,
   ShoppingCart,
 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { DetailSheet, type DetailPayload } from "@/components/command/detail-sheet";
 import { Delta, KpiCard, Panel, StatusDot } from "@/components/command/dash-ui";
 import {
   DEMO_CHANNEL_PERFORMANCE,
@@ -40,6 +42,7 @@ const JOURNEY_ACCENT: Record<string, string> = {
 
 export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
   const name = clientName ?? DEMO_WORKSPACE_CLIENT;
+  const [detail, setDetail] = useState<DetailPayload | null>(null);
   return (
     <div className="flex min-w-0 flex-col gap-2.5">
       <Panel
@@ -54,7 +57,19 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
             const Icon = JOURNEY_ICONS[step.key] ?? Users;
             return (
               <div key={step.key} className="flex min-w-0 flex-1 items-center gap-1">
-                <div className="min-w-0 flex-1 rounded-[6px] border border-border/60 bg-background/40 px-1.5 py-1.5 text-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDetail({
+                      title: step.label,
+                      subtitle: name,
+                      demo: true,
+                      value: step.value,
+                      rows: DEMO_JOURNEY.map((s2) => ({ label: s2.label, value: s2.value })),
+                      note: "Sample data. This outcome chain is not wired to a live source yet.",
+                    })
+                  }
+                  className="min-w-0 flex-1 rounded-[6px] border border-border/60 bg-background/40 px-1.5 py-1.5 text-center transition-colors hover:border-primary/50 hover:bg-background/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
                   <div
                     className={cn(
                       "mx-auto flex h-6 w-6 items-center justify-center rounded-[5px] border bg-card/60",
@@ -69,7 +84,7 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
                   <div className="truncate font-display text-[11.5px] leading-tight text-foreground tabular-nums">
                     {step.value}
                   </div>
-                </div>
+                </button>
                 {i < DEMO_JOURNEY.length - 1 && (
                   <ChevronRight
                     aria-hidden="true"
@@ -91,6 +106,17 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
               value={k.value}
               delta={k.delta}
               series={k.series}
+              onSelect={() =>
+                setDetail({
+                  title: k.label,
+                  subtitle: name,
+                  demo: true,
+                  value: k.value,
+                  delta: k.delta,
+                  series: k.series,
+                  note: "Sample data. This metric is not wired to a live source yet.",
+                })
+              }
             />
           ))}
         </div>
@@ -110,7 +136,27 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
             </thead>
             <tbody>
               {DEMO_CHANNEL_PERFORMANCE.map((r) => (
-                <tr key={r.channel} className="border-b border-border/30 last:border-0">
+                <tr
+                  key={r.channel}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() =>
+                    setDetail({
+                      title: r.channel,
+                      subtitle: `${name} channel`,
+                      demo: true,
+                      value: r.revenue,
+                      delta: r.delta,
+                      rows: [
+                        { label: "Leads", value: String(r.leads) },
+                        { label: "Appointments", value: String(r.appts) },
+                        { label: "Revenue", value: r.revenue },
+                      ],
+                      note: "Sample data. Channel performance is not wired to a live source yet.",
+                    })
+                  }
+                  className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
+                >
                   <td className="truncate px-3 py-1.5 text-foreground">{r.channel}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">
                     {r.leads}
@@ -133,7 +179,10 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
         <Panel title="Recent Activity" demo bodyClassName="p-0">
           <ul className="divide-y divide-border/30">
             {DEMO_RECENT_ACTIVITY.map((a) => (
-              <li key={a.title + a.meta} className="flex items-start gap-2 px-3 py-[7px]">
+              <li
+                key={a.title + a.meta}
+                className="flex items-start gap-2 px-3 py-[7px] transition-colors hover:bg-muted/40"
+              >
                 <StatusDot tone={a.tone} />
                 <div className="min-w-0">
                   <div className="truncate text-[11px] text-foreground">{a.title}</div>
@@ -144,6 +193,8 @@ export function ClientWorkspacePanel({ clientName }: { clientName?: string }) {
           </ul>
         </Panel>
       </div>
+
+      <DetailSheet detail={detail} onOpenChange={(o) => !o && setDetail(null)} />
     </div>
   );
 }

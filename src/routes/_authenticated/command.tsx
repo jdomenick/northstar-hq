@@ -16,6 +16,7 @@ import {
   DEMO_TOP_CLIENTS,
 } from "@/lib/command/demo-data";
 import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
+import { DetailSheet, type DetailPayload } from "@/components/command/detail-sheet";
 
 export const Route = createFileRoute("/_authenticated/command")({
   component: CommandPage,
@@ -55,6 +56,7 @@ function CommandPage() {
   const q = useCommandOverview(activeOrgId);
   const [clientFilter, setClientFilter] = useState("all");
   const [range, setRange] = useState("mtd");
+  const [detail, setDetail] = useState<DetailPayload | null>(null);
 
   const d = q.data;
   const clients = d?.clients.data ?? [];
@@ -187,18 +189,53 @@ function CommandPage() {
                 value={k.value}
                 delta={k.delta}
                 series={k.series}
+                onSelect={() =>
+                  setDetail({
+                    title: k.label,
+                    subtitle: DATE_RANGES.find((r) => r.value === range)?.label,
+                    demo: true,
+                    value: k.value,
+                    delta: k.delta,
+                    series: k.series,
+                    note: "Sample data. This metric is not wired to a live source yet.",
+                  })
+                }
               />
             ))}
             <KpiCard
               label="Active Clients"
-              value={q.isLoading ? "—" : String(activeClients.length)}
+              value={q.isLoading ? "-" : String(activeClients.length)}
               hint={`${clients.length} on record`}
+              onSelect={() =>
+                setDetail({
+                  title: "Active Clients",
+                  subtitle: "Live records",
+                  value: String(activeClients.length),
+                  rows: clients
+                    .slice(0, 8)
+                    .map((c) => ({ label: c.name, value: c.status })),
+                  link: { to: "/clients", label: "Open client index" },
+                })
+              }
             />
             <KpiCard
               label="Open Alerts"
-              value={q.isLoading ? "—" : String(openAlerts)}
+              value={q.isLoading ? "-" : String(openAlerts)}
               tone={openAlerts > 0 ? "alert" : "default"}
-              hint={`${failedJobs.length} failures · ${brokenConnections.length} integrations`}
+              hint={`${failedJobs.length} failures, ${brokenConnections.length} integrations`}
+              onSelect={() =>
+                setDetail({
+                  title: "Open Alerts",
+                  subtitle: "Live records",
+                  value: String(openAlerts),
+                  rows: [
+                    { label: "Failed jobs (24h)", value: String(failedJobs.length) },
+                    { label: "Integrations in error", value: String(brokenConnections.length) },
+                    { label: "Approvals waiting", value: String(approvals.length) },
+                  ],
+                  link: { to: "/sam/control", label: "Open operations" },
+                })
+              }
             />
           </div>
 
@@ -240,7 +277,26 @@ function CommandPage() {
                 </thead>
                 <tbody>
                   {DEMO_TOP_CLIENTS.map((c) => (
-                    <tr key={c.name} className="border-b border-border/30 last:border-0">
+                    <tr
+                      key={c.name}
+                      tabIndex={0}
+                      role="button"
+                      onClick={() =>
+                        setDetail({
+                          title: c.name,
+                          subtitle: "Top client",
+                          demo: true,
+                          value: c.revenue,
+                          delta: c.delta,
+                          rows: [
+                            { label: "Leads (MTD)", value: String(c.leads) },
+                            { label: "Revenue (MTD)", value: c.revenue },
+                            { label: "Change", value: `${c.delta.toFixed(1)}%` },
+                          ],
+                          note: "Sample data. This panel is not wired to a live source yet.",
+                        })
+                      }
+                      className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none">
                       <td className="truncate px-3 py-[7px] text-foreground">{c.name}</td>
                       <td className="px-2 py-[7px] text-right tabular-nums text-muted-foreground">
                         {c.leads}
@@ -268,9 +324,23 @@ function CommandPage() {
                     ? { value: String(failedJobs.length), demo: false }
                     : null;
               return (
-                <div
+                <button
                   key={c.key}
-                  className="rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5"
+                  type="button"
+                  onClick={() =>
+                    setDetail({
+                      title: c.label,
+                      subtitle: live ? "Live records" : undefined,
+                      demo: !live,
+                      value: live ? live.value : c.value,
+                      rows: [{ label: "Detail", value: c.detail }],
+                      link:
+                        c.key === "approvals"
+                          ? { to: "/labs/mission-control", label: "Review approvals" }
+                          : { to: "/sam/control", label: "Open operations" },
+                    })
+                  }
+                  className="rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 >
                   <div className="flex items-center justify-between gap-1.5">
                     <MiniStat
@@ -292,7 +362,7 @@ function CommandPage() {
                       {c.detail}
                     </span>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -329,7 +399,10 @@ function CommandPage() {
                 </thead>
                 <tbody>
                   {health.slice(0, 6).map((c) => (
-                    <tr key={c.id} className="border-b border-border/30 last:border-0">
+                    <tr
+                      key={c.id}
+                      className="border-b border-border/30 last:border-0 transition-colors hover:bg-muted/40"
+                    >
                       <td className="truncate px-3 py-[7px]">
                         <Link
                           to="/clients/$clientId"
@@ -361,6 +434,8 @@ function CommandPage() {
       <div className="mt-2.5">
         <ModulePreviewRow />
       </div>
+
+      <DetailSheet detail={detail} onOpenChange={(o) => !o && setDetail(null)} />
     </div>
   );
 }
