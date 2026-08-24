@@ -133,7 +133,7 @@ export async function fetchModuleReport<T>(
 
   let url: string;
   try {
-    url = buildReportingUrl(module, baseUrl, externalId, resolved);
+    url = buildReportingUrl(module, baseUrl, externalId, resolved, config.applicationId ?? null);
   } catch {
     return moduleUnavailable<T>(module, `${label} reporting URL is not a valid URL.`);
   }
