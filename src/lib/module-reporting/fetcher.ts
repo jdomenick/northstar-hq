@@ -85,11 +85,14 @@ export function buildReportingUrl(
       q.set("from", resolved.startIso);
       q.set("to", resolved.endIso);
       break;
-    case "sam":
+    case "sam": {
       if (id) q.set("organization_id", id);
+      const appId = applicationId && applicationId.trim() !== "" ? applicationId.trim() : null;
+      if (appId) q.set("application_id", appId);
       q.set("from", resolved.startIso);
       q.set("to", resolved.endIso);
       break;
+    }
   }
   return url.toString();
 }
