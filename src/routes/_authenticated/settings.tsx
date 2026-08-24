@@ -8,6 +8,9 @@ import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
 import { useNavigate, Link } from "@tanstack/react-router";
+import { ModuleConnectionsCard } from "@/components/command/module-connections-card";
+import { useCommandOverview } from "@/lib/command/hooks";
+
 import {
   useOrganization,
   useOrgMembersFull,
