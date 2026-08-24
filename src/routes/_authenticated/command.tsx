@@ -87,6 +87,39 @@ function CommandPage() {
       ? undefined
       : (clients.find((c) => c.id === clientFilter)?.name ?? undefined);
 
+  // Read-through module reporting (CAM, CCM, CRM, SAM Core). Never cached in HQ.
+  const modulesQ = useModuleDashboard(
+    activeOrgId,
+    clientFilter === "all" ? null : clientFilter,
+    range,
+  );
+  const dashboard = modulesQ.data?.dashboard;
+
+  // HQ-native revenue stays the source of truth for NorthStar billing.
+  const clientRevenueCents = useMemo(() => {
+    if (clientFilter === "all") return null;
+    const rows = (d?.invoices.data ?? []).filter((i) => i.client_id === clientFilter);
+    if (rows.length === 0) return null;
+    return rows.reduce((sum, i) => sum + (i.amount_paid_cents ?? 0), 0);
+  }, [d, clientFilter]);
+
+  // A demo KPI is replaced only when its owning module actually reported it.
+  const liveKpi: Record<string, string | undefined> = {
+    leads:
+      dashboard?.cam.status === "ok"
+        ? (formatCount(dashboard.cam.data?.leads ?? null) ?? undefined)
+        : undefined,
+    appointments:
+      dashboard?.ccm.status === "ok"
+        ? (formatCount(dashboard.ccm.data?.appointments ?? null) ?? undefined)
+        : undefined,
+    customers:
+      dashboard?.crm.status === "ok"
+        ? (formatCount(dashboard.crm.data?.customers ?? null) ?? undefined)
+        : undefined,
+  };
+
+
   function exportCsv() {
     const rows = [
       ["Client", "Status", "Current issue", "MRR (cents)"],
