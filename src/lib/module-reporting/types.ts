@@ -241,52 +241,9 @@ export function normalizeVersion(payload: unknown): string | null {
 }
 
 
-/** Source payloads may nest under `data`, `report`, or `result`. */
-export function unwrapPayload(payload: unknown): unknown {
-  const rec = asRecord(payload);
-  if (!rec) return payload;
-  for (const key of ["data", "report", "result", "dashboard"]) {
-    const inner = asRecord(rec[key]);
-    if (inner) return inner;
-  }
-  return rec;
-}
 
-function normalizeTrend(value: unknown): TrendPoint[] {
-  return list(value)
-    .map((point) => {
-      if (typeof point === "number") return null;
-      const label = str(pick(point, "label", "name", "period", "date", "stage"));
-      const v = num(pick(point, "value", "count", "total", "amount"));
-      if (label === null || v === null) return null;
-      return { label, value: v };
-    })
-    .filter((p): p is TrendPoint => p !== null);
-}
 
-function centsOf(source: unknown, ...keys: string[]): number | null {
-  const centsKeys = keys.map((k) => `${k}_cents`);
-  const cents = num(pick(source, ...centsKeys));
-  if (cents !== null) return Math.round(cents);
-  const major = num(pick(source, ...keys));
-  return major === null ? null : Math.round(major * 100);
-}
 
-function normalizeChannels(value: unknown): ChannelRow[] {
-  return list(value)
-    .map((row) => {
-      const channel = str(pick(row, "channel", "source", "name"));
-      if (!channel) return null;
-      return {
-        channel,
-        leads: num(pick(row, "leads", "lead_count")),
-        appointments: num(pick(row, "appointments", "appts", "booked")),
-        revenueCents: centsOf(row, "revenue", "value"),
-        changePct: num(pick(row, "change_pct", "delta", "change")),
-      };
-    })
-    .filter((r): r is ChannelRow => r !== null);
-}
 
 function toneOf(value: unknown): ActivityTone {
   const raw = (str(value) ?? "").toLowerCase();
@@ -296,21 +253,6 @@ function toneOf(value: unknown): ActivityTone {
   return "muted";
 }
 
-export function normalizeActivity(module: ModuleKey, value: unknown): ActivityRow[] {
-  return list(value)
-    .map((row) => {
-      const title = str(pick(row, "title", "message", "event", "summary", "name"));
-      if (!title) return null;
-      return {
-        source: module,
-        title,
-        meta: str(pick(row, "meta", "detail", "description", "channel")),
-        occurredAt: isoDate(pick(row, "occurred_at", "created_at", "timestamp", "at")),
-        tone: toneOf(pick(row, "tone", "status", "severity", "level")),
-      };
-    })
-    .filter((r): r is ActivityRow => r !== null);
-}
 
 /* -------------------- contract-specific normalizers ----------------------- */
 
