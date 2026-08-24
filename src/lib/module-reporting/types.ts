@@ -237,8 +237,9 @@ export interface ModuleDashboard {
 /* ------------------------------ normalizers ------------------------------- */
 
 export function normalizeVersion(payload: unknown): string | null {
-  return str(pick(payload, "version", "schema_version", "api_version"));
+  return str(pick(payload, "contract_version", "version", "schema_version", "api_version"));
 }
+
 
 /** Source payloads may nest under `data`, `report`, or `result`. */
 export function unwrapPayload(payload: unknown): unknown {
