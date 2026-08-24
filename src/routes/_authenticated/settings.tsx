@@ -669,7 +669,7 @@ function AppearanceTab() {
 
   return (
     <div className="max-w-3xl space-y-10">
-      <Section title="Theme" description="Applies across Command Center, Client Workspace, CRM, navigation, Settings, and SAM Messenger.">
+      <Section title="Theme" hint="Applies across Command Center, Client Workspace, CRM, navigation, Settings, and SAM Messenger.">
         <div className="grid gap-3 sm:grid-cols-3">
           {THEME_OPTIONS.map((o) => (
             <OptionCard
@@ -690,7 +690,7 @@ function AppearanceTab() {
         </p>
       </Section>
 
-      <Section title="Font size" description="Scales interface typography without changing the density of the dashboards.">
+      <Section title="Font size" hint="Scales interface typography without changing the density of the dashboards.">
         <div className="grid gap-3 sm:grid-cols-3">
           {FONT_OPTIONS.map((o) => (
             <OptionCard
