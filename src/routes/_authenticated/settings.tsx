@@ -97,7 +97,26 @@ function SettingsPage() {
   );
 }
 
+function ModuleReportingTab() {
+  const { activeOrgId } = useOrg();
+  const overview = useCommandOverview(activeOrgId);
+  if (!activeOrgId) {
+    return (
+      <p className="text-[13.5px] text-muted-foreground">
+        Select an organization to manage module reporting connections.
+      </p>
+    );
+  }
+  const clients = (overview.data?.clients.data ?? []).map((c) => ({ id: c.id, name: c.name }));
+  return (
+    <div className="max-w-4xl">
+      <ModuleConnectionsCard organizationId={activeOrgId} clients={clients} />
+    </div>
+  );
+}
+
 function SamSettingsTab() {
+
   const { activeOrgId, activeMembership } = useOrg();
   const samQ = useSamSettings(activeOrgId);
   const upsert = useUpsertSamSettings(activeOrgId);
