@@ -7,13 +7,11 @@ import { DemoBadge, KpiCard, MiniStat, Panel } from "@/components/command/dash-u
 import { DONUT_COLORS, DonutChart, TrendChart } from "@/components/command/charts";
 import { ClientWorkspacePanel } from "@/components/command/client-workspace-panel";
 import { ModulePreviewRow } from "@/components/command/module-preview-row";
-import { Delta } from "@/components/command/dash-ui";
 import {
   DEMO_COMMAND_KPIS,
   DEMO_OPERATIONAL_CARDS,
   DEMO_REVENUE_BY_SOURCE,
   DEMO_REVENUE_TREND,
-  DEMO_TOP_CLIENTS,
 } from "@/lib/command/demo-data";
 import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
@@ -69,6 +67,10 @@ function CommandPage() {
   const d = q.data;
   const clients = d?.clients.data ?? [];
   const health = useMemo(() => (d ? deriveClientHealth(d) : []), [d]);
+  const topClients = useMemo(
+    () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
+    [health],
+  );
 
   const activeClients = clients.filter((c) => c.status === "active");
   const jobs = d?.jobs24h.data ?? [];
@@ -333,54 +335,67 @@ function CommandPage() {
               </ul>
             </Panel>
 
-            <Panel title="Top Clients by Revenue" demo bodyClassName="p-0">
+            <Panel title="Clients by MRR" subtitle="HQ records" bodyClassName="p-0">
               <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border/50">
                     <th className="px-3 py-1.5 font-medium">Client</th>
-                    <th className="w-11 px-2 py-1.5 text-right font-medium">Leads</th>
-                    <th className="w-[68px] px-2 py-1.5 text-right font-medium">Revenue</th>
-                    <th className="w-[54px] px-3 py-1.5 text-right font-medium">Chg</th>
+                    <th className="w-20 px-2 py-1.5 text-right font-medium">MRR</th>
+                    <th className="w-24 px-2 py-1.5 text-right font-medium">Outstanding</th>
+                    <th className="w-[92px] px-3 py-1.5 text-right font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {DEMO_TOP_CLIENTS.map((c) => (
-                    <tr
-                      key={c.name}
-                      tabIndex={0}
-                      role="button"
-                      onClick={() =>
-                        setDetail({
-                          title: c.name,
-                          subtitle: "Top client",
-                          demo: true,
-                          value: c.revenue,
-                          delta: c.delta,
-                          rows: [
-                            { label: "Leads (MTD)", value: String(c.leads) },
-                            { label: "Revenue (MTD)", value: c.revenue },
-                            { label: "Change", value: `${c.delta.toFixed(1)}%` },
-                          ],
-                          note: "Sample data. This panel is not wired to a live source yet.",
-                        })
-                      }
-                      className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none">
-                      <td className="truncate px-3 py-[7px] text-foreground">{c.name}</td>
-                      <td className="px-2 py-[7px] text-right tabular-nums text-muted-foreground">
-                        {c.leads}
-                      </td>
-                      <td className="px-2 py-[7px] text-right tabular-nums text-foreground">
-                        {c.revenue}
-                      </td>
-                      <td className="px-3 py-[7px] text-right">
-                        <Delta value={c.delta} />
+                  {topClients.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-3 text-[11px] text-muted-foreground">
+                        {q.isLoading ? "Loading clients…" : "No clients on record yet."}
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    topClients.map((c) => (
+                      <tr
+                        key={c.id}
+                        tabIndex={0}
+                        role="button"
+                        onClick={() =>
+                          setDetail({
+                            title: c.name,
+                            subtitle: "Client record",
+                            value: money(c.mrrCents),
+                            rows: [
+                              { label: "MRR", value: money(c.mrrCents) },
+                              { label: "Outstanding", value: money(c.outstandingCents) },
+                              {
+                                label: "Modules with records",
+                                value: c.modules.length ? c.modules.join(", ") : "None",
+                              },
+                              { label: "Current issue", value: c.issue ?? "Nothing outstanding" },
+                            ],
+                            link: { to: `/clients/${c.id}`, label: "Open workspace" },
+                          })
+                        }
+                        className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none">
+                        <td className="truncate px-3 py-[7px] text-foreground">{c.name}</td>
+                        <td className="px-2 py-[7px] text-right tabular-nums text-foreground">
+                          {money(c.mrrCents)}
+                        </td>
+                        <td className="px-2 py-[7px] text-right tabular-nums text-muted-foreground">
+                          {money(c.outstandingCents)}
+                        </td>
+                        <td className="truncate px-3 py-[7px] text-right text-muted-foreground">
+                          {c.status}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </Panel>
           </div>
+
 
           {/* Operational cards */}
           <div id="alerts" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-5">

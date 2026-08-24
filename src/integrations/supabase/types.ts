@@ -6311,6 +6311,8 @@ export type Database = {
           activated_at: string | null
           activation_project_id: string | null
           activation_proposal_id: string | null
+          archive_reason: string | null
+          archived_at: string | null
           churned_at: string | null
           created_at: string
           created_by: string | null
@@ -6328,6 +6330,8 @@ export type Database = {
           activated_at?: string | null
           activation_project_id?: string | null
           activation_proposal_id?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
           churned_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -6345,6 +6349,8 @@ export type Database = {
           activated_at?: string | null
           activation_project_id?: string | null
           activation_proposal_id?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
           churned_at?: string | null
           created_at?: string
           created_by?: string | null

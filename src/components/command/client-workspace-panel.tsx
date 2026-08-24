@@ -23,7 +23,6 @@ import {
   DEMO_CHANNEL_PERFORMANCE,
   DEMO_JOURNEY,
   DEMO_RECENT_ACTIVITY,
-  DEMO_WORKSPACE_CLIENT,
   DEMO_WORKSPACE_KPIS,
 } from "@/lib/command/demo-data";
 import {
@@ -75,7 +74,7 @@ export function ClientWorkspacePanel({
   hqRevenueCents?: number | null;
   clientScoped?: boolean;
 }) {
-  const name = clientName ?? DEMO_WORKSPACE_CLIENT;
+  const name = clientName ?? "No client selected";
   const [detail, setDetail] = useState<DetailPayload | null>(null);
 
   const live = Boolean(dashboard && clientScoped && countLive(dashboard) > 0);

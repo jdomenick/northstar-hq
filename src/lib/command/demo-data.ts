@@ -61,19 +61,6 @@ export const DEMO_REVENUE_BY_SOURCE: { name: string; value: number }[] = [
   { name: "Other", value: 17420 },
 ];
 
-export const DEMO_TOP_CLIENTS: {
-  name: string;
-  revenue: string;
-  leads: number;
-  delta: number;
-}[] = [
-  { name: "Acme Plumbing", revenue: "$62,400", leads: 318, delta: 14.2 },
-  { name: "Ridgeline HVAC", revenue: "$48,900", leads: 264, delta: 9.6 },
-  { name: "Harbor Dental", revenue: "$41,200", leads: 197, delta: 6.1 },
-  { name: "Vector Roofing", revenue: "$33,750", leads: 158, delta: -2.4 },
-  { name: "Northgate Legal", revenue: "$28,300", leads: 131, delta: 4.8 },
-];
-
 export const DEMO_OPERATIONAL_CARDS: {
   key: string;
   label: string;
@@ -89,8 +76,6 @@ export const DEMO_OPERATIONAL_CARDS: {
 ];
 
 /* ---------------------------- Client Workspace ---------------------------- */
-
-export const DEMO_WORKSPACE_CLIENT = "Acme Plumbing";
 
 export const DEMO_JOURNEY: { key: string; label: string; value: string }[] = [
   { key: "acquisition", label: "Acquisition", value: "$18.4k spend" },

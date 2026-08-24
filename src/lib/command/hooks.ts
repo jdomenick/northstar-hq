@@ -163,10 +163,13 @@ export function useCommandOverview(orgId: string | null) {
       ] = await Promise.all([
 
         read("Clients", async () => {
+          // Archived records (E2E and phase-validation runs) stay in the
+          // database for audit but never enter the operating roster.
           const { data, error } = await supabase
             .from("revenue_clients")
             .select("id,name,status,mrr_cents,started_at,activation_project_id")
             .eq("organization_id", org)
+            .is("archived_at", null)
             .order("created_at", { ascending: false });
           if (error) throw error;
           return (data ?? []) as ClientRow[];
