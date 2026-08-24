@@ -7,7 +7,6 @@ import { DemoBadge, KpiCard, MiniStat, Panel } from "@/components/command/dash-u
 import { DONUT_COLORS, DonutChart, TrendChart } from "@/components/command/charts";
 import { ClientWorkspacePanel } from "@/components/command/client-workspace-panel";
 import { ModulePreviewRow } from "@/components/command/module-preview-row";
-import { Delta } from "@/components/command/dash-ui";
 import {
   DEMO_COMMAND_KPIS,
   DEMO_OPERATIONAL_CARDS,
