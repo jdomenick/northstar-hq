@@ -2033,6 +2033,60 @@ export type Database = {
           },
         ]
       }
+      client_module_connections: {
+        Row: {
+          active: boolean
+          client_id: string
+          created_at: string
+          external_id: string
+          external_name: string | null
+          id: string
+          metadata: Json
+          module: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          client_id: string
+          created_at?: string
+          external_id: string
+          external_name?: string | null
+          id?: string
+          metadata?: Json
+          module: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          client_id?: string
+          created_at?: string
+          external_id?: string
+          external_name?: string | null
+          id?: string
+          metadata?: Json
+          module?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_module_connections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_module_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_onboarding_items: {
         Row: {
           blocked_reason: string

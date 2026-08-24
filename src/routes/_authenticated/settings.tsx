@@ -8,6 +8,9 @@ import { useOrg } from "@/lib/org-context";
 import { can } from "@/lib/permissions";
 import { actorName } from "@/lib/actor-names";
 import { useNavigate, Link } from "@tanstack/react-router";
+import { ModuleConnectionsCard } from "@/components/command/module-connections-card";
+import { useCommandOverview } from "@/lib/command/hooks";
+
 import {
   useOrganization,
   useOrgMembersFull,
@@ -82,20 +85,41 @@ function SettingsPage() {
           <TabsContent value="members"><MembersTab /></TabsContent>
           <TabsContent value="data"><ArchiveCenterTab /></TabsContent>
           <TabsContent value="sam"><SamSettingsTab /></TabsContent>
-          {["accountability","notifications","security","integrations","appearance"].map((v) => (
+          <TabsContent value="integrations"><ModuleReportingTab /></TabsContent>
+          {["accountability","notifications","security","appearance"].map((v) => (
             <TabsContent key={v} value={v}>
               <p className="text-[13.5px] text-muted-foreground">
                 This section connects in a future phase.
               </p>
             </TabsContent>
           ))}
+
         </Tabs>
       </PageBody>
     </div>
   );
 }
 
+function ModuleReportingTab() {
+  const { activeOrgId } = useOrg();
+  const overview = useCommandOverview(activeOrgId);
+  if (!activeOrgId) {
+    return (
+      <p className="text-[13.5px] text-muted-foreground">
+        Select an organization to manage module reporting connections.
+      </p>
+    );
+  }
+  const clients = (overview.data?.clients.data ?? []).map((c) => ({ id: c.id, name: c.name }));
+  return (
+    <div className="max-w-4xl">
+      <ModuleConnectionsCard organizationId={activeOrgId} clients={clients} />
+    </div>
+  );
+}
+
 function SamSettingsTab() {
+
   const { activeOrgId, activeMembership } = useOrg();
   const samQ = useSamSettings(activeOrgId);
   const upsert = useUpsertSamSettings(activeOrgId);
