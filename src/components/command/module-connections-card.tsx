@@ -13,15 +13,18 @@ import {
   useClientModuleConnections,
   useDeleteModuleConnection,
   useModuleEnvStatus,
+  useModuleProbe,
   useSaveModuleConnection,
 } from "@/lib/command/module-hooks";
 import { MODULE_KEYS, MODULE_LABELS, type ModuleKey } from "@/lib/module-reporting/types";
 
+// Each source scopes reporting with its own parameter, so the mapping label
+// names the exact value the source expects.
 const ID_HINT: Record<ModuleKey, string> = {
-  cam: "CAM tenant ID",
-  ccm: "CCM tenant ID",
-  crm: "CRM business ID",
-  sam: "SAM organization / application ID",
+  cam: "CAM client (organization slug or UUID)",
+  ccm: "CCM tenant_id (UUID)",
+  crm: "CRM business_id (UUID or slug)",
+  sam: "SAM organization_id (UUID)",
 };
 
 export function ModuleConnectionsCard({
@@ -36,18 +39,35 @@ export function ModuleConnectionsCard({
   const save = useSaveModuleConnection();
   const remove = useDeleteModuleConnection();
 
+  const probe = useModuleProbe();
+
   const [clientId, setClientId] = useState<string>(clients[0]?.id ?? "");
   const [drafts, setDrafts] = useState<Partial<Record<ModuleKey, string>>>({});
+  const [samAppDraft, setSamAppDraft] = useState<string | null>(null);
 
   const current = useMemo(() => {
-    const map = new Map<ModuleKey, { id: string; externalId: string }>();
+    const map = new Map<
+      ModuleKey,
+      { id: string; externalId: string; metadata: Record<string, unknown> | null }
+    >();
     for (const row of mappings.data ?? []) {
       if (row.client_id === clientId) {
-        map.set(row.module, { id: row.id, externalId: row.external_id });
+        map.set(row.module, {
+          id: row.id,
+          externalId: row.external_id,
+          metadata: row.metadata ?? null,
+        });
       }
     }
     return map;
   }, [mappings.data, clientId]);
+
+  const savedSamApp = (() => {
+    const meta = current.get("sam")?.metadata;
+    const value = meta && typeof meta.application_id === "string" ? meta.application_id : "";
+    return value;
+  })();
+  const samAppValue = samAppDraft ?? savedSamApp;
 
   async function onSave(module: ModuleKey) {
     const value = (drafts[module] ?? current.get(module)?.externalId ?? "").trim();
@@ -60,8 +80,20 @@ export function ModuleConnectionsCard({
       return;
     }
     try {
-      await save.mutateAsync({ organizationId, clientId, module, externalId: value });
+      await save.mutateAsync({
+        organizationId,
+        clientId,
+        module,
+        externalId: value,
+        metadata:
+          module === "sam"
+            ? samAppValue.trim()
+              ? { application_id: samAppValue.trim() }
+              : {}
+            : (current.get(module)?.metadata ?? {}),
+      });
       setDrafts((d) => ({ ...d, [module]: undefined }));
+      if (module === "sam") setSamAppDraft(null);
       toast.success(`${MODULE_LABELS[module]} mapping saved.`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save the mapping.");
@@ -86,6 +118,11 @@ export function ModuleConnectionsCard({
         shows data only when its reporting URL and shared secret are configured and the selected
         client has an external ID mapped.
       </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+        Scope values differ per source: CAM uses <code>client</code>, CCM uses{" "}
+        <code>tenant_id</code>, CRM uses <code>business_id</code>, SAM Core uses{" "}
+        <code>organization_id</code> plus an optional <code>application_id</code>.
+      </p>
 
       {/* Environment status */}
       <div className="mt-3 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -94,6 +131,8 @@ export function ModuleConnectionsCard({
           urlEnv: "",
           urlConfigured: false,
           secretConfigured: false,
+          urlSource: "default" as const,
+          secretSource: null,
         }))).map((s) => {
           const ready = s.urlConfigured && s.secretConfigured;
           return (
@@ -109,12 +148,10 @@ export function ModuleConnectionsCard({
               </div>
               <div className="mt-1 text-[10px] text-muted-foreground">
                 {ready
-                  ? "Endpoint and secret configured"
-                  : !s.urlConfigured && !s.secretConfigured
-                    ? "Reporting URL and shared secret missing"
-                    : !s.urlConfigured
-                      ? "Reporting URL missing"
-                      : "Shared reporting secret missing"}
+                  ? `Endpoint ${s.urlSource === "env" ? "override" : "default"}, credential from ${s.secretSource === "vault" ? "vault" : "environment"}`
+                  : !s.urlConfigured
+                    ? "Reporting URL missing"
+                    : "Shared reporting credential missing"}
               </div>
             </div>
           );
@@ -182,6 +219,77 @@ export function ModuleConnectionsCard({
               </div>
             );
           })}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-28 shrink-0 text-[11.5px] text-muted-foreground">
+              SAM application
+            </span>
+            <Input
+              aria-label="SAM application_id (optional UUID)"
+              placeholder="SAM application_id (optional)"
+              value={samAppValue}
+              onChange={(e) => setSamAppDraft(e.target.value)}
+              className="h-8 max-w-xs text-[12px]"
+            />
+            <span className="text-[10.5px] text-muted-foreground">
+              Saved with the SAM mapping.
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 border-t border-border/60 pt-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={probe.isPending || !organizationId}
+              onClick={() =>
+                probe.mutate({ organizationId, clientId: clientId || null })
+              }
+            >
+              {probe.isPending ? "Probing sources..." : "Probe source endpoints"}
+            </Button>
+            <span className="text-[10.5px] text-muted-foreground">
+              Server-side call to all four endpoints. Returns status and counts only.
+            </span>
+          </div>
+
+          {probe.isError && (
+            <p className="mt-2 text-[11px] text-destructive">
+              {probe.error instanceof Error ? probe.error.message : "Probe failed."}
+            </p>
+          )}
+
+          {probe.data && (
+            <div className="mt-2 grid gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
+              {probe.data.map((row) => (
+                <div
+                  key={row.module}
+                  className="rounded-[6px] border border-border/70 bg-card/50 px-2.5 py-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-foreground">
+                      {MODULE_LABELS[row.module]}
+                    </span>
+                    <StatusChip status={row.live ? "ok" : "unavailable"} />
+                  </div>
+                  <div className="mt-1 text-[10px] text-muted-foreground">
+                    {row.live
+                      ? `HTTP ${row.httpStatus ?? 200} - ${row.version ?? "no version"}`
+                      : (row.reason ?? "No response")}
+                  </div>
+                  {row.live && (
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                      {Object.entries(row.counts)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(", ")}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Panel>

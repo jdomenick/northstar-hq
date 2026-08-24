@@ -33,6 +33,8 @@ export interface ModuleFetchConfig {
   baseUrl: string | null | undefined;
   secret: string | null | undefined;
   externalId?: string | null;
+  /** SAM Core only: optional application scope stored in connection metadata. */
+  applicationId?: string | null;
   /** HQ dashboard range key (mtd | 30d | qtd | ytd). */
   range?: string | null;
   /** Pre-resolved window, so all four modules share one clock. */
@@ -56,6 +58,7 @@ export function buildReportingUrl(
   baseUrl: string,
   externalId: string | null,
   resolved: ResolvedRange,
+  applicationId: string | null = null,
 ): string {
   const url = new URL(REPORTING_PATH, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
   const q = url.searchParams;
@@ -82,11 +85,14 @@ export function buildReportingUrl(
       q.set("from", resolved.startIso);
       q.set("to", resolved.endIso);
       break;
-    case "sam":
+    case "sam": {
       if (id) q.set("organization_id", id);
+      const appId = applicationId && applicationId.trim() !== "" ? applicationId.trim() : null;
+      if (appId) q.set("application_id", appId);
       q.set("from", resolved.startIso);
       q.set("to", resolved.endIso);
       break;
+    }
   }
   return url.toString();
 }
@@ -127,7 +133,7 @@ export async function fetchModuleReport<T>(
 
   let url: string;
   try {
-    url = buildReportingUrl(module, baseUrl, externalId, resolved);
+    url = buildReportingUrl(module, baseUrl, externalId, resolved, config.applicationId ?? null);
   } catch {
     return moduleUnavailable<T>(module, `${label} reporting URL is not a valid URL.`);
   }

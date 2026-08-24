@@ -10627,6 +10627,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_reporting_secret: { Args: never; Returns: string }
       has_org_role: {
         Args: {
           _min: Database["public"]["Enums"]["org_role"]
