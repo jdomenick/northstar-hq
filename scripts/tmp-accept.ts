@@ -8,6 +8,6 @@ for (const c of clients) {
   console.log("\n==", c.name);
   for (const k of ["cam","ccm","crm","sam"] as const) {
     const m = (d as never as Record<string, {status:string; reason:string|null; report?:unknown}>)[k];
-    console.log(" ", k, m.status, m.reason ?? "", m.status === "ok" ? JSON.stringify(m.report).slice(0, 260) : "");
+    console.log(" ", k, m.status, m.reason ?? "", m.status === "ok" ? JSON.stringify(m).slice(0, 400) : "");
   }
 }
