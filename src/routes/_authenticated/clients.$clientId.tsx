@@ -11,6 +11,15 @@ import {
   StatTile,
 } from "@/components/command-ui";
 import { money, useClientOutcomeChain } from "@/lib/command/hooks";
+import { useModuleDashboard } from "@/lib/command/module-hooks";
+import { StatusChip } from "@/components/command/source-state";
+import {
+  MODULE_KEYS,
+  MODULE_LABELS,
+  formatCents,
+  formatCount,
+  type ModuleDashboard,
+} from "@/lib/module-reporting/types";
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId")({
   component: ClientWorkspacePage,
@@ -38,6 +47,8 @@ function ClientWorkspacePage() {
   const { clientId } = Route.useParams();
   const { activeOrgId } = useOrg();
   const q = useClientOutcomeChain(activeOrgId, clientId);
+  // Read-through reporting from CAM, CCM, NorthStar CRM and SAM Core.
+  const modulesQ = useModuleDashboard(activeOrgId, clientId, "30d");
 
   if (!activeOrgId) return <PageBody>Select an organization.</PageBody>;
   if (q.isLoading || !q.data) {
@@ -269,19 +280,108 @@ function ClientWorkspacePage() {
           </SourceView>
         </Section>
 
-        <Section title="Marketing, attribution and recommendations">
-          <div className="space-y-4">
-            <NotAvailable reason="No per-client marketing performance or attribution source is connected. Content Ops reports at the organization level only." />
-            <p className="text-[12.5px] text-muted-foreground">
-              Organization-level intelligence lives in{" "}
-              <Link to="/labs" className="underline underline-offset-4 hover:text-foreground">
-                The Brief
-              </Link>
-              . Per-client recommendations appear here once a client-scoped source is connected.
-            </p>
-          </div>
+        <Section
+          title="Module reporting"
+          hint="Live read-through from CAM, CCM, NorthStar CRM and SAM Core, last 30 days"
+        >
+          {modulesQ.isLoading ? (
+            <EmptyLine>Reading connected modules…</EmptyLine>
+          ) : modulesQ.isError || !modulesQ.data ? (
+            <NotAvailable reason="Module reporting could not be read right now." />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {MODULE_KEYS.map((key) => {
+                const source = modulesQ.data.dashboard[key];
+                return (
+                  <div
+                    key={key}
+                    className="rounded-[7px] border border-border/70 bg-card/40 p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                        {MODULE_LABELS[key]}
+                      </span>
+                      <StatusChip status={source.status} />
+                    </div>
+                    {source.status === "ok" ? (
+                      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[12px]">
+                        {moduleMetrics(modulesQ.data.dashboard, key).map((m) => (
+                          <div key={m.label} className="flex items-baseline justify-between gap-2">
+                            <dt className="truncate text-muted-foreground">{m.label}</dt>
+                            <dd className="tabular-nums text-foreground">{m.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : (
+                      <p className="text-[12px] text-muted-foreground">
+                        {source.reason ?? "No data reported."}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <p className="mt-3 text-[12.5px] text-muted-foreground">
+            Organization-level intelligence lives in{" "}
+            <Link to="/labs" className="underline underline-offset-4 hover:text-foreground">
+              The Brief
+            </Link>
+            .
+          </p>
         </Section>
       </PageBody>
     </>
   );
+}
+
+type Metric = { label: string; value: string };
+
+/** Only values the module actually reported are shown. Nulls read as "n/a". */
+function moduleMetrics(dashboard: ModuleDashboard, key: (typeof MODULE_KEYS)[number]): Metric[] {
+  const na = (v: string | null) => v ?? "n/a";
+  if (key === "cam") {
+    const r = dashboard.cam.data;
+    if (!r) return [];
+    return [
+      { label: "Leads", value: na(formatCount(r.leads)) },
+      { label: "Qualified", value: na(formatCount(r.qualifiedLeads)) },
+      { label: "Appointments", value: na(formatCount(r.appointments)) },
+      { label: "Revenue", value: na(formatCents(r.revenueCents)) },
+    ];
+  }
+  if (key === "ccm") {
+    const r = dashboard.ccm.data;
+    if (!r) return [];
+    return [
+      { label: "Conversations", value: na(formatCount(r.conversations)) },
+      { label: "Appointments", value: na(formatCount(r.appointments)) },
+      {
+        label: "Avg response",
+        value: r.avgResponseSeconds === null ? "n/a" : `${Math.round(r.avgResponseSeconds)}s`,
+      },
+      { label: "Booking failures", value: na(formatCount(r.bookingFailures)) },
+    ];
+  }
+  if (key === "crm") {
+    const r = dashboard.crm.data;
+    if (!r) return [];
+    return [
+      { label: "Customers", value: na(formatCount(r.customers)) },
+      { label: "Open deals", value: na(formatCount(r.openDeals)) },
+      { label: "Pipeline", value: na(formatCents(r.pipelineValueCents)) },
+      { label: "Won in range", value: na(formatCount(r.wonInRange)) },
+    ];
+  }
+  const r = dashboard.sam.data;
+  if (!r) return [];
+  return [
+    { label: "Status", value: r.status ?? "n/a" },
+    { label: "Consumers", value: na(formatCount(r.consumers)) },
+    { label: "Tasks", value: na(formatCount(r.tasksProcessed)) },
+    {
+      label: "Success rate",
+      value: r.successRatePct === null ? "n/a" : `${r.successRatePct.toFixed(1)}%`,
+    },
+  ];
 }
