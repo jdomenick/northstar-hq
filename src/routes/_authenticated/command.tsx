@@ -495,7 +495,13 @@ function CommandPage() {
           </Panel>
         </div>
 
-        <ClientWorkspacePanel clientName={selectedClientName} />
+        <ClientWorkspacePanel
+          clientName={selectedClientName}
+          dashboard={dashboard}
+          hqRevenueCents={clientRevenueCents}
+          clientScoped={clientFilter !== "all"}
+        />
+
       </div>
 
       {/* Lower module preview row */}
