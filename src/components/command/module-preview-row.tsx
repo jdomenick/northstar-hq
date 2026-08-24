@@ -128,7 +128,7 @@ export function ModulePreviewRow({ dashboard }: { dashboard?: ModuleDashboard })
   const crmStages =
     crmHead.live && (crm?.data?.stages.length ?? 0) > 0
       ? (crm?.data?.stages ?? [])
-      : DEMO_CRM.stages.map((s) => ({ label: s.name, value: s.value }));
+      : DEMO_CRM.stages;
 
 
   return (
