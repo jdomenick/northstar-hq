@@ -171,6 +171,7 @@ export function KpiCard({
   tone = "default",
   demo,
   hint,
+  onSelect,
 }: {
   label: string;
   value: string;
@@ -179,10 +180,22 @@ export function KpiCard({
   tone?: "default" | "alert";
   demo?: boolean;
   hint?: string;
+  onSelect?: () => void;
 }) {
+  const interactive = typeof onSelect === "function";
+  const Tag = interactive ? "button" : "div";
   return (
-    <div className="flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5">
-      <div className="flex items-start justify-between gap-1.5">
+    <Tag
+      {...(interactive
+        ? { type: "button" as const, onClick: onSelect, "aria-label": `${label} details` }
+        : {})}
+      className={cn(
+        "flex min-w-0 flex-col justify-between overflow-hidden rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5 text-left",
+        interactive &&
+          "cursor-pointer transition-colors hover:border-primary/50 hover:bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+      )}
+    >
+      <div className="flex w-full items-start justify-between gap-1.5">
         <div className="min-w-0 text-[9.5px] font-medium uppercase leading-[1.25] tracking-[0.1em] text-muted-foreground break-words">
           {label}
         </div>
@@ -192,7 +205,7 @@ export function KpiCard({
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
+      <div className="mt-1.5 flex w-full flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
         <div
           className={cn(
             "min-w-0 truncate font-display text-[17px] leading-none tabular-nums",
@@ -204,15 +217,16 @@ export function KpiCard({
         {typeof delta === "number" && <Delta value={delta} />}
       </div>
       {series ? (
-        <div className="mt-1.5">
+        <div className="mt-1.5 w-full">
           <Sparkline data={series} tone={tone === "alert" ? "destructive" : "primary"} />
         </div>
       ) : hint ? (
-        <div className="mt-1.5 truncate text-[10px] text-muted-foreground">{hint}</div>
+        <div className="mt-1.5 w-full truncate text-[10px] text-muted-foreground">{hint}</div>
       ) : null}
-    </div>
+    </Tag>
   );
 }
+
 
 export function MiniStat({
   label,
