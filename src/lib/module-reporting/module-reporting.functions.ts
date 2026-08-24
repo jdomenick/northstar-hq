@@ -33,6 +33,7 @@ export const getModuleDashboard = createServerFn({ method: "POST" })
     const externalIds: Partial<Record<ModuleKey, string | null>> = {};
     let samApplicationId: string | null = null;
     const clientScoped = Boolean(data.clientId);
+    let ccmPortfolioIds: string[] = [];
 
     if (data.clientId) {
       // RLS-scoped read as the calling operator.
@@ -55,12 +56,40 @@ export const getModuleDashboard = createServerFn({ method: "POST" })
           }
         }
       }
+    } else {
+      // Portfolio view: CCM has no all-tenant selector, so fan out across the
+      // mapped tenants of every client still on the roster.
+      const { data: clients, error: clientError } = await context.supabase
+        .from("revenue_clients")
+        .select("id")
+        .eq("organization_id", data.organizationId)
+        .is("archived_at", null);
+      if (clientError) throw new Error(`Client roster read failed: ${clientError.message}`);
+      const activeIds = (clients ?? []).map((c) => c.id);
+
+      if (activeIds.length > 0) {
+        const { data: rows, error } = await context.supabase
+          .from("client_module_connections")
+          .select("client_id,module,external_id,active")
+          .eq("organization_id", data.organizationId)
+          .eq("module", "ccm")
+          .in("client_id", activeIds);
+        if (error) throw new Error(`Module mapping read failed: ${error.message}`);
+        ccmPortfolioIds = [
+          ...new Set(
+            (rows ?? [])
+              .filter((r) => r.active && typeof r.external_id === "string" && r.external_id.trim())
+              .map((r) => r.external_id.trim()),
+          ),
+        ];
+      }
     }
 
     const dashboard = await loadModuleDashboard({
       externalIds,
       samApplicationId,
       clientScoped,
+      ccmPortfolioIds,
       range: data.range ?? null,
     });
 

@@ -9,14 +9,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Delta, DemoBadge, Sparkline } from "@/components/command/dash-ui";
+import { Delta, Sparkline } from "@/components/command/dash-ui";
 
 export type DetailRow = { label: string; value: string };
 
 export type DetailPayload = {
   title: string;
   subtitle?: string;
-  demo?: boolean;
   value?: string;
   delta?: number;
   series?: number[];
@@ -40,7 +39,6 @@ export function DetailSheet({
             <SheetHeader className="space-y-1">
               <SheetTitle className="flex items-center gap-2 text-[14px]">
                 <span className="min-w-0 truncate">{detail.title}</span>
-                {detail.demo && <DemoBadge />}
               </SheetTitle>
               {detail.subtitle && (
                 <SheetDescription className="text-[11px] uppercase tracking-[0.16em]">

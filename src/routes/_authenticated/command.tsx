@@ -3,17 +3,20 @@ import { useMemo, useState } from "react";
 import { Bell, Download } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { cn } from "@/lib/utils";
-import { DemoBadge, KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
+import { KpiCard, MiniStat, Panel } from "@/components/command/dash-ui";
 import { DONUT_COLORS, DonutChart, TrendChart } from "@/components/command/charts";
 import { ClientWorkspacePanel } from "@/components/command/client-workspace-panel";
 import { ModulePreviewRow } from "@/components/command/module-preview-row";
 import {
-  DEMO_COMMAND_KPIS,
-  DEMO_OPERATIONAL_CARDS,
-  DEMO_REVENUE_BY_SOURCE,
-  DEMO_REVENUE_TREND,
-} from "@/lib/command/demo-data";
-import { deriveClientHealth, money, useCommandOverview } from "@/lib/command/hooks";
+  deriveClientHealth,
+  deriveJobSeries,
+  deriveRevenueBySource,
+  deriveRevenueDeltaPct,
+  deriveRevenueMtdCents,
+  deriveRevenueTrend,
+  money,
+  useCommandOverview,
+} from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
 import { StatusChip } from "@/components/command/source-state";
 import {
@@ -105,32 +108,152 @@ function CommandPage() {
     return rows.reduce((sum, i) => sum + (i.amount_paid_cents ?? 0), 0);
   }, [d, clientFilter]);
 
-  // A demo KPI is replaced only when its owning module actually reported it.
-  const liveKpi: Record<string, string | undefined> = {
-    leads:
-      dashboard?.cam.status === "ok"
-        ? (formatCount(dashboard.cam.data?.leads ?? null) ?? undefined)
-        : undefined,
-    appointments:
-      dashboard?.ccm.status === "ok"
-        ? (formatCount(dashboard.ccm.data?.appointments ?? null) ?? undefined)
-        : undefined,
-    customers:
-      dashboard?.crm.status === "ok"
-        ? (formatCount(dashboard.crm.data?.customers ?? null) ?? undefined)
-        : undefined,
+  // Real HQ revenue, restricted to clients still on the roster.
+  const revenueTrend = useMemo(() => (d ? deriveRevenueTrend(d) : []), [d]);
+  const revenueBySource = useMemo(() => (d ? deriveRevenueBySource(d) : []), [d]);
+  const revenueMtdCents = d ? deriveRevenueMtdCents(d) : 0;
+  const revenueDelta = deriveRevenueDeltaPct(revenueTrend);
+  const donutTotal = revenueBySource.reduce((n, s) => n + s.value, 0);
+
+  const num = (v: number | null | undefined) => formatCount(v ?? 0) ?? "0";
+
+  // Portfolio KPIs. Every value is a real reading; a module that answered with
+  // no metric is zero filled, and an unreachable module says so in the hint.
+  const moduleHint = (key: "cam" | "ccm" | "crm" | "sam") => {
+    const source = dashboard?.[key];
+    if (!source) return "Reading module source";
+    return source.status === "ok" ? "Live module source" : (source.reason ?? "Source unavailable");
   };
 
+  const portfolioKpis: {
+    key: string;
+    label: string;
+    value: string;
+    delta?: number;
+    series?: number[];
+    hint: string;
+    note: string;
+  }[] = [
+    {
+      key: "leads",
+      label: "Leads",
+      value: num(dashboard?.cam.data?.leads),
+      series: (dashboard?.cam.data?.trend ?? []).map((p) => p.value),
+      hint: moduleHint("cam"),
+      note: "Read live from CAM for the selected range.",
+    },
+    {
+      key: "appointments",
+      label: "Appointments",
+      value: num(dashboard?.ccm.data?.appointments),
+      series: (dashboard?.ccm.data?.trend ?? []).map((p) => p.value),
+      hint: moduleHint("ccm"),
+      note: "Read live from CCM for the selected range.",
+    },
+    {
+      key: "customers",
+      label: "Customers",
+      value: num(dashboard?.crm.data?.customers),
+      hint: moduleHint("crm"),
+      note: "Read live from NorthStar CRM.",
+    },
+    {
+      key: "pipeline",
+      label: "Pipeline Value",
+      value: money(dashboard?.crm.data?.pipelineValueCents ?? 0),
+      hint: moduleHint("crm"),
+      note: "Open deal value read live from NorthStar CRM.",
+    },
+    {
+      key: "revenue",
+      label: "Revenue MTD",
+      value: money(revenueMtdCents),
+      ...(revenueDelta === null ? {} : { delta: Math.round(revenueDelta) }),
+      series: revenueTrend.map((p) => p.value),
+      hint: "NorthStar billing records",
+      note: "Collected invoice payments for clients on the roster this month.",
+    },
+    {
+      key: "sam",
+      label: "SAM Success Rate",
+      value: `${(dashboard?.sam.data?.successRatePct ?? 0).toFixed(1)}%`,
+      hint: moduleHint("sam"),
+      note: "Reported by SAM Core for the selected range.",
+    },
+  ];
+
+  const automations = (d?.automations.data ?? []).filter((a) => a.enabled);
+  const operations = {
+    automations: automations.length,
+    jobs24h: jobs.length,
+    failed24h: failedJobs.length,
+    approvals: approvals.length,
+    series: d ? deriveJobSeries(d) : [],
+  };
+
+  const operationalCards: {
+    key: string;
+    label: string;
+    value: string;
+    detail: string;
+    tone: "default" | "warn" | "alert";
+    link: { to: string; label: string };
+  }[] = [
+    {
+      key: "approvals",
+      label: "Approvals Waiting",
+      value: String(approvals.length),
+      detail: approvals.length === 0 ? "Nothing waiting on review" : "Awaiting operator decision",
+      tone: approvals.length > 0 ? "warn" : "default",
+      link: { to: "/labs/mission-control", label: "Review approvals" },
+    },
+    {
+      key: "failed",
+      label: "Failed Jobs (24h)",
+      value: String(failedJobs.length),
+      detail: failedJobs.length === 0 ? "No failures in the last 24 hours" : "Needs investigation",
+      tone: failedJobs.length > 0 ? "alert" : "default",
+      link: { to: "/sam/control", label: "Open operations" },
+    },
+    {
+      key: "jobs",
+      label: "Jobs Run (24h)",
+      value: String(jobs.length),
+      detail: "Automation executions on record",
+      tone: "default",
+      link: { to: "/sam/control", label: "Open operations" },
+    },
+    {
+      key: "automations",
+      label: "Active Automations",
+      value: String(automations.length),
+      detail: automations.length === 0 ? "No automations enabled" : "Enabled definitions",
+      tone: "default",
+      link: { to: "/sam/control", label: "Open operations" },
+    },
+    {
+      key: "integrations",
+      label: "Integrations In Error",
+      value: String(brokenConnections.length),
+      detail:
+        brokenConnections.length === 0
+          ? `${connections.length} connections healthy`
+          : "Reconnect required",
+      tone: brokenConnections.length > 0 ? "alert" : "default",
+      link: { to: "/sam/integrations", label: "Open integrations" },
+    },
+  ];
 
   function exportCsv() {
-    const rows = [
-      ["Client", "Status", "Current issue", "MRR (cents)"],
-      ...health.map((c) => [
-        c.name,
-        c.status,
-        c.issue ?? "",
-        String(c.mrrCents ?? 0),
-      ]),
+    const rows: string[][] = [
+      ["Section", "Metric", "Value"],
+      ...portfolioKpis.map((k) => ["Portfolio KPI", k.label, k.value]),
+      ["Portfolio KPI", "Active Clients", String(activeClients.length)],
+      ["Portfolio KPI", "Open Alerts", String(openAlerts)],
+      ...operationalCards.map((c) => ["Operations", c.label, c.value]),
+      ...revenueTrend.map((p) => ["Revenue Trend", p.label, p.value.toFixed(2)]),
+      ...revenueBySource.map((s) => ["Revenue by Source", s.name, s.value.toFixed(2)]),
+      ...health.map((c) => ["Client", c.name, String(c.mrrCents ?? 0)]),
     ];
     const csv = rows
       .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -151,7 +274,6 @@ function CommandPage() {
     );
   }
 
-  const donutTotal = DEMO_REVENUE_BY_SOURCE.reduce((n, s) => n + s.value, 0);
 
   return (
     <div className="min-w-0 px-2.5 pb-6 pt-2.5 md:px-3">
@@ -243,34 +365,27 @@ function CommandPage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-6">
-            {DEMO_COMMAND_KPIS.map((k) => {
-              const liveValue = liveKpi[k.key];
-              const isLive = typeof liveValue === "string";
-              return (
-                <KpiCard
-                  key={k.key}
-                  label={k.label}
-                  value={isLive ? liveValue : k.value}
-                  delta={isLive ? undefined : k.delta}
-                  series={isLive ? undefined : k.series}
-                  demo={!isLive}
-                  hint={isLive ? "Live module source" : undefined}
-                  onSelect={() =>
-                    setDetail({
-                      title: k.label,
-                      subtitle: DATE_RANGES.find((r) => r.value === range)?.label,
-                      demo: !isLive,
-                      value: isLive ? liveValue : k.value,
-                      delta: isLive ? undefined : k.delta,
-                      series: isLive ? undefined : k.series,
-                      note: isLive
-                        ? "Read live from the connected module source."
-                        : "Sample data. This metric is not wired to a live source yet.",
-                    })
-                  }
-                />
-              );
-            })}
+            {portfolioKpis.map((k) => (
+              <KpiCard
+                key={k.key}
+                label={k.label}
+                value={k.value}
+                {...(typeof k.delta === "number" ? { delta: k.delta } : {})}
+                {...(k.series ? { series: k.series } : {})}
+                hint={k.hint}
+                onSelect={() =>
+                  setDetail({
+                    title: k.label,
+                    subtitle: DATE_RANGES.find((r) => r.value === range)?.label,
+                    value: k.value,
+                    ...(typeof k.delta === "number" ? { delta: k.delta } : {}),
+                    ...(k.series ? { series: k.series } : {}),
+                    note: k.note,
+                  })
+                }
+              />
+            ))}
+
 
             <KpiCard
               label="Active Clients"
@@ -311,29 +426,47 @@ function CommandPage() {
 
           {/* Charts + top clients */}
           <div className="grid min-w-0 gap-2.5 lg:grid-cols-[1.1fr_0.8fr_1.4fr]">
-            <Panel title="Revenue Trend" subtitle="Trailing 12 months" demo bodyClassName="p-2.5">
-              <TrendChart data={DEMO_REVENUE_TREND} valuePrefix="$" />
+            <Panel
+              title="Revenue Trend"
+              subtitle="Trailing 12 months, collected"
+              bodyClassName="p-2.5"
+            >
+              <TrendChart data={revenueTrend} valuePrefix="$" />
+              {donutTotal === 0 && (
+                <p className="mt-1.5 text-[9.5px] text-muted-foreground">
+                  No collected revenue recorded for clients on the roster.
+                </p>
+              )}
             </Panel>
 
-            <Panel title="Revenue by Source" demo bodyClassName="p-2.5">
-              <DonutChart data={DEMO_REVENUE_BY_SOURCE} height={104} />
-              <ul className="mt-1.5 space-y-[3px]">
-                {DEMO_REVENUE_BY_SOURCE.map((s, i) => (
-                  <li key={s.name} className="flex items-center gap-1.5 text-[10px]">
-                    <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
-                    />
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                      {s.name}
-                    </span>
-                    <span className="tabular-nums text-foreground">
-                      {Math.round((s.value / donutTotal) * 100)}%
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            <Panel title="Revenue by Source" subtitle="Collected" bodyClassName="p-2.5">
+              {revenueBySource.length === 0 ? (
+                <p className="py-6 text-center text-[10.5px] text-muted-foreground">
+                  No collected revenue to attribute yet.
+                </p>
+              ) : (
+                <>
+                  <DonutChart data={revenueBySource} height={104} />
+                  <ul className="mt-1.5 space-y-[3px]">
+                    {revenueBySource.map((s, i) => (
+                      <li key={s.name} className="flex items-center gap-1.5 text-[10px]">
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                          {s.name}
+                        </span>
+                        <span className="tabular-nums text-foreground">
+                          {donutTotal > 0 ? Math.round((s.value / donutTotal) * 100) : 0}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </Panel>
+
 
             <Panel title="Clients by MRR" subtitle="HQ records" bodyClassName="p-0">
               <table className="w-full table-fixed text-left text-[11px]">
@@ -397,58 +530,41 @@ function CommandPage() {
           </div>
 
 
-          {/* Operational cards */}
+          {/* Operational cards, all from live HQ records */}
           <div id="alerts" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-5">
-            {DEMO_OPERATIONAL_CARDS.map((c) => {
-              const live =
-                c.key === "approvals"
-                  ? { value: String(approvals.length), demo: false }
-                  : c.key === "failed"
-                    ? { value: String(failedJobs.length), demo: false }
-                    : null;
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() =>
-                    setDetail({
-                      title: c.label,
-                      subtitle: live ? "Live records" : undefined,
-                      demo: !live,
-                      value: live ? live.value : c.value,
-                      rows: [{ label: "Detail", value: c.detail }],
-                      link:
-                        c.key === "approvals"
-                          ? { to: "/labs/mission-control", label: "Review approvals" }
-                          : { to: "/sam/control", label: "Open operations" },
-                    })
-                  }
-                  className="rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                >
-                  <div className="flex items-center justify-between gap-1.5">
-                    <MiniStat
-                      label={c.label}
-                      value={live ? live.value : c.value}
-                      tone={live && live.value === "0" ? "default" : c.tone}
-                    />
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span
-                      className={cn(
-                        "h-1.5 w-1.5 rounded-full",
-                        c.tone === "ok" && "bg-success",
-                        c.tone === "warn" && "bg-warning",
-                        c.tone === "alert" && "bg-destructive",
-                      )}
-                    />
-                    <span className="truncate text-[9.5px] text-muted-foreground">
-                      {c.detail}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+            {operationalCards.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() =>
+                  setDetail({
+                    title: c.label,
+                    subtitle: "Live records",
+                    value: c.value,
+                    rows: [{ label: "Detail", value: c.detail }],
+                    link: c.link,
+                  })
+                }
+                className="rounded-[7px] border border-border/70 bg-card/60 px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-card focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                <div className="flex items-center justify-between gap-1.5">
+                  <MiniStat label={c.label} value={c.value} tone={c.tone} />
+                </div>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      c.tone === "default" && "bg-success",
+                      c.tone === "warn" && "bg-warning",
+                      c.tone === "alert" && "bg-destructive",
+                    )}
+                  />
+                  <span className="truncate text-[9.5px] text-muted-foreground">{c.detail}</span>
+                </div>
+              </button>
+            ))}
           </div>
+
 
           {/* Real client health, sourced from live records */}
           <Panel
@@ -521,7 +637,7 @@ function CommandPage() {
 
       {/* Lower module preview row */}
       <div className="mt-2.5">
-        <ModulePreviewRow dashboard={dashboard} />
+        <ModulePreviewRow dashboard={dashboard} operations={operations} />
       </div>
 
       <DetailSheet detail={detail} onOpenChange={(o) => !o && setDetail(null)} />
