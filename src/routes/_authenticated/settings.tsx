@@ -749,3 +749,233 @@ function OptionCard({
     </button>
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+// Accountability
+// ─────────────────────────────────────────────────────────────
+
+function StatTile({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
+  return (
+    <div className="rounded-md border border-border bg-card/40 p-3">
+      <div className="text-[10.5px] uppercase tracking-[0.2em] text-muted-foreground/80">{label}</div>
+      <div className="mt-1 text-[22px] leading-none tabular-nums text-foreground">{value}</div>
+      {hint && <div className="mt-1 text-[11.5px] text-muted-foreground">{hint}</div>}
+    </div>
+  );
+}
+
+function AccountabilityTab() {
+  const { activeOrgId } = useOrg();
+  const { user } = useAuth();
+  const commitmentsQ = useCommitments(activeOrgId);
+  const projectsQ = useProjects(activeOrgId);
+  const goalsQ = useGoals(activeOrgId);
+  const decisionsQ = useDecisions(activeOrgId);
+
+  if (!activeOrgId) {
+    return <p className="text-[13.5px] text-muted-foreground">Select an organization to see accountability signals.</p>;
+  }
+
+  const loading = commitmentsQ.isLoading || projectsQ.isLoading || goalsQ.isLoading || decisionsQ.isLoading;
+  if (loading) return <div className="h-40 animate-pulse rounded-2xl bg-card/30" />;
+
+  const commitments = commitmentsQ.data ?? [];
+  const projects = projectsQ.data ?? [];
+  const goals = goalsQ.data ?? [];
+  const decisions = decisionsQ.data ?? [];
+
+  const overdue = commitments.filter(isCommitmentOverdue);
+  const dueSoon = commitments.filter((c) => isCommitmentDueSoon(c));
+  const stalled = projects.filter(isProjectStalled);
+  const atRisk = goals.filter(isGoalAtRisk);
+  const waiting = decisions.filter((d) => isDecisionWaiting(d, user?.id));
+
+  return (
+    <div className="max-w-4xl space-y-8">
+      <Section
+        title="Accountability signals"
+        hint="Computed live from your commitments, projects, goals, and decisions."
+        action={<Link to="/labs/accountability" className="hover:text-foreground">Open accountability</Link>}
+      >
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <StatTile label="Overdue" value={overdue.length} hint="Commitments past due" />
+          <StatTile label="Due soon" value={dueSoon.length} hint={`Next ${COMMITMENT_DUE_SOON_DAYS} days`} />
+          <StatTile label="Stalled" value={stalled.length} hint={`No update in ${STALLED_PROJECT_DAYS} days`} />
+          <StatTile label="Goals at risk" value={atRisk.length} hint={`Under ${GOAL_AT_RISK_PCT}% near target date`} />
+          <StatTile label="Awaiting you" value={waiting.length} hint="Decisions needing a call" />
+        </div>
+      </Section>
+
+      <Section title="Thresholds" hint="These rules drive every accountability signal across NorthStar Labs and SAM.">
+        <ul className="text-[13px] text-muted-foreground">
+          <li className="border-b border-border/50 py-2.5">A commitment is <span className="text-foreground">due soon</span> within {COMMITMENT_DUE_SOON_DAYS} days of its due date, and <span className="text-foreground">overdue</span> the day after.</li>
+          <li className="border-b border-border/50 py-2.5">A project is <span className="text-foreground">stalled</span> after {STALLED_PROJECT_DAYS} days without an update while still open.</li>
+          <li className="border-b border-border/50 py-2.5">A goal is <span className="text-foreground">at risk</span> inside {GOAL_AT_RISK_DAYS} days of its target date when progress is below {GOAL_AT_RISK_PCT}%.</li>
+          <li className="py-2.5">A decision is <span className="text-foreground">awaiting you</span> when it is waiting on the founder, under your review, or past its review date.</li>
+        </ul>
+        <p className="mt-3 text-[12px] text-muted-foreground">
+          Thresholds are fixed system rules today. Per-organization overrides are not stored anywhere yet, so nothing here is editable.
+        </p>
+      </Section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Notifications
+// ─────────────────────────────────────────────────────────────
+
+function NotificationsTab() {
+  const { activeOrgId, activeMembership } = useOrg();
+  const canManage = can.manageOrg(activeMembership?.role);
+  const samQ = useSamSettings(activeOrgId);
+  const upsert = useUpsertSamSettings(activeOrgId);
+  const statusFn = useServerFn(getEmailDeliveryStatus);
+  const statusQ = useQuery({
+    queryKey: ["email-delivery-status"],
+    queryFn: () => statusFn(),
+  });
+
+  const s = samQ.data;
+  const st = statusQ.data;
+  const emailLive = Boolean(st && st.missing.length === 0);
+
+  return (
+    <div className="max-w-3xl space-y-8">
+      <Section title="Email delivery" hint="Outbound email used for assessment alerts and client notifications.">
+        {statusQ.isLoading ? (
+          <div className="h-16 animate-pulse rounded-md bg-card/30" />
+        ) : statusQ.error ? (
+          <p className="text-[13px] text-destructive">Could not read delivery configuration.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[13.5px]">
+              <span className={"h-1.5 w-1.5 rounded-full " + (emailLive ? "bg-primary" : "bg-muted-foreground/40")} />
+              <span className="text-foreground">{emailLive ? "Live" : "Blocked"}</span>
+              <span className="text-muted-foreground">
+                {emailLive
+                  ? "Operator notification email is configured and sending."
+                  : "Outbound notification email cannot send yet."}
+              </span>
+            </div>
+            {!emailLive && st && (
+              <div className="rounded-md border border-border bg-card/40 p-3 text-[12.5px] text-muted-foreground">
+                Missing configuration:
+                <ul className="mt-1 list-disc pl-5">
+                  {st.missing.map((m) => (<li key={m} className="font-mono text-[12px] text-foreground">{m}</li>))}
+                </ul>
+                <p className="mt-2">Add these in Project Settings, Secrets. Nothing else is required in the app.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Section>
+
+      <Section title="In-app reminders" hint="Stored on your organization's SAM settings. Owner and admin only.">
+        {samQ.isLoading ? (
+          <div className="h-16 animate-pulse rounded-md bg-card/30" />
+        ) : (
+          <div className="grid grid-cols-[minmax(0,320px)_1fr] items-center gap-6 border-b border-border/60 py-4 text-[13.5px] last:border-0">
+            <div>
+              <div className="text-muted-foreground">Memory review reminders</div>
+              <div className="mt-0.5 text-[11.5px] text-muted-foreground/70">Nudge you to review stale or expired SAM memory.</div>
+            </div>
+            <SamToggle
+              disabled={!canManage}
+              checked={s?.memory_review_reminders ?? true}
+              onChange={(v) =>
+                upsert.mutate({ memory_review_reminders: v } as never, {
+                  onSuccess: () => toast.success("Reminder preference saved"),
+                  onError: (e: unknown) => toast.error((e as Error).message || "Update failed"),
+                })
+              }
+            />
+          </div>
+        )}
+        <p className="mt-3 text-[12px] text-muted-foreground">
+          Per-user notification channels (digest email, push) are not backed by any table yet, so they are not shown as options.
+        </p>
+      </Section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Security
+// ─────────────────────────────────────────────────────────────
+
+function SecurityTab() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function changePassword() {
+    if (pw.length < 8) return toast.error("Use at least 8 characters.");
+    if (pw !== pw2) return toast.error("Passwords do not match.");
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setPw("");
+    setPw2("");
+    toast.success("Password updated");
+  }
+
+  async function signOutEverywhere() {
+    setSigningOut(true);
+    const { error } = await supabase.auth.signOut({ scope: "global" });
+    setSigningOut(false);
+    if (error) return toast.error(error.message);
+    navigate({ to: "/auth", replace: true });
+  }
+
+  const lastSignIn = user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : null;
+  const provider = (user?.app_metadata?.provider as string | undefined) ?? "email";
+
+  return (
+    <div className="max-w-2xl space-y-8">
+      <Section title="Account security">
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px]">
+          <div className="text-muted-foreground">Email</div>
+          <div className="text-foreground">{user?.email ?? " - "}</div>
+        </div>
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 border-b border-border/60 py-4 text-[13.5px]">
+          <div className="text-muted-foreground">Sign-in method</div>
+          <div className="capitalize text-foreground">{provider}</div>
+        </div>
+        <div className="grid grid-cols-[minmax(0,200px)_1fr] gap-6 py-4 text-[13.5px]">
+          <div className="text-muted-foreground">Last sign-in</div>
+          <div className="text-foreground">{lastSignIn ?? "Not recorded"}</div>
+        </div>
+      </Section>
+
+      <Section title="Change password" hint="Applies immediately to this account.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Fld label="New password">
+            <input type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} className="w-full bg-transparent outline-none" />
+          </Fld>
+          <Fld label="Confirm new password">
+            <input type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} className="w-full bg-transparent outline-none" />
+          </Fld>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button onClick={changePassword} disabled={busy || !pw} className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
+            {busy ? "Updating…" : "Update password"}
+          </button>
+        </div>
+      </Section>
+
+      <Section title="Sessions" hint="Signs you out of every browser and device, including this one.">
+        <button onClick={signOutEverywhere} disabled={signingOut} className="rounded-md border border-border px-3 py-2 text-[12.5px] text-foreground hover:bg-secondary/60 disabled:opacity-60">
+          {signingOut ? "Signing out…" : "Sign out of all devices"}
+        </button>
+        <p className="mt-3 text-[12px] text-muted-foreground">
+          Multi-factor authentication is not enabled on this project's auth configuration, so no MFA controls are shown.
+        </p>
+      </Section>
+    </div>
+  );
+}
