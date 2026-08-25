@@ -484,7 +484,7 @@ function ProfileTab() {
           <div className="text-muted-foreground">Role</div>
           <div className="text-foreground capitalize">{activeMembership?.role ?? " - "}</div>
         </div>
-        <p className="mt-3 text-[12px] text-muted-foreground">Email changes will be handled by a secure flow in a future phase.</p>
+        <p className="mt-3 text-[12px] text-muted-foreground">Your sign-in email and password are managed under the Security tab.</p>
       </Section>
       <div className="flex justify-end">
         <button onClick={save} disabled={update.isPending} className="rounded-md bg-foreground px-4 py-2 text-[12.5px] font-medium text-background hover:opacity-90 disabled:opacity-60">
