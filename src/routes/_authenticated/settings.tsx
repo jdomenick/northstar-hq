@@ -60,6 +60,12 @@ import {
 } from "@/lib/data-hooks";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab:
+      typeof search.tab === "string" && SECTIONS.some((section) => section.value === search.tab)
+        ? search.tab
+        : "profile",
+  }),
   component: SettingsPage,
   head: () => ({
     meta: [
@@ -83,6 +89,8 @@ const SECTIONS = [
 ];
 
 function SettingsPage() {
+  const { tab } = Route.useSearch();
+  const navigate = Route.useNavigate();
   return (
     <div>
       <PageHeader eyebrow="Settings" title="Preferences" description="Tune how NorthStar Labs works for you and your team." />
@@ -96,7 +104,12 @@ function SettingsPage() {
             <Link to="/settings/founder-activation" className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-secondary/60">Open</Link>
           </div>
         </div>
-        <Tabs defaultValue="profile">
+        <Tabs
+          value={tab}
+          onValueChange={(value) =>
+            navigate({ to: ".", search: { tab: value }, replace: true })
+          }
+        >
           <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
             {SECTIONS.map((s) => (
               <TabsTrigger key={s.value} value={s.value} className="relative rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[12.5px] text-muted-foreground hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">

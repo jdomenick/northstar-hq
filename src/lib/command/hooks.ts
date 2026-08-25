@@ -359,6 +359,19 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
         .maybeSingle();
       if (clientRes.error) throw clientRes.error;
 
+      const activationProjectId = clientRes.data?.activation_project_id ?? null;
+      let clientVentureId: string | null = null;
+      if (activationProjectId) {
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
+          .select("venture_id")
+          .eq("organization_id", org)
+          .eq("id", activationProjectId)
+          .maybeSingle();
+        if (projectError) throw projectError;
+        clientVentureId = project?.venture_id ?? null;
+      }
+
       const [acquisition, leads, sales, revenue, delivery, automation, events, accounts] =
         await Promise.all([
           read("Acquisition", async () => {
@@ -416,10 +429,12 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
             return (data ?? []) as MilestoneRow[];
           }),
           read("Automation", async () => {
+            if (!clientVentureId) return [];
             const { data, error } = await supabase
               .from("automation_jobs")
               .select("id,status,job_type,error_code,created_at")
               .eq("organization_id", org)
+              .eq("venture_id", clientVentureId)
               .order("created_at", { ascending: false })
               .limit(10);
             if (error) throw error;

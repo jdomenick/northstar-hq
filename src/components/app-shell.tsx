@@ -187,9 +187,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const results = searchQ.data;
   const hasQuery = debouncedQuery.length >= 2;
 
-  const goto = (route: SearchHit["route"] | { to: string; params?: Record<string, string> }) => {
+  const goto = (
+    route: SearchHit["route"] | { to: string; params?: Record<string, string>; hash?: string },
+  ) => {
     setCmdOpen(false);
-    navigate({ to: route.to as any, params: route.params as any });
+    navigate({ to: route.to as any, params: route.params as any, hash: route.hash });
   };
 
   const initials = (user?.email ?? "?")
@@ -442,8 +444,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Search className="h-4 w-4" strokeWidth={1.8} />
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" aria-label="Notifications">
-              <Bell className="h-4 w-4" strokeWidth={1.75} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground"
+              aria-label="Open alerts"
+              asChild
+            >
+              <Link to="/command" hash="alerts">
+                <Bell className="h-4 w-4" strokeWidth={1.75} />
+              </Link>
             </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -518,7 +528,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <CommandItem
                 key={item.to + (item.hash ?? "")}
                 value={`nav-${item.label}`}
-                onSelect={() => goto({ to: item.to })}
+                onSelect={() => goto({ to: item.to, hash: item.hash })}
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}

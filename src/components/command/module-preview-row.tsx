@@ -6,7 +6,6 @@
 // answered but did not report a metric the card shows a real zero and the
 // status chip plus source note carry the truthful state of the connection.
 
-import { Link } from "@tanstack/react-router";
 import { MiniAreaChart, MiniBarChart } from "@/components/command/charts";
 import { MiniStat, Panel } from "@/components/command/dash-ui";
 import { SourceNote, StatusChip } from "@/components/command/source-state";
@@ -17,6 +16,12 @@ import {
   type ModuleSource,
   type TrendPoint,
 } from "@/lib/module-reporting/types";
+
+const MODULE_APP_URLS = {
+  cam: "https://camleadconversion.lovable.app",
+  ccm: "https://communicationmanager.lovable.app",
+  crm: "https://northstar-connect-suite.lovable.app",
+} as const;
 
 export interface OperationsSnapshot {
   automations: number;
@@ -120,7 +125,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(cam)}
-            <ModuleLink to="/sam/content">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.cam}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -139,7 +144,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(ccm)}
-            <ModuleLink to="/sam/content">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.ccm}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -158,7 +163,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(crm)}
-            <ModuleLink to="/clients">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.crm}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -175,7 +180,7 @@ export function ModulePreviewRow({
         id="operations"
         title="Operations Center"
         bodyClassName="p-2.5"
-        action={<ModuleLink to="/sam/control">Open</ModuleLink>}
+        action={<InternalModuleLink href="/sam/control">Open</InternalModuleLink>}
       >
         <StatGrid stats={opsStats} cols={2} />
         <div className="mt-2 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -194,7 +199,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(sam)}
-            <ModuleLink to="/sam">Open</ModuleLink>
+            <InternalModuleLink href="/sam">Open</InternalModuleLink>
           </div>
         }
       >
@@ -205,13 +210,26 @@ export function ModulePreviewRow({
   );
 }
 
-function ModuleLink({ to, children }: { to: string; children: string }) {
+function ExternalModuleLink({ href, children }: { href: string; children: string }) {
   return (
-    <Link
-      to={to}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
     >
       {children}
-    </Link>
+    </a>
+  );
+}
+
+function InternalModuleLink({ href, children }: { href: string; children: string }) {
+  return (
+    <a
+      href={href}
+      className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+    >
+      {children}
+    </a>
   );
 }

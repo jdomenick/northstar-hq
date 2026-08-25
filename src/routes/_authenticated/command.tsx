@@ -359,6 +359,7 @@ function CommandPage() {
             </span>
             <Link
               to="/settings"
+              search={{ tab: "integrations" }}
               className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             >
               Configure
@@ -616,7 +617,7 @@ function CommandPage() {
                         {c.issue ?? "Nothing outstanding"}
                       </td>
                       <td className="px-3 py-[7px] text-right tabular-nums text-foreground">
-                        {c.mrrCents ? money(c.mrrCents) : "-"}
+                          {money(c.mrrCents)}
                       </td>
                     </tr>
                   ))}
