@@ -32,10 +32,7 @@ export function notConnected<T>(reason: string): Source<T> {
   return { status: "not_connected", data: null, reason };
 }
 
-async function read<T>(
-  label: string,
-  fn: () => Promise<T>,
-): Promise<Source<T>> {
+async function read<T>(label: string, fn: () => Promise<T>): Promise<Source<T>> {
   try {
     return ok(await fn());
   } catch (err) {
@@ -57,7 +54,14 @@ type LeadRow = Pick<
 
 type InvoiceRow = Pick<
   Database["public"]["Tables"]["billing_invoices"]["Row"],
-  "id" | "client_id" | "status" | "amount_cents" | "amount_paid_cents" | "currency" | "due_at" | "paid_at"
+  | "id"
+  | "client_id"
+  | "status"
+  | "amount_cents"
+  | "amount_paid_cents"
+  | "currency"
+  | "due_at"
+  | "paid_at"
 >;
 
 type JobRow = Pick<
@@ -72,7 +76,13 @@ type MissionRow = Pick<
 
 type ConnectionRow = Pick<
   Database["public"]["Tables"]["integration_connections"]["Row"],
-  "id" | "display_name" | "provider" | "status" | "last_error_code" | "last_error_at" | "last_successful_sync_at"
+  | "id"
+  | "display_name"
+  | "provider"
+  | "status"
+  | "last_error_code"
+  | "last_error_at"
+  | "last_successful_sync_at"
 >;
 
 type TaskRow = Pick<
@@ -87,7 +97,14 @@ type MilestoneRow = Pick<
 
 type PipelineRow = Pick<
   Database["public"]["Tables"]["revenue_pipeline"]["Row"],
-  "id" | "client_id" | "name" | "stage" | "value_cents" | "expected_close" | "next_action" | "source"
+  | "id"
+  | "client_id"
+  | "name"
+  | "stage"
+  | "value_cents"
+  | "expected_close"
+  | "next_action"
+  | "source"
 >;
 
 type EventRow = Pick<
@@ -118,7 +135,6 @@ export interface CommandOverview {
   appointments: Source<never>;
 }
 
-
 /**
  * Standalone NorthStar products that are not wired into this project's data
  * layer. They are declared here as adapter boundaries so Command can report a
@@ -147,7 +163,6 @@ const NO_COMMS =
 const NO_SCHEDULING =
   "No scheduling system is connected to Command. Connect a calendar or booking source to report here.";
 
-
 export function useCommandOverview(orgId: string | null) {
   return useQuery({
     enabled: !!orgId,
@@ -168,9 +183,7 @@ export function useCommandOverview(orgId: string | null) {
         pipeline,
         events,
         automations,
-
       ] = await Promise.all([
-
         read("Clients", async () => {
           // Archived records (E2E and phase-validation runs) stay in the
           // database for audit but never enter the operating roster.
@@ -197,9 +210,7 @@ export function useCommandOverview(orgId: string | null) {
         read("Revenue", async () => {
           const { data, error } = await supabase
             .from("billing_invoices")
-            .select(
-              "id,client_id,status,amount_cents,amount_paid_cents,currency,due_at,paid_at",
-            )
+            .select("id,client_id,status,amount_cents,amount_paid_cents,currency,due_at,paid_at")
             .eq("organization_id", org)
             .order("created_at", { ascending: false })
             .limit(200);
@@ -241,9 +252,7 @@ export function useCommandOverview(orgId: string | null) {
         read("Approvals", async () => {
           const { data, error } = await supabase
             .from("operator_tasks")
-            .select(
-              "id,title,kind,status,priority,due_at,requires_approval,approved_at",
-            )
+            .select("id,title,kind,status,priority,due_at,requires_approval,approved_at")
             .eq("organization_id", org)
             .neq("status", "done")
             .order("due_at", { ascending: true, nullsFirst: false })
@@ -263,9 +272,7 @@ export function useCommandOverview(orgId: string | null) {
         read("Pipeline", async () => {
           const { data, error } = await supabase
             .from("revenue_pipeline")
-            .select(
-              "id,client_id,name,stage,value_cents,expected_close,next_action,source",
-            )
+            .select("id,client_id,name,stage,value_cents,expected_close,next_action,source")
             .eq("organization_id", org)
             .limit(200);
           if (error) throw error;
@@ -308,7 +315,6 @@ export function useCommandOverview(orgId: string | null) {
         conversations: notConnected<never>(NO_COMMS),
         appointments: notConnected<never>(NO_SCHEDULING),
       };
-
     },
   });
 }
@@ -359,6 +365,19 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
         .maybeSingle();
       if (clientRes.error) throw clientRes.error;
 
+      const activationProjectId = clientRes.data?.activation_project_id ?? null;
+      let clientVentureId: string | null = null;
+      if (activationProjectId) {
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
+          .select("venture_id")
+          .eq("organization_id", org)
+          .eq("id", activationProjectId)
+          .maybeSingle();
+        if (projectError) throw projectError;
+        clientVentureId = project?.venture_id ?? null;
+      }
+
       const [acquisition, leads, sales, revenue, delivery, automation, events, accounts] =
         await Promise.all([
           read("Acquisition", async () => {
@@ -374,9 +393,7 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
           read("Pipeline", async () => {
             const { data, error } = await supabase
               .from("revenue_pipeline")
-              .select(
-                "id,client_id,name,stage,value_cents,expected_close,next_action,source",
-              )
+              .select("id,client_id,name,stage,value_cents,expected_close,next_action,source")
               .eq("organization_id", org)
               .eq("client_id", clientId)
               .order("stage_entered_at", { ascending: false });
@@ -396,9 +413,7 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
           read("Revenue", async () => {
             const { data, error } = await supabase
               .from("billing_invoices")
-              .select(
-                "id,client_id,status,amount_cents,amount_paid_cents,currency,due_at,paid_at",
-              )
+              .select("id,client_id,status,amount_cents,amount_paid_cents,currency,due_at,paid_at")
               .eq("organization_id", org)
               .eq("client_id", clientId)
               .order("created_at", { ascending: false });
@@ -416,10 +431,12 @@ export function useClientOutcomeChain(orgId: string | null, clientId: string) {
             return (data ?? []) as MilestoneRow[];
           }),
           read("Automation", async () => {
+            if (!clientVentureId) return [];
             const { data, error } = await supabase
               .from("automation_jobs")
               .select("id,status,job_type,error_code,created_at")
               .eq("organization_id", org)
+              .eq("venture_id", clientVentureId)
               .order("created_at", { ascending: false })
               .limit(10);
             if (error) throw error;
@@ -497,19 +514,13 @@ export function deriveClientHealth(d: CommandOverview): ClientHealth[] {
     const cEvent = events.find((e) => e.client_id === c.id) ?? null;
 
     const open = cInvoices.filter((i) => i.status === "open");
-    const outstandingCents = open.reduce(
-      (n, i) => n + (i.amount_cents - i.amount_paid_cents),
-      0,
-    );
+    const outstandingCents = open.reduce((n, i) => n + (i.amount_cents - i.amount_paid_cents), 0);
     const pastDue = open.filter((i) => i.due_at && new Date(i.due_at).getTime() < now);
     const clientAction = cMilestones.filter(
       (m) => m.requires_client_action && m.status !== "complete",
     );
     const overdueMilestones = cMilestones.filter(
-      (m) =>
-        m.status !== "complete" &&
-        m.target_date &&
-        new Date(m.target_date).getTime() < now,
+      (m) => m.status !== "complete" && m.target_date && new Date(m.target_date).getTime() < now,
     );
 
     let issue: string | null = null;
@@ -538,7 +549,6 @@ export function deriveClientHealth(d: CommandOverview): ClientHealth[] {
   });
 }
 
-
 export function money(cents: number, currency = "usd"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -560,8 +570,18 @@ export interface RevenuePoint {
 }
 
 const MONTH_LABELS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 /** Invoices restricted to clients currently on the roster (non-archived). */

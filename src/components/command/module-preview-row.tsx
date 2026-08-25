@@ -18,6 +18,12 @@ import {
   type TrendPoint,
 } from "@/lib/module-reporting/types";
 
+const MODULE_APP_URLS = {
+  cam: "https://camleadconversion.lovable.app",
+  ccm: "https://communicationmanager.lovable.app",
+  crm: "https://northstar-connect-suite.lovable.app",
+} as const;
+
 export interface OperationsSnapshot {
   automations: number;
   jobs24h: number;
@@ -83,7 +89,10 @@ export function ModulePreviewRow({
     { label: "Appointments", value: count(ccm?.data?.appointments) },
     {
       label: "Avg Response",
-      value: `${Math.round((ccm?.data?.avgResponseSeconds ?? 0) / 60)}m`,
+      value:
+        ccm?.status === "ok"
+          ? `${Math.round((ccm.data?.avgResponseSeconds ?? 0) / 60)}m`
+          : "Unavailable",
     },
   ];
 
@@ -97,7 +106,11 @@ export function ModulePreviewRow({
     { label: "Status", value: sam?.data?.status ?? "Offline" },
     { label: "Consumers", value: count(sam?.data?.consumers) },
     { label: "Events", value: count(sam?.data?.events) },
-    { label: "Success", value: `${(sam?.data?.successRatePct ?? 0).toFixed(1)}%` },
+    {
+      label: "Success",
+      value:
+        sam?.status === "ok" ? `${(sam.data?.successRatePct ?? 0).toFixed(1)}%` : "Unavailable",
+    },
   ];
 
   const crmStages =
@@ -120,7 +133,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(cam)}
-            <ModuleLink to="/sam/content">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.cam}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -139,7 +152,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(ccm)}
-            <ModuleLink to="/sam/content">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.ccm}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -158,7 +171,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(crm)}
-            <ModuleLink to="/clients">Open</ModuleLink>
+            <ExternalModuleLink href={MODULE_APP_URLS.crm}>Open</ExternalModuleLink>
           </div>
         }
         bodyClassName="p-2.5"
@@ -175,7 +188,7 @@ export function ModulePreviewRow({
         id="operations"
         title="Operations Center"
         bodyClassName="p-2.5"
-        action={<ModuleLink to="/sam/control">Open</ModuleLink>}
+        action={<InternalModuleLink href="/sam/control">Open</InternalModuleLink>}
       >
         <StatGrid stats={opsStats} cols={2} />
         <div className="mt-2 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -194,7 +207,7 @@ export function ModulePreviewRow({
         action={
           <div className="flex items-center gap-1.5">
             {chipOf(sam)}
-            <ModuleLink to="/sam">Open</ModuleLink>
+            <InternalModuleLink href="/sam">Open</InternalModuleLink>
           </div>
         }
       >
@@ -205,10 +218,29 @@ export function ModulePreviewRow({
   );
 }
 
-function ModuleLink({ to, children }: { to: string; children: string }) {
+function ExternalModuleLink({ href, children }: { href: string; children: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+    >
+      {children}
+    </a>
+  );
+}
+
+function InternalModuleLink({
+  href,
+  children,
+}: {
+  href: "/sam/control" | "/sam";
+  children: string;
+}) {
   return (
     <Link
-      to={to}
+      to={href}
       className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
     >
       {children}

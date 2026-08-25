@@ -19,13 +19,8 @@ import {
 } from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
 import { StatusChip } from "@/components/command/source-state";
-import {
-  MODULE_KEYS,
-  MODULE_LABELS,
-  formatCount,
-} from "@/lib/module-reporting/types";
+import { MODULE_KEYS, MODULE_LABELS, formatCount } from "@/lib/module-reporting/types";
 import { DetailSheet, type DetailPayload } from "@/components/command/detail-sheet";
-
 
 export const Route = createFileRoute("/_authenticated/command")({
   component: CommandPage,
@@ -69,7 +64,10 @@ function CommandPage() {
 
   const d = q.data;
   const clients = d?.clients.data ?? [];
-  const health = useMemo(() => (d ? deriveClientHealth(d) : []), [d]);
+  const health = useMemo(() => {
+    const rows = d ? deriveClientHealth(d) : [];
+    return clientFilter === "all" ? rows : rows.filter((client) => client.id === clientFilter);
+  }, [d, clientFilter]);
   const topClients = useMemo(
     () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
     [health],
@@ -82,9 +80,7 @@ function CommandPage() {
   const brokenConnections = connections.filter(
     (c) => c.status === "error" || Boolean(c.last_error_at),
   );
-  const approvals = (d?.approvals.data ?? []).filter(
-    (t) => t.requires_approval && !t.approved_at,
-  );
+  const approvals = (d?.approvals.data ?? []).filter((t) => t.requires_approval && !t.approved_at);
   const openAlerts = failedJobs.length + brokenConnections.length;
 
   const selectedClientName =
@@ -176,7 +172,10 @@ function CommandPage() {
     {
       key: "sam",
       label: "SAM Success Rate",
-      value: `${(dashboard?.sam.data?.successRatePct ?? 0).toFixed(1)}%`,
+      value:
+        dashboard?.sam.status === "ok"
+          ? `${(dashboard.sam.data?.successRatePct ?? 0).toFixed(1)}%`
+          : "Unavailable",
       hint: moduleHint("sam"),
       note: "Reported by SAM Core for the selected range.",
     },
@@ -274,7 +273,6 @@ function CommandPage() {
     );
   }
 
-
   return (
     <div className="min-w-0 px-2.5 pb-6 pt-2.5 md:px-3">
       {/* Header row */}
@@ -322,14 +320,15 @@ function CommandPage() {
             Export
           </button>
           <Link
-            to="/labs/mission-control"
-            aria-label={`Notifications, ${approvals.length} waiting`}
+            to="/command"
+            hash="alerts"
+            aria-label={`Open alerts, ${openAlerts + approvals.length} waiting`}
             className="relative grid h-7 w-7 place-items-center rounded-[6px] border border-border/70 bg-card/60 text-muted-foreground hover:text-foreground"
           >
             <Bell className="h-3.5 w-3.5" strokeWidth={1.9} />
-            {approvals.length > 0 && (
+            {openAlerts + approvals.length > 0 && (
               <span className="absolute -right-1 -top-1 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-destructive px-1 text-[8px] font-semibold text-destructive-foreground">
-                {approvals.length}
+                {openAlerts + approvals.length}
               </span>
             )}
           </Link>
@@ -359,6 +358,7 @@ function CommandPage() {
             </span>
             <Link
               to="/settings"
+              hash="integrations"
               className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             >
               Configure
@@ -386,7 +386,6 @@ function CommandPage() {
               />
             ))}
 
-
             <KpiCard
               label="Active Clients"
               value={q.isLoading ? "-" : String(activeClients.length)}
@@ -396,9 +395,7 @@ function CommandPage() {
                   title: "Active Clients",
                   subtitle: "Live records",
                   value: String(activeClients.length),
-                  rows: clients
-                    .slice(0, 8)
-                    .map((c) => ({ label: c.name, value: c.status })),
+                  rows: clients.slice(0, 8).map((c) => ({ label: c.name, value: c.status })),
                   link: { to: "/clients", label: "Open client index" },
                 })
               }
@@ -467,7 +464,6 @@ function CommandPage() {
               )}
             </Panel>
 
-
             <Panel title="Clients by MRR" subtitle="HQ records" bodyClassName="p-0">
               <table className="w-full table-fixed text-left text-[11px]">
                 <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -481,9 +477,7 @@ function CommandPage() {
                 <tbody>
                   {topClients.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={4}
-                        className="px-3 py-3 text-[11px] text-muted-foreground">
+                      <td colSpan={4} className="px-3 py-3 text-[11px] text-muted-foreground">
                         {q.isLoading ? "Loading clients…" : "No clients on record yet."}
                       </td>
                     </tr>
@@ -510,7 +504,8 @@ function CommandPage() {
                             link: { to: `/clients/${c.id}`, label: "Open workspace" },
                           })
                         }
-                        className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none">
+                        className="cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
+                      >
                         <td className="truncate px-3 py-[7px] text-foreground">{c.name}</td>
                         <td className="px-2 py-[7px] text-right tabular-nums text-foreground">
                           {money(c.mrrCents)}
@@ -528,7 +523,6 @@ function CommandPage() {
               </table>
             </Panel>
           </div>
-
 
           {/* Operational cards, all from live HQ records */}
           <div id="alerts" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 2xl:grid-cols-5">
@@ -564,7 +558,6 @@ function CommandPage() {
               </button>
             ))}
           </div>
-
 
           {/* Real client health, sourced from live records */}
           <Panel
@@ -616,7 +609,7 @@ function CommandPage() {
                         {c.issue ?? "Nothing outstanding"}
                       </td>
                       <td className="px-3 py-[7px] text-right tabular-nums text-foreground">
-                        {c.mrrCents ? money(c.mrrCents) : "-"}
+                        {money(c.mrrCents)}
                       </td>
                     </tr>
                   ))}
@@ -632,7 +625,6 @@ function CommandPage() {
           hqRevenueCents={clientRevenueCents}
           clientScoped={clientFilter !== "all"}
         />
-
       </div>
 
       {/* Lower module preview row */}
