@@ -973,6 +973,17 @@ function SecurityTab() {
         </div>
       </Section>
 
+      <Section title="Change sign-in email" hint="Supabase sends a confirmation link to the new address before the change takes effect.">
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+          <Fld label="New email">
+            <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={user?.email ?? ""} className="w-full bg-transparent outline-none" />
+          </Fld>
+          <button onClick={changeEmail} disabled={emailBusy || !email} className="h-10 rounded-md border border-border px-3 text-[12.5px] text-foreground hover:bg-secondary/60 disabled:opacity-60">
+            {emailBusy ? "Sending…" : "Send confirmation"}
+          </button>
+        </div>
+      </Section>
+
       <Section title="Change password" hint="Applies immediately to this account.">
         <div className="grid gap-4 sm:grid-cols-2">
           <Fld label="New password">
