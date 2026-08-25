@@ -64,7 +64,10 @@ function CommandPage() {
 
   const d = q.data;
   const clients = d?.clients.data ?? [];
-  const health = useMemo(() => (d ? deriveClientHealth(d) : []), [d]);
+  const health = useMemo(() => {
+    const rows = d ? deriveClientHealth(d) : [];
+    return clientFilter === "all" ? rows : rows.filter((client) => client.id === clientFilter);
+  }, [d, clientFilter]);
   const topClients = useMemo(
     () => [...health].sort((a, b) => b.mrrCents - a.mrrCents).slice(0, 5),
     [health],
@@ -169,7 +172,10 @@ function CommandPage() {
     {
       key: "sam",
       label: "SAM Success Rate",
-      value: `${(dashboard?.sam.data?.successRatePct ?? 0).toFixed(1)}%`,
+      value:
+        dashboard?.sam.status === "ok"
+          ? `${(dashboard.sam.data?.successRatePct ?? 0).toFixed(1)}%`
+          : "Unavailable",
       hint: moduleHint("sam"),
       note: "Reported by SAM Core for the selected range.",
     },
@@ -314,14 +320,15 @@ function CommandPage() {
             Export
           </button>
           <Link
-            to="/labs/mission-control"
-            aria-label={`Notifications, ${approvals.length} waiting`}
+            to="/command"
+            hash="alerts"
+            aria-label={`Open alerts, ${openAlerts + approvals.length} waiting`}
             className="relative grid h-7 w-7 place-items-center rounded-[6px] border border-border/70 bg-card/60 text-muted-foreground hover:text-foreground"
           >
             <Bell className="h-3.5 w-3.5" strokeWidth={1.9} />
-            {approvals.length > 0 && (
+            {openAlerts + approvals.length > 0 && (
               <span className="absolute -right-1 -top-1 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-destructive px-1 text-[8px] font-semibold text-destructive-foreground">
-                {approvals.length}
+                {openAlerts + approvals.length}
               </span>
             )}
           </Link>

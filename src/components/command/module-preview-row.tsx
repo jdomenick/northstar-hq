@@ -89,7 +89,8 @@ export function ModulePreviewRow({
     { label: "Appointments", value: count(ccm?.data?.appointments) },
     {
       label: "Avg Response",
-      value: `${Math.round((ccm?.data?.avgResponseSeconds ?? 0) / 60)}m`,
+      value:
+        ccm?.status === "ok" ? `${Math.round((ccm.data?.avgResponseSeconds ?? 0) / 60)}m` : "Unavailable",
     },
   ];
 
@@ -103,7 +104,10 @@ export function ModulePreviewRow({
     { label: "Status", value: sam?.data?.status ?? "Offline" },
     { label: "Consumers", value: count(sam?.data?.consumers) },
     { label: "Events", value: count(sam?.data?.events) },
-    { label: "Success", value: `${(sam?.data?.successRatePct ?? 0).toFixed(1)}%` },
+    {
+      label: "Success",
+      value: sam?.status === "ok" ? `${(sam.data?.successRatePct ?? 0).toFixed(1)}%` : "Unavailable",
+    },
   ];
 
   const crmStages =

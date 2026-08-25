@@ -170,8 +170,22 @@ function ModuleReportingTab() {
   }
   const clients = (overview.data?.clients.data ?? []).map((c) => ({ id: c.id, name: c.name }));
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl space-y-4">
       <ModuleConnectionsCard organizationId={activeOrgId} clients={clients} />
+      <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-4 text-[12.5px]">
+        <div>
+          <div className="text-foreground">Website knowledge connections</div>
+          <div className="text-muted-foreground">
+            Manage websites NorthStar can inspect for approved knowledge sources.
+          </div>
+        </div>
+        <Link
+          to="/settings/integrations"
+          className="shrink-0 rounded-md border border-border px-3 py-1.5 text-foreground hover:bg-secondary/60"
+        >
+          Manage
+        </Link>
+      </div>
     </div>
   );
 }
@@ -546,7 +560,6 @@ function ProfileTab() {
         <div className="mb-6 flex items-center gap-5">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border bg-secondary/40">
             {form.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={form.avatar_url}
                 alt={displayName}
