@@ -154,7 +154,6 @@ function visibleGroups(role: Role | undefined | null): NavGroup[] {
   })).filter((g) => g.items.length > 0);
 }
 
-
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -522,18 +521,53 @@ export function AppShell({ children }: { children: ReactNode }) {
           {hasQuery && !searchQ.isFetching && results && results.total === 0 && (
             <CommandEmpty>No matches in this organization.</CommandEmpty>
           )}
-          {!hasQuery && <CommandEmpty>Type to search  -  or pick an action below.</CommandEmpty>}
+          {!hasQuery && <CommandEmpty>Type to search - or pick an action below.</CommandEmpty>}
 
           {hasQuery && results && (
             <>
-              <SearchGroup heading="Ventures" hits={results.ventures} icon={Building2} onSelect={goto} />
-              <SearchGroup heading="Projects" hits={results.projects} icon={FolderKanban} onSelect={goto} />
-              <SearchGroup heading="Tasks" hits={results.tasks} icon={CheckSquare} onSelect={goto} />
+              <SearchGroup
+                heading="Ventures"
+                hits={results.ventures}
+                icon={Building2}
+                onSelect={goto}
+              />
+              <SearchGroup
+                heading="Projects"
+                hits={results.projects}
+                icon={FolderKanban}
+                onSelect={goto}
+              />
+              <SearchGroup
+                heading="Tasks"
+                hits={results.tasks}
+                icon={CheckSquare}
+                onSelect={goto}
+              />
               <SearchGroup heading="Goals" hits={results.goals} icon={Target} onSelect={goto} />
-              <SearchGroup heading="Decisions" hits={results.decisions} icon={GitBranch} onSelect={goto} />
-              <SearchGroup heading="Commitments" hits={results.commitments} icon={ClipboardList} onSelect={goto} />
-              <SearchGroup heading="Knowledge" hits={results.knowledge} icon={BookOpen} onSelect={goto} />
-              <SearchGroup heading="Documents" hits={results.documents} icon={FileText} onSelect={goto} />
+              <SearchGroup
+                heading="Decisions"
+                hits={results.decisions}
+                icon={GitBranch}
+                onSelect={goto}
+              />
+              <SearchGroup
+                heading="Commitments"
+                hits={results.commitments}
+                icon={ClipboardList}
+                onSelect={goto}
+              />
+              <SearchGroup
+                heading="Knowledge"
+                hits={results.knowledge}
+                icon={BookOpen}
+                onSelect={goto}
+              />
+              <SearchGroup
+                heading="Documents"
+                hits={results.documents}
+                icon={FileText}
+                onSelect={goto}
+              />
               <SearchGroup heading="People" hits={results.members} icon={Users} onSelect={goto} />
               <CommandSeparator />
             </>
@@ -566,10 +600,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               <CommandItem value="create-decision" onSelect={() => goto({ to: "/labs/decisions" })}>
                 <GitBranch className="mr-2 h-4 w-4" /> New decision
               </CommandItem>
-              <CommandItem value="create-commitment" onSelect={() => goto({ to: "/labs/accountability" })}>
+              <CommandItem
+                value="create-commitment"
+                onSelect={() => goto({ to: "/labs/accountability" })}
+              >
                 <ClipboardList className="mr-2 h-4 w-4" /> New commitment
               </CommandItem>
-              <CommandItem value="create-knowledge" onSelect={() => goto({ to: "/labs/knowledge" })}>
+              <CommandItem
+                value="create-knowledge"
+                onSelect={() => goto({ to: "/labs/knowledge" })}
+              >
                 <BookOpen className="mr-2 h-4 w-4" /> New knowledge record
               </CommandItem>
               <CommandItem value="upload-document" onSelect={() => goto({ to: "/labs/documents" })}>
