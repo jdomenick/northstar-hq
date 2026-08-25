@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Command as CommandIcon,
   Building2,
@@ -49,12 +49,10 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useNavigate } from "@tanstack/react-router";
 import { useGlobalSearch, type SearchHit } from "@/lib/data-hooks";
 import { can, type Role } from "@/lib/permissions";
 import { SEARCH_DEBOUNCE_MS } from "@/lib/constants";
 import { SamChatHead } from "@/components/sam/sam-chat-head";
-
 
 type NavTo =
   | "/command"
@@ -191,11 +189,27 @@ export function AppShell({ children }: { children: ReactNode }) {
     route: SearchHit["route"] | { to: string; params?: Record<string, string>; hash?: string },
   ) => {
     setCmdOpen(false);
-    navigate({
-      to: route.to as any,
-      params: route.params as any,
-      hash: "hash" in route ? route.hash : undefined,
-    });
+    const hash = "hash" in route ? route.hash : undefined;
+    const id = route.params?.id;
+
+    if (route.to === "/labs/ventures/$id" && id) {
+      navigate({ to: "/labs/ventures/$id", params: { id } });
+    } else if (route.to === "/labs/projects/$id" && id) {
+      navigate({ to: "/labs/projects/$id", params: { id } });
+    } else if (route.to === "/labs/goals/$id" && id) {
+      navigate({ to: "/labs/goals/$id", params: { id } });
+    } else if (route.to === "/labs/decisions/$id" && id) {
+      navigate({ to: "/labs/decisions/$id", params: { id } });
+    } else if (route.to === "/labs/commitments/$id" && id) {
+      navigate({ to: "/labs/commitments/$id", params: { id } });
+    } else if (route.to === "/labs/knowledge/$id" && id) {
+      navigate({ to: "/labs/knowledge/$id", params: { id } });
+    } else if (route.to === "/labs/documents/$id" && id) {
+      navigate({ to: "/labs/documents/$id", params: { id } });
+    } else {
+      const destination = navItems.find((item) => item.to === route.to && item.hash === hash);
+      if (destination) navigate({ to: destination.to, hash: destination.hash });
+    }
   };
 
   const initials = (user?.email ?? "?")
@@ -259,7 +273,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
               Command Center
             </div>
-
           </div>
         </Link>
 
@@ -271,9 +284,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {group.heading}
                 </div>
               )}
-              {collapsed && gi > 0 && (
-                <div className="mx-auto mb-3 h-px w-6 bg-sidebar-border" />
-              )}
+              {collapsed && gi > 0 && <div className="mx-auto mb-3 h-px w-6 bg-sidebar-border" />}
               <div className="space-y-[2px]">
                 {group.items.map((item) => {
                   const active = isActive(item.to, item.exact);
@@ -366,8 +377,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <aside className="absolute left-0 top-0 h-full w-[280px] overflow-y-auto border-r border-sidebar-border bg-sidebar p-4">
             <div className="flex h-14 items-center gap-3 px-1">
-              <img src={northstarLogo.url} alt="NorthStar Labs" className="h-9 w-9 shrink-0 object-contain" />
-              <div className="font-display text-[20px] font-semibold text-sidebar-accent-foreground">NorthStar Labs</div>
+              <img
+                src={northstarLogo.url}
+                alt="NorthStar Labs"
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+              <div className="font-display text-[20px] font-semibold text-sidebar-accent-foreground">
+                NorthStar Labs
+              </div>
             </div>
             <nav className="mt-4">
               {navGroups.map((group, gi) => (
@@ -417,11 +434,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             to="/command"
             aria-label="NorthStar Command Center"
-
             className="flex min-w-0 items-center gap-2 md:hidden"
           >
             <img src={northstarLogo.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
-            <span className="truncate font-display text-[13px] font-semibold text-foreground">NorthStar Labs</span>
+            <span className="truncate font-display text-[13px] font-semibold text-foreground">
+              NorthStar Labs
+            </span>
           </Link>
 
           <button
@@ -430,9 +448,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="group hidden h-9 w-full max-w-xl items-center gap-2.5 rounded-md border border-border bg-card px-3 text-left text-[12.5px] text-muted-foreground shadow-xs hover:border-primary/40 hover:text-foreground md:flex"
           >
             <Search className="h-3.5 w-3.5" strokeWidth={2} />
-            <span className="flex-1 truncate">
-              Ask SAM or jump to anything
-            </span>
+            <span className="flex-1 truncate">Ask SAM or jump to anything</span>
             <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/60 bg-background/60 px-1.5 font-mono text-[10px] text-muted-foreground/80">
               ⌘K
             </kbd>
@@ -459,30 +475,28 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Bell className="h-4 w-4" strokeWidth={1.75} />
               </Link>
             </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[12px] font-semibold text-foreground shadow-xs hover:bg-accent">
-                {initials || "N"}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-56">
-              <DropdownMenuLabel className="flex flex-col gap-0.5">
-                <span className="truncate text-[13px] text-foreground">
-                  {user?.email}
-                </span>
-                {activeMembership?.organizations?.name && (
-                  <span className="text-[11px] font-normal text-muted-foreground">
-                    {activeMembership.organizations.name} · {activeMembership.role}
-                  </span>
-                )}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[12px] font-semibold text-foreground shadow-xs hover:bg-accent">
+                  {initials || "N"}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-56">
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="truncate text-[13px] text-foreground">{user?.email}</span>
+                  {activeMembership?.organizations?.name && (
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      {activeMembership.organizations.name} · {activeMembership.role}
+                    </span>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate({ to: "/settings" })}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -490,8 +504,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <SamChatHead />
-
-
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
         <CommandInput
           placeholder="Search ventures, projects, decisions, docs, people…"
@@ -586,7 +598,11 @@ function SearchGroup({
   return (
     <CommandGroup heading={heading}>
       {hits.map((h) => (
-        <CommandItem key={`${h.type}-${h.id}`} value={`${h.type}-${h.id}-${h.title}`} onSelect={() => onSelect(h.route)}>
+        <CommandItem
+          key={`${h.type}-${h.id}`}
+          value={`${h.type}-${h.id}-${h.title}`}
+          onSelect={() => onSelect(h.route)}
+        >
           <Icon className="mr-2 h-4 w-4 shrink-0" />
           <span className="truncate">{h.title}</span>
           {h.subtitle && (
