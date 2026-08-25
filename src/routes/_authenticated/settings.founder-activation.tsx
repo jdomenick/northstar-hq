@@ -158,10 +158,16 @@ function FounderActivationPage() {
 
   return (
     <div>
-      <PageHeader title="Founder Activation" description="Review, edit, and import the real ventures, projects, goals, decisions, and commitments that give SAM context." />
+      <PageHeader
+        eyebrow="Settings"
+        title="Founder Activation"
+        description="Review, edit, and import the real ventures, projects, goals, decisions, and commitments that give SAM context."
+        actions={<Link to="/settings" className="rounded-md border border-border px-3 py-1.5 text-[12.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground">Back to settings</Link>}
+      />
       <PageBody>
-        {proposalQ.isLoading ? <p>Loading proposals...</p> : null}
-        {proposalQ.error ? <p className="text-destructive">Failed to load proposals.</p> : null}
+        <FounderActivationStatus organizationId={activeOrgId} />
+        {proposalQ.isLoading ? <p className="text-[13.5px] text-muted-foreground">Loading proposals...</p> : null}
+        {proposalQ.error ? <p className="text-destructive">Failed to load proposals: {(proposalQ.error as Error).message}</p> : null}
         {proposalQ.data ? (
           <Tabs defaultValue="ventures">
             <TabsList>
