@@ -90,7 +90,9 @@ export function ModulePreviewRow({
     {
       label: "Avg Response",
       value:
-        ccm?.status === "ok" ? `${Math.round((ccm.data?.avgResponseSeconds ?? 0) / 60)}m` : "Unavailable",
+        ccm?.status === "ok"
+          ? `${Math.round((ccm.data?.avgResponseSeconds ?? 0) / 60)}m`
+          : "Unavailable",
     },
   ];
 
@@ -106,7 +108,8 @@ export function ModulePreviewRow({
     { label: "Events", value: count(sam?.data?.events) },
     {
       label: "Success",
-      value: sam?.status === "ok" ? `${(sam.data?.successRatePct ?? 0).toFixed(1)}%` : "Unavailable",
+      value:
+        sam?.status === "ok" ? `${(sam.data?.successRatePct ?? 0).toFixed(1)}%` : "Unavailable",
     },
   ];
 
