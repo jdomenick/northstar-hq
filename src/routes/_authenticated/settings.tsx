@@ -932,6 +932,21 @@ function SecurityTab() {
   const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+
+  async function changeEmail() {
+    const next = email.trim();
+    if (!next.includes("@")) return toast.error("Enter a valid email address.");
+    setEmailBusy(true);
+    const { error } = await supabase.auth.updateUser({ email: next });
+    setEmailBusy(false);
+    if (error) return toast.error(error.message);
+    setEmail("");
+    toast.success("Confirmation sent to the new address");
+  }
+
+
 
   async function changePassword() {
     if (pw.length < 8) return toast.error("Use at least 8 characters.");
