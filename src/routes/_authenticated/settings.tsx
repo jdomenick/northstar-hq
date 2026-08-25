@@ -32,6 +32,10 @@ import {
 } from "@/lib/appearance";
 
 import {
+  useCommitments,
+  useDecisions,
+  useGoals,
+  useProjects,
   useOrganization,
   useOrgMembersFull,
   useProfile,
