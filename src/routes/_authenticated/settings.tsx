@@ -59,10 +59,23 @@ import {
   type OrgRole,
 } from "@/lib/data-hooks";
 
+const SETTINGS_TABS = [
+  "profile",
+  "organization",
+  "members",
+  "sam",
+  "accountability",
+  "notifications",
+  "security",
+  "data",
+  "integrations",
+  "appearance",
+] as const;
+
 export const Route = createFileRoute("/_authenticated/settings")({
   validateSearch: (search: Record<string, unknown>) => ({
     tab:
-      typeof search.tab === "string" && SECTIONS.some((section) => section.value === search.tab)
+      typeof search.tab === "string" && SETTINGS_TABS.some((value) => value === search.tab)
         ? search.tab
         : "profile",
   }),

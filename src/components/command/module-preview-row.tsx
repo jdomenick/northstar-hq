@@ -6,6 +6,7 @@
 // answered but did not report a metric the card shows a real zero and the
 // status chip plus source note carry the truthful state of the connection.
 
+import { Link } from "@tanstack/react-router";
 import { MiniAreaChart, MiniBarChart } from "@/components/command/charts";
 import { MiniStat, Panel } from "@/components/command/dash-ui";
 import { SourceNote, StatusChip } from "@/components/command/source-state";
@@ -223,13 +224,19 @@ function ExternalModuleLink({ href, children }: { href: string; children: string
   );
 }
 
-function InternalModuleLink({ href, children }: { href: string; children: string }) {
+function InternalModuleLink({
+  href,
+  children,
+}: {
+  href: "/sam/control" | "/sam";
+  children: string;
+}) {
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       className="rounded-[4px] px-1 py-0.5 text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
     >
       {children}
-    </a>
+    </Link>
   );
 }
