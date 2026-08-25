@@ -92,13 +92,9 @@ function SettingsPage() {
           <TabsContent value="sam"><SamSettingsTab /></TabsContent>
           <TabsContent value="integrations"><ModuleReportingTab /></TabsContent>
           <TabsContent value="appearance"><AppearanceTab /></TabsContent>
-          {["accountability","notifications","security"].map((v) => (
-            <TabsContent key={v} value={v}>
-              <p className="text-[13.5px] text-muted-foreground">
-                This section connects in a future phase.
-              </p>
-            </TabsContent>
-          ))}
+          <TabsContent value="accountability"><AccountabilityTab /></TabsContent>
+          <TabsContent value="notifications"><NotificationsTab /></TabsContent>
+          <TabsContent value="security"><SecurityTab /></TabsContent>
 
 
         </Tabs>
