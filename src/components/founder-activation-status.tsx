@@ -113,7 +113,7 @@ export function FounderActivationStatus({ organizationId }: { organizationId: st
           <div className="shrink-0 text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground/70">
             {profileComplete ? "on record" : "incomplete"}
           </div>
-           <Link to="/settings" search={{ tab: "profile" }} className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground">Edit</Link>
+           <Link to="/settings" hash="profile" className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground">Edit</Link>
         </li>
         <li className="flex items-center gap-4 py-3">
           <span aria-hidden className={"h-1.5 w-1.5 shrink-0 rounded-full " + (orgComplete ? "bg-primary" : "bg-muted-foreground/25")} />
@@ -124,7 +124,7 @@ export function FounderActivationStatus({ organizationId }: { organizationId: st
           <div className="shrink-0 text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground/70">
             {orgComplete ? "on record" : "incomplete"}
           </div>
-           <Link to="/settings" search={{ tab: "organization" }} className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground">Edit</Link>
+           <Link to="/settings" hash="organization" className="shrink-0 rounded-md border border-border px-2.5 py-1 text-[11.5px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground">Edit</Link>
         </li>
       </ul>
     </Section>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -59,26 +59,7 @@ import {
   type OrgRole,
 } from "@/lib/data-hooks";
 
-const SETTINGS_TABS = [
-  "profile",
-  "organization",
-  "members",
-  "sam",
-  "accountability",
-  "notifications",
-  "security",
-  "data",
-  "integrations",
-  "appearance",
-] as const;
-
 export const Route = createFileRoute("/_authenticated/settings")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    tab:
-      typeof search.tab === "string" && SETTINGS_TABS.some((value) => value === search.tab)
-        ? search.tab
-        : "profile",
-  }),
   component: SettingsPage,
   head: () => ({
     meta: [
@@ -102,8 +83,9 @@ const SECTIONS = [
 ];
 
 function SettingsPage() {
-  const { tab } = Route.useSearch();
+  const hash = useRouterState({ select: (state) => state.location.hash });
   const navigate = Route.useNavigate();
+  const tab = SECTIONS.some((section) => section.value === hash) ? hash : "profile";
   return (
     <div>
       <PageHeader eyebrow="Settings" title="Preferences" description="Tune how NorthStar Labs works for you and your team." />
@@ -120,7 +102,7 @@ function SettingsPage() {
         <Tabs
           value={tab}
           onValueChange={(value) =>
-            navigate({ to: ".", search: { tab: value }, replace: true })
+            navigate({ to: ".", hash: value, replace: true })
           }
         >
           <TabsList className="mb-10 -mx-2 h-auto flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">

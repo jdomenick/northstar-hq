@@ -359,7 +359,7 @@ function CommandPage() {
             </span>
             <Link
               to="/settings"
-              search={{ tab: "integrations" }}
+              hash="integrations"
               className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             >
               Configure

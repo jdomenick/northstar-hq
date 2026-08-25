@@ -191,7 +191,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     route: SearchHit["route"] | { to: string; params?: Record<string, string>; hash?: string },
   ) => {
     setCmdOpen(false);
-    navigate({ to: route.to as any, params: route.params as any, hash: route.hash });
+    navigate({
+      to: route.to as any,
+      params: route.params as any,
+      hash: "hash" in route ? route.hash : undefined,
+    });
   };
 
   const initials = (user?.email ?? "?")
