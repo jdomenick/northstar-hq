@@ -595,7 +595,9 @@ function MembersTab() {
   return (
     <div className="space-y-6">
       <Section title="Members">
-        <p className="mb-4 text-[12.5px] text-muted-foreground">Member invitations will be activated in a future phase.</p>
+        <p className="mb-4 text-[12.5px] text-muted-foreground">
+          Internal member invites are not available: this workspace has no operator invite email flow wired. A person joins by signing up at the operator sign-in page, then appears here for a role and status assignment. Client-side invitations are separate and live on each client record.
+        </p>
         {membersQ.isLoading ? (
           <div className="h-32 animate-pulse rounded-2xl bg-card/30" />
         ) : members.length === 0 ? (
