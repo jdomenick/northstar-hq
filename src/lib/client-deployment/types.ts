@@ -75,6 +75,9 @@ export const MODULE_EXTERNAL_ID_HINT: Record<ModuleKey, string> = {
 };
 
 /** One module installation for one canonical NorthStar client. */
+/** JSON-safe configuration value. Server function payloads must stay serializable. */
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 export interface ClientModuleInstallation {
   id: string | null;
   northstarClientId: string;
@@ -86,7 +89,7 @@ export interface ClientModuleInstallation {
   endpointUrl: string | null;
   status: ProvisioningStatus;
   provisioningMode: ProvisioningMode;
-  configuration: Record<string, unknown>;
+  configuration: Record<string, JsonValue>;
   lastHealthCheckAt: string | null;
   lastSuccessAt: string | null;
   lastError: string | null;
