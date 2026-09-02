@@ -137,11 +137,13 @@ export function deriveModuleStatus(
 ): ProvisioningStatus {
   if (!install.externalId || install.externalId.trim() === "") return "not_configured";
   if (install.status === "disabled") return "disabled";
+  // Once a health check has run, the persisted status is the parsed remote
+  // truth. A stale remote last_success_at never upgrades a degraded module,
+  // and reachability alone never reads as active.
+  if (install.lastHealthCheckAt) return install.status;
   if (install.lastError && install.lastError.trim() !== "") {
     return install.lastSuccessAt ? "degraded" : "failed";
   }
-  if (install.lastSuccessAt) return "active";
-  if (install.lastHealthCheckAt) return "degraded";
   return install.status === "active" ? "pending" : install.status;
 }
 
