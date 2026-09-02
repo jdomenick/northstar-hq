@@ -353,18 +353,20 @@ export function FinalCta({
   body?: string;
 }) {
   return (
-    <section className="bg-card/50">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+    <section className="relative overflow-hidden bg-card/50">
+      <div className="pointer-events-none absolute inset-0 nsl-wash" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
         <div className="max-w-3xl">
-          <h2 className="font-display text-[26px] font-semibold leading-[1.2] text-foreground md:text-[34px]">
+          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[42px]">
             {title}
           </h2>
-          <p className="mt-4 text-[15px] leading-[1.8] text-muted-foreground">{body}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <CtaLink to="/request-assessment">
+          <p className="mt-5 text-[16px] leading-[1.8] text-muted-foreground">{body}</p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <CtaLink to="/request-assessment" className="nsl-elev-1 px-7 py-4 text-[12.5px]">
               Request an Assessment <ArrowRight className="h-4 w-4" />
             </CtaLink>
-            <CtaLink to="/how-it-works" variant="secondary">
+            <CtaLink to="/how-it-works" variant="secondary" className="px-7 py-4 text-[12.5px]">
               See how it works
             </CtaLink>
           </div>
