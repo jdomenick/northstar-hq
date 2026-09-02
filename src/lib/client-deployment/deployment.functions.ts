@@ -254,6 +254,8 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
     // with elevated rights after membership is verified.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const { samObservation } = await import("./sam-deployment");
+
     return Promise.all(
       targets.map(async (install): Promise<ModuleHealthResult> => {
         const appId =
@@ -264,25 +266,37 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
           module: install.module,
           externalId: install.externalId,
           endpointUrl: install.endpointUrl,
+          northstarClientId: data.northstarClientId,
           applicationId: appId,
         });
 
+        // A source that reports its own deployment status is authoritative;
+        // otherwise the status is inferred from whether the call succeeded.
+        const observed: ProvisioningStatus =
+          outcome.reportedStatus ??
+          (outcome.ok ? "active" : install.lastSuccessAt ? "degraded" : "failed");
         const nextStatus: ProvisioningStatus =
-          install.status === "disabled"
-            ? "disabled"
-            : outcome.ok
-              ? "active"
-              : install.lastSuccessAt
-                ? "degraded"
-                : "failed";
+          install.status === "disabled" ? "disabled" : observed;
+
+        const lastSuccessAt = outcome.ok
+          ? (outcome.reportedLastSuccessAt ?? outcome.checkedAt)
+          : (outcome.reportedLastSuccessAt ?? install.lastSuccessAt);
+
+        const metadata = outcome.samDeployment
+          ? {
+              ...install.configuration,
+              sam_deployment: samObservation(outcome.samDeployment),
+            }
+          : null;
 
         await supabaseAdmin
           .from("client_module_connections")
           .update({
             last_health_check_at: outcome.checkedAt,
-            last_success_at: outcome.ok ? outcome.checkedAt : install.lastSuccessAt,
-            last_error: outcome.ok ? null : outcome.error,
+            last_success_at: lastSuccessAt,
+            last_error: outcome.error,
             provisioning_status: nextStatus,
+            ...(metadata ? { metadata: metadata as never } : {}),
           })
           .eq("id", install.id as string);
 

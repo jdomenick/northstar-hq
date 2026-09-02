@@ -71,7 +71,7 @@ export const MODULE_EXTERNAL_ID_HINT: Record<ModuleKey, string> = {
   cam: "CAM client (organization slug or UUID)",
   ccm: "CCM tenant_id (UUID)",
   crm: "CRM business_id (UUID or slug)",
-  sam: "SAM organization_id (UUID)",
+  sam: "SAM organization_id (UUID), resolved by northstar_client_id when mapped",
 };
 
 /** One module installation for one canonical NorthStar client. */

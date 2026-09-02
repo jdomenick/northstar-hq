@@ -24,6 +24,12 @@ import {
   type DeploymentHealth,
   type ProvisioningStatus,
 } from "@/lib/client-deployment/types";
+import {
+  SAM_HEALTH_LABELS,
+  SAM_INSTALLATION_LABELS,
+  type SamHealthStatus,
+  type SamInstallationStatus,
+} from "@/lib/client-deployment/sam-deployment";
 
 const STATUS_TONE: Record<ProvisioningStatus, string> = {
   not_configured: "text-muted-foreground border-border/70",
@@ -54,6 +60,46 @@ function StatusPill({ status }: { status: ProvisioningStatus }) {
     >
       {PROVISIONING_LABELS[status]}
     </span>
+  );
+}
+
+/**
+ * SAM Core reports its own deployment truth through `sam-deployment.v1`. The
+ * last observation is persisted on the mapping row, so it is shown as reported
+ * rather than re-derived here.
+ */
+function SamDeploymentDetail({ config }: { config: Record<string, unknown> }) {
+  const obs = config["sam_deployment"];
+  if (!obs || typeof obs !== "object" || Array.isArray(obs)) return null;
+  const o = obs as Record<string, unknown>;
+  const installStatus = o["installation_status"] as SamInstallationStatus | null;
+  const healthStatus = o["health_status"] as SamHealthStatus | null;
+  const capabilities = Array.isArray(o["capabilities"])
+    ? (o["capabilities"] as unknown[]).filter((c): c is string => typeof c === "string")
+    : [];
+  const tasks = typeof o["tasks_24h"] === "number" ? o["tasks_24h"] : null;
+  const failed = typeof o["failed_tasks_24h"] === "number" ? o["failed_tasks_24h"] : null;
+
+  const facts: Array<[string, string]> = [
+    ["Installation", installStatus ? SAM_INSTALLATION_LABELS[installStatus] : "Not reported"],
+    ["Reported health", healthStatus ? SAM_HEALTH_LABELS[healthStatus] : "Not reported"],
+    ["Registered", o["registered"] === true ? "Yes" : "No"],
+    ["Auth ready", o["auth_ready"] === true ? "Yes" : "No"],
+    ["Application", typeof o["application_state"] === "string" ? o["application_state"] : "Not reported"],
+    ["Tasks 24h", tasks === null ? "Not reported" : `${tasks}${failed === null ? "" : ` (${failed} failed)`}`],
+    ["Capabilities", capabilities.length > 0 ? capabilities.join(", ") : "None reported"],
+    ["Last activity", when(typeof o["last_activity_at"] === "string" ? o["last_activity_at"] : null)],
+  ];
+
+  return (
+    <dl className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-4">
+      {facts.map(([label, value]) => (
+        <div key={label} className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">{label}</dt>
+          <dd className="truncate text-foreground">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -223,6 +269,10 @@ export function ClientDeploymentPanel({
                       <span>Last success {when(install.lastSuccessAt)}</span>
                     </div>
                   </div>
+
+                  {install.module === "sam" && (
+                    <SamDeploymentDetail config={install.configuration} />
+                  )}
 
                   {install.lastError && (
                     <p className="text-[11px] text-destructive">{install.lastError}</p>
