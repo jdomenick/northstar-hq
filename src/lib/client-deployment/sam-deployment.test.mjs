@@ -112,13 +112,13 @@ test("healthy and installed maps to active", () => {
   assert.equal(d.reason, null);
 });
 
-test("no_traffic is a truthful connected state", () => {
+test("no_traffic is degraded, never falsely healthy", () => {
   const d = deriveSamProvisioningStatus(
     parseSamDeployment(
       payload({ health: { status: "no_traffic", tasks_24h: 0, failed_tasks_24h: 0 } }),
     ),
   );
-  assert.equal(d.status, "active");
+  assert.equal(d.status, "degraded");
   assert.match(d.reason, /no traffic/i);
 });
 
