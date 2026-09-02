@@ -80,6 +80,7 @@ import { Route as AuthenticatedLabsAssessmentsRouteImport } from './routes/_auth
 import { Route as AuthenticatedLabsAssessmentGeneratorRouteImport } from './routes/_authenticated/labs.assessment-generator'
 import { Route as AuthenticatedLabsAccountabilityRouteImport } from './routes/_authenticated/labs.accountability'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
+import { Route as AuthenticatedClientPreviewClientIdRouteImport } from './routes/_authenticated/client-preview.$clientId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedLabsProposalsIndexRouteImport } from './routes/_authenticated/labs.proposals.index'
@@ -496,6 +497,12 @@ const AuthenticatedClientsClientIdRoute =
     path: '/clients/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClientPreviewClientIdRoute =
+  AuthenticatedClientPreviewClientIdRouteImport.update({
+    id: '/client-preview/$clientId',
+    path: '/client-preview/$clientId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -768,6 +775,7 @@ export interface FileRoutesByFullPath {
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/client-preview/$clientId': typeof AuthenticatedClientPreviewClientIdRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
@@ -878,6 +886,7 @@ export interface FileRoutesByTo {
   '/client': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/client-preview/$clientId': typeof AuthenticatedClientPreviewClientIdRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
@@ -991,6 +1000,7 @@ export interface FileRoutesById {
   '/client/': typeof ClientIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/client-preview/$clientId': typeof AuthenticatedClientPreviewClientIdRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/labs/accountability': typeof AuthenticatedLabsAccountabilityRoute
   '/_authenticated/labs/assessment-generator': typeof AuthenticatedLabsAssessmentGeneratorRoute
@@ -1104,6 +1114,7 @@ export interface FileRouteTypes {
     | '/client/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/client-preview/$clientId'
     | '/clients/$clientId'
     | '/labs/accountability'
     | '/labs/assessment-generator'
@@ -1214,6 +1225,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/client-preview/$clientId'
     | '/clients/$clientId'
     | '/labs/accountability'
     | '/labs/assessment-generator'
@@ -1326,6 +1338,7 @@ export interface FileRouteTypes {
     | '/client/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/client-preview/$clientId'
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/labs/accountability'
     | '/_authenticated/labs/assessment-generator'
@@ -1946,6 +1959,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/client-preview/$clientId': {
+      id: '/_authenticated/client-preview/$clientId'
+      path: '/client-preview/$clientId'
+      fullPath: '/client-preview/$clientId'
+      preLoaderRoute: typeof AuthenticatedClientPreviewClientIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -2391,6 +2411,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedVenturesRoute: typeof AuthenticatedVenturesRoute
+  AuthenticatedClientPreviewClientIdRoute: typeof AuthenticatedClientPreviewClientIdRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
   AuthenticatedLabsAccountabilityRoute: typeof AuthenticatedLabsAccountabilityRoute
   AuthenticatedLabsAssessmentGeneratorRoute: typeof AuthenticatedLabsAssessmentGeneratorRoute
@@ -2434,6 +2455,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedVenturesRoute: AuthenticatedVenturesRoute,
+  AuthenticatedClientPreviewClientIdRoute:
+    AuthenticatedClientPreviewClientIdRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
   AuthenticatedLabsAccountabilityRoute: AuthenticatedLabsAccountabilityRoute,
   AuthenticatedLabsAssessmentGeneratorRoute:
