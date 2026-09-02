@@ -38,12 +38,7 @@ function healthTone(health: DeliveryHealth): "neutral" | "ok" | "warn" | "danger
 }
 
 export function Delivery() {
-  const load = useServerFn(getClientDeliveryFn);
-  const { data, isLoading, isError } = useQuery<ClientDeliveryView>({
-    queryKey: DELIVERY_QUERY_KEY,
-    queryFn: () => load(),
-    retry: false,
-  });
+  const { data, isLoading, isError } = useClientDelivery();
 
   if (isLoading) return <LoadingRows />;
   if (isError || !data) {

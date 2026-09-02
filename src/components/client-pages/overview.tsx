@@ -25,12 +25,7 @@ export function Overview({
   email: string;
 }) {
   const { data, isLoading, isError } = useClientWorkspace();
-  const loadDelivery = useServerFn(getClientDeliveryFn);
-  const delivery = useQuery<ClientDeliveryView>({
-    queryKey: ["client-delivery"],
-    queryFn: () => loadDelivery(),
-    retry: false,
-  });
+  const delivery = useClientDelivery();
 
   if (isLoading) return <LoadingRows />;
   if (isError || !data) {

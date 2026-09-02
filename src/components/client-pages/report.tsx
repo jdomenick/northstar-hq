@@ -29,12 +29,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export function ReportBody() {
-  const load = useServerFn(getClientExecutiveReportFn);
-  const { data, isLoading, isError } = useQuery<ClientExecutiveReportView>({
-    queryKey: ["client-executive-report"],
-    queryFn: () => load(),
-    retry: false,
-  });
+  const { data, isLoading, isError } = useClientExecutiveReport();
 
   if (isLoading) return <LoadingRows />;
   if (isError || !data) {
