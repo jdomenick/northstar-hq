@@ -9,6 +9,8 @@ import { useOrg } from "@/lib/org-context";
 import { askSam, loadConversation } from "@/lib/sam/sam.functions";
 import { useSamAttention } from "@/lib/sam/attention";
 import { SAM_FULL_NAME, SAM_MARK_SRC, SAM_NAME } from "@/lib/sam/branding";
+import { SamMessageBody } from "./sam-message";
+
 
 type PanelMessage = {
   id: string;
