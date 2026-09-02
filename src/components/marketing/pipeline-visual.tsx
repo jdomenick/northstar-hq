@@ -94,7 +94,7 @@ export function GrowthPipelineVisual({ className }: { className?: string }) {
               <li key={stage.key} className="relative">
                 <div
                   className={cn(
-                    "h-full border bg-background/85 p-3 transition-colors duration-500",
+                    "h-full overflow-hidden border bg-background/85 p-2.5 transition-colors duration-500",
                     state === "leaking"
                       ? "border-destructive/55"
                       : state === "fixed"
@@ -122,10 +122,10 @@ export function GrowthPipelineVisual({ className }: { className?: string }) {
                       />
                     </span>
                   </div>
-                  <div className="mt-2 font-display text-[13.5px] font-semibold text-foreground">
+                  <div className="mt-2 font-display text-[12.5px] font-semibold leading-tight text-foreground">
                     {stage.label}
                   </div>
-                  <p className="mt-1 text-[11.5px] leading-[1.6] text-muted-foreground">
+                  <p className="mt-1 text-[11px] leading-[1.55] text-muted-foreground">
                     {stage.watch}
                   </p>
                 </div>

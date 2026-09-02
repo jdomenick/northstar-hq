@@ -247,10 +247,8 @@ export function OutcomeBoard() {
             <div className="flex h-full flex-col justify-between gap-6 p-6">
               <div className="font-display text-[15px] font-semibold text-foreground">{m.label}</div>
               <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-[30px] font-semibold leading-none text-foreground/25">
-                    &mdash;
-                  </span>
+                <div className="flex items-center gap-2">
+                  <span aria-hidden className="h-px w-6 bg-primary/50" />
                   <span className="text-[10.5px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                     Baseline set at Assessment
                   </span>
