@@ -49,7 +49,7 @@ export interface UpsertMappingInput {
   externalId: string;
   externalName?: string | null;
   endpointUrl?: string | null;
-  configuration?: Record<string, unknown> | null;
+  configuration?: Record<string, JsonValue> | null;
   status?: ProvisioningStatus;
 }
 

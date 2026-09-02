@@ -42,9 +42,9 @@ export interface RawConnectionRow {
 export const CONNECTION_COLUMNS =
   "id,organization_id,client_id,module,external_id,external_name,endpoint_url,provisioning_status,active,metadata,last_health_check_at,last_success_at,last_error,created_at,updated_at";
 
-function configOf(value: unknown): Record<string, unknown> {
+function configOf(value: unknown): Record<string, JsonValue> {
   return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+    ? (value as Record<string, JsonValue>)
     : {};
 }
 
