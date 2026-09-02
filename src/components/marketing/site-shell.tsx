@@ -282,16 +282,18 @@ export function PageIntro({
   lede: string;
 }) {
   return (
-    <section className="border-b border-border bg-card/30">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+    <section className="relative overflow-hidden border-b border-border bg-card/30">
+      <div className="pointer-events-none absolute inset-0 nsl-wash" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
         <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
           <span className="h-1 w-1 rounded-full bg-primary" />
           {eyebrow}
         </div>
-        <h1 className="mt-4 max-w-3xl font-display text-[32px] font-semibold leading-[1.1] text-foreground md:text-[46px]">
+        <h1 className="mt-5 max-w-3xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[54px]">
           {title}
         </h1>
-        <p className="mt-5 max-w-2xl text-[15px] leading-[1.8] text-muted-foreground">{lede}</p>
+        <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">{lede}</p>
       </div>
     </section>
   );
@@ -300,28 +302,42 @@ export function PageIntro({
 export function Band({
   children,
   muted = false,
+  deep = false,
+  textured = false,
   className,
 }: {
   children: ReactNode;
   muted?: boolean;
+  /** Heavier contrast treatment for sections that should sit forward. */
+  deep?: boolean;
+  /** Adds the fine engineering grid behind the content. */
+  textured?: boolean;
   className?: string;
 }) {
   return (
-    <section className={cn("border-b border-border", muted && "bg-card/30", className)}>
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">{children}</div>
+    <section
+      className={cn(
+        "relative overflow-hidden border-b border-border",
+        muted && "bg-card/30",
+        deep && "bg-card/70",
+        className,
+      )}
+    >
+      {textured && <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />}
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">{children}</div>
     </section>
   );
 }
 
 export function BandHeading({ eyebrow, title, lede }: { eyebrow?: string; title: string; lede?: string }) {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       {eyebrow && (
         <div className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
           {eyebrow}
         </div>
       )}
-      <h2 className="mt-3 font-display text-[24px] font-semibold leading-[1.2] text-foreground md:text-[32px]">
+      <h2 className="mt-3 font-display text-[27px] font-semibold leading-[1.14] tracking-tight text-foreground md:text-[38px]">
         {title}
       </h2>
       {lede && <p className="mt-4 text-[15px] leading-[1.8] text-muted-foreground">{lede}</p>}
@@ -337,18 +353,20 @@ export function FinalCta({
   body?: string;
 }) {
   return (
-    <section className="bg-card/50">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-        <div className="max-w-2xl">
-          <h2 className="font-display text-[26px] font-semibold leading-[1.2] text-foreground md:text-[34px]">
+    <section className="relative overflow-hidden bg-card/50">
+      <div className="pointer-events-none absolute inset-0 nsl-wash" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
+        <div className="max-w-3xl">
+          <h2 className="font-display text-[30px] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[42px]">
             {title}
           </h2>
-          <p className="mt-4 text-[15px] leading-[1.8] text-muted-foreground">{body}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <CtaLink to="/request-assessment">
+          <p className="mt-5 text-[16px] leading-[1.8] text-muted-foreground">{body}</p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <CtaLink to="/request-assessment" className="nsl-elev-1 px-7 py-4 text-[12.5px]">
               Request an Assessment <ArrowRight className="h-4 w-4" />
             </CtaLink>
-            <CtaLink to="/how-it-works" variant="secondary">
+            <CtaLink to="/how-it-works" variant="secondary" className="px-7 py-4 text-[12.5px]">
               See how it works
             </CtaLink>
           </div>

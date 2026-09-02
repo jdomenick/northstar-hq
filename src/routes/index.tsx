@@ -4,21 +4,20 @@ import {
   Band,
   BandHeading,
   CtaLink,
-  FinalCta,
   SiteLayout,
   pageMeta,
 } from "@/components/marketing/site-shell";
+import { GrowthPipelineVisual } from "@/components/marketing/pipeline-visual";
+import { Reveal } from "@/components/marketing/motion";
 import {
-  BRAND,
-  CAPABILITIES,
-  DELIVERY_MODEL,
-  INDUSTRIES,
-  OUTCOMES,
-  PROCESS_STEPS,
-  REVENUE_PATH,
-  SERVICES,
-  WHY_US,
-} from "@/lib/marketing/content";
+  AssessmentCta,
+  DiagnosticStory,
+  EcosystemStrip,
+  OutcomeBoard,
+  ProcessFlow,
+  WhatWeFix,
+} from "@/components/marketing/sections";
+import { BRAND, INDUSTRIES, SERVICES } from "@/lib/marketing/content";
 import { SOCIAL_IMAGE_URL, siteUrl } from "@/lib/marketing/site-url";
 
 export const Route = createFileRoute("/")({
@@ -61,151 +60,148 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   return (
     <SiteLayout>
-      {/* Hero */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-          <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-            <span className="h-1 w-1 rounded-full bg-primary" />
-            NorthStar Labs
-          </div>
-          <h1 className="mt-5 max-w-4xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[58px]">
-            We find where your business is leaking revenue.
-          </h1>
-          <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">
-            Then we fix it. We build the system, automate the workflow where that is the right answer,
-            integrate it with the tools you already run, and measure what changed.
-          </p>
+      {/* ---------------------------------------------------------------- */}
+      {/* Hero                                                              */}
+      {/* ---------------------------------------------------------------- */}
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="pointer-events-none absolute inset-0 nsl-wash" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 nsl-grid-field" aria-hidden />
 
-          <div className="mt-9 flex flex-wrap gap-3">
-            <CtaLink to="/request-assessment">
-              Request an Assessment <ArrowRight className="h-4 w-4" />
-            </CtaLink>
-            <CtaLink to="/services" variant="secondary">
-              View Services
-            </CtaLink>
+        <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-20 md:px-8 md:pb-24 md:pt-28">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-14">
+            <div>
+              <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+                <span className="h-1 w-1 rounded-full bg-primary" />
+                Business growth consulting and implementation
+              </div>
+
+              <h1 className="mt-6 max-w-2xl font-display text-[42px] font-semibold leading-[1.02] tracking-tight text-foreground md:text-[68px]">
+                We find where your business is leaking revenue.
+              </h1>
+
+              <p className="mt-7 max-w-xl text-[17px] leading-[1.75] text-muted-foreground">
+                Then we fix it. We identify what is preventing growth, determine what needs to change,
+                implement the right systems, and measure whether it worked.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                <CtaLink to="/request-assessment" className="nsl-elev-1 px-7 py-4 text-[12.5px]">
+                  Request an Assessment <ArrowRight className="h-4 w-4" />
+                </CtaLink>
+                <CtaLink to="/how-it-works" variant="secondary" className="px-7 py-4 text-[12.5px]">
+                  How it works
+                </CtaLink>
+              </div>
+
+              <dl className="mt-12 grid max-w-lg grid-cols-1 gap-px border border-border bg-border sm:grid-cols-3">
+                {[
+                  { k: "Starts with", v: "An Assessment" },
+                  { k: "Delivered as", v: "Implementation" },
+                  { k: "Judged on", v: "Measured change" },
+                ].map((item) => (
+                  <div key={item.k} className="bg-background px-4 py-4">
+                    <dt className="text-[9.5px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                      {item.k}
+                    </dt>
+                    <dd className="mt-1.5 font-display text-[13.5px] font-semibold text-foreground">
+                      {item.v}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <Reveal delay={120}>
+              <GrowthPipelineVisual />
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* Where revenue leaks */}
+      {/* ---------------------------------------------------------------- */}
+      {/* What we actually fix                                              */}
+      {/* ---------------------------------------------------------------- */}
       <Band muted>
         <BandHeading
-          eyebrow="Where revenue leaks"
+          eyebrow="What we actually fix"
           title="Revenue is rarely lost in one place. It leaks between the steps."
-          lede="Marketing, leads, calls, follow-up, appointments, sales, and revenue are one connected path. Most businesses lose money in the handoffs, not in the tools."
+          lede="These are the failures we find in almost every business we assess. None of them are a tooling problem on their own."
         />
-        <ul className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-          {REVENUE_PATH.map((r) => (
-            <li key={r.stage} className="bg-background p-6">
-              <h3 className="font-display text-[15px] font-semibold text-foreground">{r.stage}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{r.leak}</p>
-            </li>
-          ))}
-          {/* Filler keeps the last row of the hairline grid from showing an empty cell. */}
-          <li aria-hidden className="hidden bg-background p-6 sm:block lg:hidden xl:hidden" />
-          <li aria-hidden className="hidden bg-background p-6 lg:block" />
-        </ul>
-
+        <WhatWeFix />
       </Band>
 
-      {/* Delivery model */}
-      <Band>
+      {/* ---------------------------------------------------------------- */}
+      {/* How NorthStar works                                               */}
+      {/* ---------------------------------------------------------------- */}
+      <Band textured>
         <BandHeading
-          eyebrow="How we deliver"
-          title="Assess. Identify. Build. Automate. Measure."
+          eyebrow="How NorthStar works"
+          title="Assess. Diagnose. Implement. Measure. Optimize."
           lede="The same sequence on every engagement. Diagnosis is where we start, not where we stop."
         />
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-          {DELIVERY_MODEL.map((d, i) => (
-            <li key={d.key} className="border-t border-border pt-4">
-              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">
-                0{i + 1} / {d.label}
-              </div>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{d.detail}</p>
-            </li>
-          ))}
-        </ol>
-      </Band>
-
-      {/* Why NorthStar Labs */}
-      <Band muted>
-        <BandHeading
-          eyebrow="Why NorthStar Labs"
-          title="Accountable for the outcome, not the deliverable."
-        />
-        <div className="mt-10 grid gap-8 md:grid-cols-2">
-          {WHY_US.map((w) => (
-            <div key={w.title} className="border-l border-primary/40 pl-5">
-              <h3 className="font-display text-[16px] font-semibold text-foreground">{w.title}</h3>
-              <p className="mt-2 text-[14px] leading-[1.75] text-muted-foreground">{w.body}</p>
-            </div>
-          ))}
-        </div>
-      </Band>
-
-      {/* What we implement */}
-      <Band>
-        <BandHeading
-          eyebrow="What we implement"
-          title="Built around the gap, not around a product."
-          lede="We integrate with the CRM and business systems you already use. AI and automation are used where they are the right solution, not because they are the headline."
-        />
-        <div className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-          {CAPABILITIES.map((c) => (
-            <div key={c.title} className="bg-background p-6">
-              <h3 className="font-display text-[14.5px] font-semibold leading-[1.35] text-foreground">
-                {c.title}
-              </h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{c.body}</p>
-            </div>
-          ))}
-        </div>
-      </Band>
-
-      {/* Our Process */}
-      <Band muted>
-        <BandHeading
-          eyebrow="Our process"
-          title="Seven steps, in order, with nothing skipped."
-          lede="Every engagement follows the same sequence so you always know where you are and what comes next."
-        />
-        <ol className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {PROCESS_STEPS.slice(0, 4).map((s) => (
-            <li key={s.step} className="border-t border-border pt-4">
-              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">
-                Step {s.step}
-              </div>
-              <h3 className="mt-2 font-display text-[15px] font-semibold text-foreground">{s.name}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{s.detail}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8">
+        <ProcessFlow />
+        <div className="mt-10">
           <Link
             to="/how-it-works"
             className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
           >
-            See all seven steps <ArrowRight className="h-4 w-4" />
+            See all seven steps of the engagement <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </Band>
 
-      {/* Services overview */}
+      {/* ---------------------------------------------------------------- */}
+      {/* Diagnostic story                                                  */}
+      {/* ---------------------------------------------------------------- */}
+      <Band deep>
+        <BandHeading
+          eyebrow="How the leak forms"
+          title="It almost never starts with a bad product or a bad team."
+          lede="It starts with a handoff nobody owns, and it compounds quietly until the month closes short."
+        />
+        <DiagnosticStory />
+      </Band>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Outcomes                                                          */}
+      {/* ---------------------------------------------------------------- */}
       <Band>
         <BandHeading
+          eyebrow="Business outcomes"
+          title="We measure the work the way an owner does."
+          lede="Every engagement is tied to numbers you can see in the business, not activity reports."
+        />
+        <OutcomeBoard />
+      </Band>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Assessment CTA                                                    */}
+      {/* ---------------------------------------------------------------- */}
+      <AssessmentCta />
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Services                                                          */}
+      {/* ---------------------------------------------------------------- */}
+      <Band muted>
+        <BandHeading
           eyebrow="Managed services"
-          title="What an engagement can turn into once the constraint is named."
+          title="What an engagement turns into once the constraint is named."
           lede="Scope follows the Assessment. We recommend only the work that changes a number, in the order it should happen."
         />
-        <div className="mt-10 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((s) => (
-            <div key={s.slug} className="bg-background p-6">
-              <h3 className="font-display text-[15px] font-semibold text-foreground">{s.name}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{s.outcome}</p>
-            </div>
+        <div className="mt-12 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+          {SERVICES.map((s, i) => (
+            <Reveal key={s.slug} delay={i * 50} className="bg-background">
+              <div className="h-full p-6 transition-colors duration-300 hover:bg-accent/40">
+                <h3 className="font-display text-[15.5px] font-semibold text-foreground">{s.name}</h3>
+                <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{s.outcome}</p>
+              </div>
+            </Reveal>
           ))}
+          {/* Fillers keep the hairline grid from ending on an empty cell. */}
+          <div aria-hidden className="hidden bg-background sm:block" />
+          <div aria-hidden className="hidden bg-background lg:block" />
         </div>
-        <div className="mt-8">
+        <div className="mt-9">
           <Link
             to="/services"
             className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
@@ -215,7 +211,21 @@ function HomePage() {
         </div>
       </Band>
 
-      {/* Industries */}
+      {/* ---------------------------------------------------------------- */}
+      {/* Supporting infrastructure                                         */}
+      {/* ---------------------------------------------------------------- */}
+      <Band textured>
+        <BandHeading
+          eyebrow="The infrastructure underneath"
+          title="You buy an outcome. This is part of how we deliver it."
+          lede="NorthStar runs its own operating modules so acquisition, conversations, pipeline, and reporting stay connected. They are the plumbing, not the product."
+        />
+        <EcosystemStrip />
+      </Band>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Industries                                                        */}
+      {/* ---------------------------------------------------------------- */}
       <Band muted>
         <BandHeading
           eyebrow="Industries we help"
@@ -226,13 +236,13 @@ function HomePage() {
           {INDUSTRIES.map((i) => (
             <li
               key={i.name}
-              className="border border-border px-3.5 py-2 text-[13px] text-muted-foreground"
+              className="border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
             >
               {i.name}
             </li>
           ))}
         </ul>
-        <div className="mt-8">
+        <div className="mt-9">
           <Link
             to="/industries"
             className="inline-flex items-center gap-2 text-[13px] text-foreground underline underline-offset-4"
@@ -241,48 +251,6 @@ function HomePage() {
           </Link>
         </div>
       </Band>
-
-      {/* Business outcomes */}
-      <Band>
-        <BandHeading
-          eyebrow="Business outcomes"
-          title="We measure the work the way an owner does."
-          lede="Every engagement is tied to outcomes you can see in the business, not activity reports."
-        />
-        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {OUTCOMES.map((o) => (
-            <div key={o.label} className="border-t border-border pt-4">
-              <h3 className="font-display text-[15px] font-semibold text-foreground">{o.label}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{o.detail}</p>
-            </div>
-          ))}
-        </div>
-      </Band>
-
-      {/* Assessment */}
-      <Band muted>
-        <BandHeading
-          eyebrow="The assessment"
-          title="Start With the Constraint."
-          lede="We inspect the actual customer journey the way a buyer experiences it, then show you what we found in writing."
-        />
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { t: "What is broken", b: "The specific steps where the process fails, named and evidenced." },
-            { t: "Where opportunity is lost", b: "The points between demand and revenue that quietly cost you deals." },
-            { t: "What should change", b: "The sequence of fixes, ordered by business impact." },
-            { t: "What we can implement", b: "The work NorthStar Labs can build and run, with scope in writing." },
-          ].map((a, i) => (
-            <li key={a.t} className="border-t border-border pt-4">
-              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">0{i + 1}</div>
-              <h3 className="mt-2 font-display text-[15px] font-semibold text-foreground">{a.t}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.7] text-muted-foreground">{a.b}</p>
-            </li>
-          ))}
-        </ol>
-      </Band>
-
-      <FinalCta />
     </SiteLayout>
   );
 }
