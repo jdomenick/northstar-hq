@@ -166,6 +166,7 @@ export function UploadButton({
   const [busy, setBusy] = useState(false);
   const register = useServerFn(registerClientUploadFn);
   const queryClient = useQueryClient();
+  const readOnly = useReadOnlyPreview();
 
   async function handleFile(file: File) {
     if (file.size > 25 * 1024 * 1024) {
@@ -219,7 +220,8 @@ export function UploadButton({
       />
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || readOnly}
+        title={readOnly ? "Read-only preview" : undefined}
         onClick={() => inputRef.current?.click()}
         className="border border-foreground/25 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground transition hover:bg-foreground hover:text-background disabled:opacity-50"
       >
@@ -232,10 +234,12 @@ export function UploadButton({
 export function DownloadLink({ documentId, children }: { documentId: string; children: ReactNode }) {
   const getUrl = useServerFn(getClientDocumentUrlFn);
   const [busy, setBusy] = useState(false);
+  const readOnly = useReadOnlyPreview();
   return (
     <button
       type="button"
-      disabled={busy}
+      title={readOnly ? "Read-only preview" : undefined}
+      disabled={busy || readOnly}
       onClick={async () => {
         setBusy(true);
         try {
