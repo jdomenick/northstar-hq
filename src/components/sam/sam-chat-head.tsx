@@ -243,18 +243,19 @@ export function SamChatHead() {
                 key={m.id}
                 className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
               >
-                <div
-                  className={cn(
-                    "max-w-[85%] whitespace-pre-wrap text-[13.5px] leading-[1.65]",
-                    m.role === "user"
-                      ? "rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-primary-foreground"
-                      : "text-foreground",
-                  )}
-                >
-                  {m.content}
-                </div>
+                {m.role === "user" ? (
+                  <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-[13.5px] leading-[1.65] text-primary-foreground">
+                    {m.content}
+                  </div>
+                ) : (
+                  <SamMessageBody
+                    content={m.content}
+                    className="max-w-[85%] text-[13.5px] leading-[1.65] text-foreground"
+                  />
+                )}
               </div>
             ))}
+
 
             {pending && (
               <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
