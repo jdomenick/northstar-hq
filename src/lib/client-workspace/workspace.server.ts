@@ -257,6 +257,19 @@ export function resolveStage(input: {
 
 export async function loadClientWorkspace(supabase: SB, userId: string): Promise<ClientWorkspaceData> {
   const acct = await resolveClientAccount(supabase, userId);
+  return buildClientWorkspace(supabase, acct);
+}
+
+/**
+ * Assembles the client-facing workspace for an explicit scope. Used by the real
+ * client session path above and by the operator "View as client" preview, which
+ * resolves the scope from organization_id + client_id after an admin check.
+ */
+export async function buildClientWorkspace(
+  supabase: SB,
+  acct: ResolvedAccount,
+): Promise<ClientWorkspaceData> {
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const [profileRes, itemsRes, docsRes, eventsRes] = await Promise.all([

@@ -78,6 +78,15 @@ function projectStage(row: Pick<ProjectRow, "client_stage">): DeliveryStage {
 
 export async function loadClientDelivery(supabase: SB, userId: string): Promise<ClientDeliveryView> {
   const acct = await resolveClientAccount(supabase, userId);
+  return buildClientDelivery(supabase, acct);
+}
+
+/** Same client-facing delivery view for an explicit org + client scope. */
+export async function buildClientDelivery(
+  supabase: SB,
+  acct: { organization_id: string; client_id: string },
+): Promise<ClientDeliveryView> {
+
 
   // RLS restricts this to client-visible, non-deleted projects for this client.
   const projectRes = await supabase

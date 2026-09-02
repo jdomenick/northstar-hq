@@ -9,17 +9,74 @@ import {
   registerClientUploadFn,
 } from "@/lib/client-workspace/workspace.functions";
 import type { ClientWorkspaceData } from "@/lib/client-workspace/types";
+import { useClientPreview } from "@/lib/client-preview/context";
+import {
+  getClientPreviewDeliveryFn,
+  getClientPreviewReportFn,
+  getClientPreviewWorkspaceFn,
+} from "@/lib/client-preview/preview.functions";
+import { getClientDeliveryFn } from "@/lib/delivery/delivery.functions";
+import type { ClientDeliveryView } from "@/lib/delivery/client-delivery";
+import { getClientExecutiveReportFn } from "@/lib/reporting/reporting.functions";
+import type { ClientExecutiveReportView } from "@/lib/reporting/types";
 
 export const WORKSPACE_QUERY_KEY = ["client-workspace"] as const;
+export const DELIVERY_QUERY_KEY = ["client-delivery"] as const;
+export const REPORT_QUERY_KEY = ["client-executive-report"] as const;
+
+/** In preview mode every client write control is disabled. */
+export function useReadOnlyPreview(): boolean {
+  return useClientPreview() !== null;
+}
 
 export function useClientWorkspace() {
+  const preview = useClientPreview();
   const load = useServerFn(getClientWorkspaceFn);
+  const loadPreview = useServerFn(getClientPreviewWorkspaceFn);
   return useQuery<ClientWorkspaceData>({
-    queryKey: WORKSPACE_QUERY_KEY,
-    queryFn: () => load(),
+    queryKey: preview ? [...WORKSPACE_QUERY_KEY, "preview", preview.clientId] : WORKSPACE_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
     retry: false,
   });
 }
+
+export function useClientDelivery() {
+  const preview = useClientPreview();
+  const load = useServerFn(getClientDeliveryFn);
+  const loadPreview = useServerFn(getClientPreviewDeliveryFn);
+  return useQuery<ClientDeliveryView>({
+    queryKey: preview ? [...DELIVERY_QUERY_KEY, "preview", preview.clientId] : DELIVERY_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
+    retry: false,
+  });
+}
+
+export function useClientExecutiveReport() {
+  const preview = useClientPreview();
+  const load = useServerFn(getClientExecutiveReportFn);
+  const loadPreview = useServerFn(getClientPreviewReportFn);
+  return useQuery<ClientExecutiveReportView>({
+    queryKey: preview ? [...REPORT_QUERY_KEY, "preview", preview.clientId] : REPORT_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
+    retry: false,
+  });
+}
+
 
 export function PageHeading({ label, title, lead }: { label: string; title: string; lead?: string }) {
   return (
