@@ -74,51 +74,6 @@ export function Reveal({
 }
 
 /**
- * Animates a numeric value into place when it scrolls into view. Purely a
- * presentation effect: the final value is always the value passed in.
- */
-export function CountUp({
-  value,
-  format,
-  durationMs = 900,
-  className,
-}: {
-  value: number;
-  format?: (n: number) => string;
-  durationMs?: number;
-  className?: string;
-}) {
-  const reduced = usePrefersReducedMotion();
-  const { ref, inView } = useInView<HTMLSpanElement>();
-  const [display, setDisplay] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    if (reduced || value === 0) {
-      setDisplay(value);
-      return;
-    }
-    let frame = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(value * eased);
-      if (t < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [inView, reduced, value, durationMs]);
-
-  const render = format ?? ((n: number) => String(Math.round(n)));
-  return (
-    <span ref={ref} className={className}>
-      {render(display)}
-    </span>
-  );
-}
-
-/**
  * Steps an index forward on an interval while the element is on screen.
  * Returns a fixed index when reduced motion is requested.
  */
