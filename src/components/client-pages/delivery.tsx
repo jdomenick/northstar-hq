@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -11,10 +11,11 @@ import {
   Pill,
   WorkspaceError,
   formatDate,
+  useClientDelivery,
+  useReadOnlyPreview,
 } from "@/components/client-workspace-ui";
 import {
   decideDeliverableFn,
-  getClientDeliveryFn,
   getDeliverableUrlFn,
 } from "@/lib/delivery/delivery.functions";
 import {

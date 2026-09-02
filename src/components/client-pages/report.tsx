@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ClientWorkspace } from "@/components/client-shell";
@@ -9,9 +8,9 @@ import {
   Pill,
   WorkspaceError,
   formatDate,
+  useClientExecutiveReport,
 } from "@/components/client-workspace-ui";
 import { formatMoney } from "@/lib/client-workspace/types";
-import { getClientExecutiveReportFn } from "@/lib/reporting/reporting.functions";
 import {
   REPORT_COPY,
   formatMetricPeriod,

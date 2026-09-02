@@ -1,6 +1,4 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { ClientWorkspace } from "@/components/client-shell";
 import { roleLabel } from "@/lib/client-identity/types";
 import {
@@ -9,11 +7,10 @@ import {
   Pill,
   WorkspaceError,
   formatDate,
+  useClientDelivery,
   useClientWorkspace,
 } from "@/components/client-workspace-ui";
 import { formatMoney, onboardingProgress } from "@/lib/client-workspace/types";
-import { getClientDeliveryFn } from "@/lib/delivery/delivery.functions";
-import type { ClientDeliveryView } from "@/lib/delivery/client-delivery";
 
 export function Overview({
   companyName,
