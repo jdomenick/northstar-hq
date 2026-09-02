@@ -1,5 +1,7 @@
 import { generateText, generateObject, NoObjectGeneratedError } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { toConversationalText } from "@/lib/sam/humanize";
+
 import type {
   CompletionProvider,
   CompletionRequest,
