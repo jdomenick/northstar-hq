@@ -35,6 +35,13 @@ import {
   ccmMappingMismatch,
   type CcmDeploymentReport,
 } from "./ccm-deployment";
+import {
+  buildCrmDeploymentUrl,
+  deriveCrmProvisioningStatus,
+  parseCrmDeployment,
+  crmMappingMismatch,
+  type CrmDeploymentReport,
+} from "./crm-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
 
 export interface RawConnectionRow {
@@ -120,6 +127,8 @@ export interface HealthCheckOutcome {
   samDeployment: SamDeploymentReport | null;
   /** CCM deployment observation, persisted for the operator UI. */
   ccmDeployment: CcmDeploymentReport | null;
+  /** NorthStar CRM deployment observation, persisted for the operator UI. */
+  crmDeployment: CrmDeploymentReport | null;
 }
 
 /**
@@ -144,6 +153,7 @@ export async function checkSamDeployment(params: {
     reportedLastSuccessAt: null as string | null,
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
+    crmDeployment: null as CrmDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId) {
@@ -234,6 +244,7 @@ export async function checkCcmDeployment(params: {
     reportedLastSuccessAt: null as string | null,
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
+    crmDeployment: null as CrmDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId && !params.tenantSlug) {
@@ -302,6 +313,103 @@ export async function checkCcmDeployment(params: {
 }
 
 /**
+ * NorthStar CRM exposes a dedicated deployment contract
+ * (`northstar.crm.deployment.v1`). HQ reads that instead of inferring liveness
+ * from the hq-dashboard payload.
+ *
+ * The tenant-isolation gate lives in `deriveCrmProvisioningStatus`: until CRM
+ * proves per-business RLS and secure user provisioning, an external-client
+ * deployment can never read as active here.
+ */
+export async function checkCrmDeployment(params: {
+  northstarClientId: string | null;
+  externalId: string | null;
+  internalDeployment?: boolean;
+  endpointUrl: string | null;
+  timeoutMs?: number;
+}): Promise<HealthCheckOutcome> {
+  const checkedAt = new Date().toISOString();
+  const base = {
+    module: "crm" as const,
+    ok: false,
+    httpStatus: null as number | null,
+    checkedAt,
+    reportedStatus: null as ProvisioningStatus | null,
+    reportedLastSuccessAt: null as string | null,
+    samDeployment: null as SamDeploymentReport | null,
+    ccmDeployment: null as CcmDeploymentReport | null,
+    crmDeployment: null as CrmDeploymentReport | null,
+  };
+
+  if (!params.northstarClientId && !params.externalId) {
+    return { ...base, error: "No CRM business ID is mapped for this client." };
+  }
+
+  const { secret } = await resolveReportingSecret();
+  if (!secret) {
+    return { ...base, error: "Shared reporting credential is not configured." };
+  }
+
+  const baseUrl = params.endpointUrl?.trim() || moduleBaseUrl("crm");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), params.timeoutMs ?? 10_000);
+  try {
+    const res = await fetch(
+      buildCrmDeploymentUrl(baseUrl, {
+        northstarClientId: params.northstarClientId,
+        businessId: params.externalId,
+      }),
+      { method: "GET", headers: buildReportingHeaders(secret), signal: controller.signal },
+    );
+    if (!res.ok) {
+      return {
+        ...base,
+        httpStatus: res.status,
+        error:
+          res.status === 401 || res.status === 403
+            ? "NorthStar CRM rejected the shared reporting credential."
+            : res.status === 404
+              ? "NorthStar CRM has no business record for this selector."
+              : `NorthStar CRM responded HTTP ${res.status}.`,
+      };
+    }
+
+    const report = parseCrmDeployment(await res.json());
+    const derived = deriveCrmProvisioningStatus(report, {
+      internalDeployment: params.internalDeployment === true,
+    });
+    const mismatch = params.northstarClientId
+      ? crmMappingMismatch(report, {
+          northstarClientId: params.northstarClientId,
+          externalId: params.externalId,
+        })
+      : null;
+
+    // A mismatch never upgrades a gated status: pending stays pending.
+    const status: ProvisioningStatus =
+      mismatch && derived.status !== "pending" ? "degraded" : derived.status;
+    const ok = status === "active";
+    return {
+      ...base,
+      ok,
+      httpStatus: res.status,
+      error: derived.status === "pending" ? derived.reason : (mismatch ?? (ok ? null : derived.reason)),
+      reportedStatus: status,
+      reportedLastSuccessAt: report.lastSuccessAt,
+      crmDeployment: report,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown transport error.";
+    return {
+      ...base,
+      error: message.toLowerCase().includes("abort") ? "NorthStar CRM timed out." : message,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Real connectivity check against the module's reporting endpoint. Success
  * means the endpoint answered 200 with parseable JSON for this client's
  * external ID. Nothing else is treated as connected.
@@ -316,8 +424,18 @@ export async function checkModuleHealth(params: {
   northstarClientId?: string | null;
   applicationId?: string | null;
   tenantSlug?: string | null;
+  internalDeployment?: boolean;
   timeoutMs?: number;
 }): Promise<HealthCheckOutcome> {
+  if (params.module === "crm") {
+    return checkCrmDeployment({
+      northstarClientId: params.northstarClientId ?? null,
+      externalId: params.externalId,
+      internalDeployment: params.internalDeployment === true,
+      endpointUrl: params.endpointUrl,
+      timeoutMs: params.timeoutMs,
+    });
+  }
   if (params.module === "ccm") {
     return checkCcmDeployment({
       northstarClientId: params.northstarClientId ?? null,
@@ -346,6 +464,7 @@ export async function checkModuleHealth(params: {
     reportedLastSuccessAt: null as string | null,
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
+    crmDeployment: null as CrmDeploymentReport | null,
   };
 
   if (!params.externalId || params.externalId.trim() === "") {
