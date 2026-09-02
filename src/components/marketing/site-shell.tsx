@@ -331,13 +331,13 @@ export function Band({
 
 export function BandHeading({ eyebrow, title, lede }: { eyebrow?: string; title: string; lede?: string }) {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       {eyebrow && (
         <div className="text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
           {eyebrow}
         </div>
       )}
-      <h2 className="mt-3 font-display text-[24px] font-semibold leading-[1.2] text-foreground md:text-[32px]">
+      <h2 className="mt-3 font-display text-[27px] font-semibold leading-[1.14] tracking-tight text-foreground md:text-[38px]">
         {title}
       </h2>
       {lede && <p className="mt-4 text-[15px] leading-[1.8] text-muted-foreground">{lede}</p>}
@@ -355,7 +355,7 @@ export function FinalCta({
   return (
     <section className="bg-card/50">
       <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-        <div className="max-w-2xl">
+        <div className="max-w-3xl">
           <h2 className="font-display text-[26px] font-semibold leading-[1.2] text-foreground md:text-[34px]">
             {title}
           </h2>
