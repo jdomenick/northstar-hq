@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ClientWorkspace } from "@/components/client-shell";
 import { updateMyClientProfileFn } from "@/lib/client-identity/identity.functions";
 import type { PreferredContactMethod } from "@/lib/client-identity/types";
+import { useReadOnlyPreview } from "@/components/client-workspace-ui";
 
 export function ProfileForm({
   initial,
@@ -23,6 +24,7 @@ export function ProfileForm({
   const queryClient = useQueryClient();
   const [form, setForm] = useState(initial);
   const [busy, setBusy] = useState(false);
+  const readOnly = useReadOnlyPreview();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,7 +100,8 @@ export function ProfileForm({
         </Field>
         <button
           type="submit"
-          disabled={busy}
+          disabled={busy || readOnly}
+          title={readOnly ? "Read-only preview" : undefined}
           className="bg-foreground px-5 py-3 text-[11.5px] font-medium uppercase tracking-[0.18em] text-background hover:bg-foreground/85 disabled:opacity-50"
         >
           {busy ? "Saving" : "Save changes"}

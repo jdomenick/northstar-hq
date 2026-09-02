@@ -15,6 +15,7 @@ import {
   WorkspaceError,
   formatDate,
   useClientWorkspace,
+  useReadOnlyPreview,
 } from "@/components/client-workspace-ui";
 import { submitOnboardingItemFn } from "@/lib/client-workspace/workspace.functions";
 import {
@@ -96,6 +97,7 @@ function ItemCard({ item, storagePrefix }: { item: OnboardingItem; storagePrefix
   const [busy, setBusy] = useState(false);
   const submit = useServerFn(submitOnboardingItemFn);
   const queryClient = useQueryClient();
+  const readOnly = useReadOnlyPreview();
 
   const locked =
     item.status === "approved" || item.status === "not_applicable" || item.status === "blocked";
@@ -189,7 +191,8 @@ function ItemCard({ item, storagePrefix }: { item: OnboardingItem; storagePrefix
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || readOnly}
+              title={readOnly ? "Read-only preview" : undefined}
               onClick={() => void send("submitted")}
               className="bg-foreground px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-background transition hover:opacity-90 disabled:opacity-50"
             >
@@ -197,7 +200,8 @@ function ItemCard({ item, storagePrefix }: { item: OnboardingItem; storagePrefix
             </button>
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || readOnly}
+              title={readOnly ? "Read-only preview" : undefined}
               onClick={() => void send("in_progress")}
               className="text-[11px] uppercase tracking-[0.18em] text-foreground/60 hover:text-foreground disabled:opacity-50"
             >

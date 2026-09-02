@@ -10,6 +10,7 @@ import {
   WORKSPACE_QUERY_KEY,
   WorkspaceError,
   useClientWorkspace,
+  useReadOnlyPreview,
 } from "@/components/client-workspace-ui";
 import { saveClientCompanyProfileFn } from "@/lib/client-workspace/workspace.functions";
 import type { CompanyProfile } from "@/lib/client-workspace/types";
@@ -53,7 +54,9 @@ export function CompanyBody() {
   );
 }
 
-function CompanyForm({ initial, canEdit }: { initial: CompanyProfile; canEdit: boolean }) {
+function CompanyForm({ initial, canEdit: canEditProp }: { initial: CompanyProfile; canEdit: boolean }) {
+  const readOnly = useReadOnlyPreview();
+  const canEdit = canEditProp && !readOnly;
   const { updated_at: _updatedAt, ...rest } = initial;
   const [draft, setDraft] = useState<Draft>(rest);
   const [busy, setBusy] = useState(false);
