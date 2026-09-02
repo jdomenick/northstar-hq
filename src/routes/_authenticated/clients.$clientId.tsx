@@ -13,6 +13,7 @@ import {
 import { money, useClientOutcomeChain } from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
 import { StatusChip } from "@/components/command/source-state";
+import { ClientDeploymentPanel } from "@/components/command/client-deployment-panel";
 import {
   MODULE_KEYS,
   MODULE_LABELS,
@@ -127,6 +128,10 @@ function ClientWorkspacePage() {
             />
           </div>
         </Section>
+
+        {activeOrgId && (
+          <ClientDeploymentPanel organizationId={activeOrgId} northstarClientId={client.id} />
+        )}
 
         <Section title="Acquisition" hint="Where this client came from">
           <SourceView source={d.acquisition} empty="No inbound assessment request is linked to this client.">
