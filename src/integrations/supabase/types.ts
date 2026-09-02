@@ -2038,36 +2038,54 @@ export type Database = {
           active: boolean
           client_id: string
           created_at: string
+          endpoint_url: string | null
           external_id: string
           external_name: string | null
           id: string
+          last_error: string | null
+          last_health_check_at: string | null
+          last_success_at: string | null
           metadata: Json
           module: string
+          notes: string | null
           organization_id: string
+          provisioning_status: Database["public"]["Enums"]["module_provisioning_status"]
           updated_at: string
         }
         Insert: {
           active?: boolean
           client_id: string
           created_at?: string
+          endpoint_url?: string | null
           external_id: string
           external_name?: string | null
           id?: string
+          last_error?: string | null
+          last_health_check_at?: string | null
+          last_success_at?: string | null
           metadata?: Json
           module: string
+          notes?: string | null
           organization_id: string
+          provisioning_status?: Database["public"]["Enums"]["module_provisioning_status"]
           updated_at?: string
         }
         Update: {
           active?: boolean
           client_id?: string
           created_at?: string
+          endpoint_url?: string | null
           external_id?: string
           external_name?: string | null
           id?: string
+          last_error?: string | null
+          last_health_check_at?: string | null
+          last_success_at?: string | null
           metadata?: Json
           module?: string
+          notes?: string | null
           organization_id?: string
+          provisioning_status?: Database["public"]["Enums"]["module_provisioning_status"]
           updated_at?: string
         }
         Relationships: [
@@ -10911,6 +10929,13 @@ export type Database = {
         | "operating_procedure"
         | "general"
       member_status: "invited" | "active" | "suspended" | "removed"
+      module_provisioning_status:
+        | "not_configured"
+        | "pending"
+        | "active"
+        | "degraded"
+        | "failed"
+        | "disabled"
       nsl_proposal_status:
         | "draft"
         | "internal_review"
@@ -11463,6 +11488,14 @@ export const Constants = {
         "general",
       ],
       member_status: ["invited", "active", "suspended", "removed"],
+      module_provisioning_status: [
+        "not_configured",
+        "pending",
+        "active",
+        "degraded",
+        "failed",
+        "disabled",
+      ],
       nsl_proposal_status: [
         "draft",
         "internal_review",
