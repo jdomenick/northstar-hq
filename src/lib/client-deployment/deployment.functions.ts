@@ -284,14 +284,13 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
         // A source that reports its own deployment status is authoritative;
         // otherwise the status is inferred from whether the call succeeded.
         const observed: ProvisioningStatus =
-          outcome.reportedStatus ??
-          (outcome.ok ? "active" : install.lastSuccessAt ? "degraded" : "failed");
+          outcome.reportedStatus ?? (install.lastSuccessAt ? "degraded" : "failed");
         const nextStatus: ProvisioningStatus =
           install.status === "disabled" ? "disabled" : observed;
 
-        const lastSuccessAt = outcome.ok
-          ? (outcome.reportedLastSuccessAt ?? outcome.checkedAt)
-          : (outcome.reportedLastSuccessAt ?? install.lastSuccessAt);
+        // last_success_at is remote truth only. The local check timestamp
+        // belongs in last_health_check_at and never stands in for a success.
+        const lastSuccessAt = outcome.reportedLastSuccessAt ?? install.lastSuccessAt;
 
         const metadata = outcome.samDeployment
           ? {

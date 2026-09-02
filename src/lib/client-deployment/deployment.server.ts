@@ -50,6 +50,7 @@ import {
   type CamDeploymentReport,
 } from "./cam-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
+import { resolveDeploymentHealth } from "./health-resolution";
 
 export interface RawConnectionRow {
   id: string;
@@ -208,15 +209,18 @@ export async function checkSamDeployment(params: {
         })
       : null;
 
-    const status: ProvisioningStatus = mismatch ? "degraded" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.health.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.health.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       samDeployment: report,
     };
   } catch (err) {
@@ -301,15 +305,18 @@ export async function checkCcmDeployment(params: {
         })
       : null;
 
-    const status: ProvisioningStatus = mismatch ? "degraded" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       ccmDeployment: report,
     };
   } catch (err) {
@@ -397,17 +404,18 @@ export async function checkCrmDeployment(params: {
         })
       : null;
 
-    // A mismatch never upgrades a gated status: pending stays pending.
-    const status: ProvisioningStatus =
-      mismatch && derived.status !== "pending" ? "degraded" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: derived.status === "pending" ? derived.reason : (mismatch ?? (ok ? null : derived.reason)),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       crmDeployment: report,
     };
   } catch (err) {
@@ -488,17 +496,18 @@ export async function checkCamDeployment(params: {
         })
       : null;
 
-    // A mismatch never upgrades CAM's real operating status.
-    const status: ProvisioningStatus =
-      mismatch && derived.status === "active" ? "degraded" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: ok ? null : (derived.reason ?? mismatch),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       camDeployment: report,
     };
   } catch (err) {
@@ -607,7 +616,15 @@ export async function checkModuleHealth(params: {
       return { ...base, httpStatus: res.status, error: `Endpoint responded HTTP ${res.status}.` };
     }
     await res.json();
-    return { ...base, ok: true, httpStatus: res.status, error: null };
+    // Reachability is not health. Without a deployment contract to parse, HQ
+    // reports the module as pending rather than claiming it is active.
+    return {
+      ...base,
+      ok: false,
+      httpStatus: res.status,
+      reportedStatus: "pending",
+      error: "Module answered but exposes no deployment contract to verify against.",
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown transport error.";
     return {

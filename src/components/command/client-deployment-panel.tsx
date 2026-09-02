@@ -530,7 +530,7 @@ export function ClientDeploymentPanel({
                     </div>
                     <div className="flex items-center gap-3 text-[10.5px] text-muted-foreground">
                       <span>Last check {when(install.lastHealthCheckAt)}</span>
-                      <span>Last success {when(install.lastSuccessAt)}</span>
+                      <span>Last success reported {when(install.lastSuccessAt)}</span>
                     </div>
                   </div>
 

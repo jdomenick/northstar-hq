@@ -40,12 +40,32 @@ test("unmapped module is never anything but not_configured", () => {
   );
 });
 
-test("mapped module with a success and no error is active", () => {
+test("mapped module with a checked active status is active", () => {
   assert.equal(
     deriveModuleStatus(
-      install("crm", { externalId: "biz-1", status: "active", lastSuccessAt: "2026-01-01T00:00:00Z" }),
+      install("crm", {
+        externalId: "biz-1",
+        status: "active",
+        lastSuccessAt: "2026-01-01T00:00:00Z",
+        lastHealthCheckAt: "2026-01-02T00:00:00Z",
+      }),
     ),
     "active",
+  );
+});
+
+test("a stale remote success never upgrades a parsed degraded status", () => {
+  assert.equal(
+    deriveModuleStatus(
+      install("crm", {
+        externalId: "biz-1",
+        status: "degraded",
+        lastSuccessAt: "2026-01-01T00:00:00Z",
+        lastHealthCheckAt: "2026-01-02T00:00:00Z",
+        lastError: "CRM reports degraded health.",
+      }),
+    ),
+    "degraded",
   );
 });
 
@@ -85,26 +105,47 @@ test("shared health reflects the worst configured module", () => {
   assert.equal(deriveDeploymentHealth(base), "not_configured");
 
   const healthy = MODULE_KEYS.map((m) =>
-    install(m, { externalId: "x", status: "active", lastSuccessAt: "2026-01-01T00:00:00Z" }),
+    install(m, {
+      externalId: "x",
+      status: "active",
+      lastSuccessAt: "2026-01-01T00:00:00Z",
+      lastHealthCheckAt: "2026-01-02T00:00:00Z",
+    }),
   );
   assert.equal(deriveDeploymentHealth(healthy), "healthy");
 
   const withFailure = [
     ...healthy.slice(0, 3),
-    install("sam", { externalId: "x", status: "failed", lastError: "HTTP 401" }),
+    install("sam", {
+      externalId: "x",
+      status: "failed",
+      lastError: "HTTP 401",
+      lastHealthCheckAt: "2026-01-02T00:00:00Z",
+    }),
   ];
   assert.equal(deriveDeploymentHealth(withFailure), "failed");
 
   const withDegraded = [
     ...healthy.slice(0, 3),
-    install("sam", { externalId: "x", lastSuccessAt: "2026-01-01T00:00:00Z", lastError: "timeout" }),
+    install("sam", {
+      externalId: "x",
+      status: "degraded",
+      lastSuccessAt: "2026-01-01T00:00:00Z",
+      lastError: "timeout",
+      lastHealthCheckAt: "2026-01-02T00:00:00Z",
+    }),
   ];
   assert.equal(deriveDeploymentHealth(withDegraded), "degraded");
 });
 
 test("disabled modules do not drag shared health down", () => {
   const rows = [
-    install("cam", { externalId: "x", status: "active", lastSuccessAt: "2026-01-01T00:00:00Z" }),
+    install("cam", {
+      externalId: "x",
+      status: "active",
+      lastSuccessAt: "2026-01-01T00:00:00Z",
+      lastHealthCheckAt: "2026-01-02T00:00:00Z",
+    }),
     install("ccm", { externalId: "y", status: "disabled" }),
     install("crm"),
     install("sam"),
