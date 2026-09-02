@@ -28,6 +28,13 @@ import {
   samMappingMismatch,
   type SamDeploymentReport,
 } from "./sam-deployment";
+import {
+  buildCcmDeploymentUrl,
+  deriveCcmProvisioningStatus,
+  parseCcmDeployment,
+  ccmMappingMismatch,
+  type CcmDeploymentReport,
+} from "./ccm-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
 
 export interface RawConnectionRow {
@@ -111,6 +118,8 @@ export interface HealthCheckOutcome {
   reportedLastSuccessAt: string | null;
   /** SAM Core deployment observation, persisted for the operator UI. */
   samDeployment: SamDeploymentReport | null;
+  /** CCM deployment observation, persisted for the operator UI. */
+  ccmDeployment: CcmDeploymentReport | null;
 }
 
 /**
@@ -134,6 +143,7 @@ export async function checkSamDeployment(params: {
     reportedStatus: null as ProvisioningStatus | null,
     reportedLastSuccessAt: null as string | null,
     samDeployment: null as SamDeploymentReport | null,
+    ccmDeployment: null as CcmDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId) {
@@ -200,12 +210,104 @@ export async function checkSamDeployment(params: {
   }
 }
 
+
+/**
+ * CCM exposes a dedicated deployment contract (`ccm.deployment.v1`) reporting
+ * tenant deployment status and per-capability truth, so HQ reads that instead
+ * of inferring liveness from a dashboard payload. Selector preference is the
+ * canonical northstar_client_id, then the mapped CCM tenant id or slug.
+ */
+export async function checkCcmDeployment(params: {
+  northstarClientId: string | null;
+  externalId: string | null;
+  tenantSlug?: string | null;
+  endpointUrl: string | null;
+  timeoutMs?: number;
+}): Promise<HealthCheckOutcome> {
+  const checkedAt = new Date().toISOString();
+  const base = {
+    module: "ccm" as const,
+    ok: false,
+    httpStatus: null as number | null,
+    checkedAt,
+    reportedStatus: null as ProvisioningStatus | null,
+    reportedLastSuccessAt: null as string | null,
+    samDeployment: null as SamDeploymentReport | null,
+    ccmDeployment: null as CcmDeploymentReport | null,
+  };
+
+  if (!params.northstarClientId && !params.externalId && !params.tenantSlug) {
+    return { ...base, error: "No CCM tenant ID is mapped for this client." };
+  }
+
+  const { secret } = await resolveReportingSecret();
+  if (!secret) {
+    return { ...base, error: "Shared reporting credential is not configured." };
+  }
+
+  const baseUrl = params.endpointUrl?.trim() || moduleBaseUrl("ccm");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), params.timeoutMs ?? 10_000);
+  try {
+    const res = await fetch(
+      buildCcmDeploymentUrl(baseUrl, {
+        northstarClientId: params.northstarClientId,
+        tenantId: params.externalId,
+        tenantSlug: params.tenantSlug ?? null,
+      }),
+      { method: "GET", headers: buildReportingHeaders(secret), signal: controller.signal },
+    );
+    if (!res.ok) {
+      return {
+        ...base,
+        httpStatus: res.status,
+        error:
+          res.status === 401 || res.status === 403
+            ? "CCM rejected the shared reporting credential. CCM's stored reporting auth hash does not match the configured secret."
+            : res.status === 404
+              ? "CCM has no tenant record for this selector."
+              : `CCM responded HTTP ${res.status}.`,
+      };
+    }
+
+    const report = parseCcmDeployment(await res.json());
+    const derived = deriveCcmProvisioningStatus(report);
+    const mismatch = params.northstarClientId
+      ? ccmMappingMismatch(report, {
+          northstarClientId: params.northstarClientId,
+          externalId: params.externalId,
+        })
+      : null;
+
+    const status: ProvisioningStatus = mismatch ? "degraded" : derived.status;
+    const ok = status === "active";
+    return {
+      ...base,
+      ok,
+      httpStatus: res.status,
+      error: mismatch ?? (ok ? null : derived.reason),
+      reportedStatus: status,
+      reportedLastSuccessAt: report.lastSuccessAt,
+      ccmDeployment: report,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown transport error.";
+    return {
+      ...base,
+      error: message.toLowerCase().includes("abort") ? "CCM timed out." : message,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Real connectivity check against the module's reporting endpoint. Success
  * means the endpoint answered 200 with parseable JSON for this client's
  * external ID. Nothing else is treated as connected.
  *
- * SAM is routed to its deployment contract, which reports its own truth.
+ * SAM and CCM are routed to their deployment contracts, which report their
+ * own truth.
  */
 export async function checkModuleHealth(params: {
   module: ModuleKey;
@@ -213,8 +315,18 @@ export async function checkModuleHealth(params: {
   endpointUrl: string | null;
   northstarClientId?: string | null;
   applicationId?: string | null;
+  tenantSlug?: string | null;
   timeoutMs?: number;
 }): Promise<HealthCheckOutcome> {
+  if (params.module === "ccm") {
+    return checkCcmDeployment({
+      northstarClientId: params.northstarClientId ?? null,
+      externalId: params.externalId,
+      tenantSlug: params.tenantSlug ?? null,
+      endpointUrl: params.endpointUrl,
+      timeoutMs: params.timeoutMs,
+    });
+  }
   if (params.module === "sam") {
     return checkSamDeployment({
       northstarClientId: params.northstarClientId ?? null,
@@ -233,6 +345,7 @@ export async function checkModuleHealth(params: {
     reportedStatus: null as ProvisioningStatus | null,
     reportedLastSuccessAt: null as string | null,
     samDeployment: null as SamDeploymentReport | null,
+    ccmDeployment: null as CcmDeploymentReport | null,
   };
 
   if (!params.externalId || params.externalId.trim() === "") {
