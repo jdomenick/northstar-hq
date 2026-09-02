@@ -1,0 +1,333 @@
+// Client deployment and integrations section inside the existing Command
+// Center client detail flow. Shows real mapping and reporting health only.
+// Every status shown is derived from persisted observations, never assumed.
+
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Section } from "@/components/page-header";
+import {
+  useClientDeployment,
+  useModuleHealthCheck,
+  useRemoveModuleMapping,
+  useSetModuleStatus,
+  useUpsertModuleMapping,
+} from "@/lib/client-deployment/hooks";
+import {
+  MODULE_EXTERNAL_ID_HINT,
+  MODULE_LABELS,
+  MODULE_PROVISIONING_MODE,
+  PROVISIONING_LABELS,
+  deriveModuleStatus,
+  type ClientModuleInstallation,
+  type DeploymentHealth,
+  type ProvisioningStatus,
+} from "@/lib/client-deployment/types";
+
+const STATUS_TONE: Record<ProvisioningStatus, string> = {
+  not_configured: "text-muted-foreground border-border/70",
+  pending: "text-amber-500 border-amber-500/40",
+  active: "text-emerald-500 border-emerald-500/40",
+  degraded: "text-amber-500 border-amber-500/40",
+  failed: "text-destructive border-destructive/40",
+  disabled: "text-muted-foreground border-border/70",
+};
+
+const HEALTH_LABEL: Record<DeploymentHealth, string> = {
+  healthy: "Healthy",
+  degraded: "Degraded",
+  failed: "Failed",
+  not_configured: "Not configured",
+};
+
+function when(iso: string | null): string {
+  if (!iso) return "Never";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "Never" : d.toLocaleString();
+}
+
+function StatusPill({ status }: { status: ProvisioningStatus }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${STATUS_TONE[status]}`}
+    >
+      {PROVISIONING_LABELS[status]}
+    </span>
+  );
+}
+
+export function ClientDeploymentPanel({
+  organizationId,
+  northstarClientId,
+}: {
+  organizationId: string;
+  northstarClientId: string;
+}) {
+  const q = useClientDeployment(organizationId, northstarClientId);
+  const upsert = useUpsertModuleMapping(organizationId, northstarClientId);
+  const setStatus = useSetModuleStatus(organizationId, northstarClientId);
+  const remove = useRemoveModuleMapping(organizationId, northstarClientId);
+  const health = useModuleHealthCheck(organizationId, northstarClientId);
+
+  const [idDrafts, setIdDrafts] = useState<Record<string, string>>({});
+  const [urlDrafts, setUrlDrafts] = useState<Record<string, string>>({});
+
+  const installations = useMemo(() => q.data?.installations ?? [], [q.data]);
+  const summary = q.data?.summary ?? null;
+  const canManage = q.data?.canManage ?? false;
+
+  async function onSave(install: ClientModuleInstallation) {
+    const externalId = (idDrafts[install.module] ?? install.externalId ?? "").trim();
+    const endpointUrl = (urlDrafts[install.module] ?? install.endpointUrl ?? "").trim();
+    if (!externalId) {
+      toast.error(`Enter the ${MODULE_EXTERNAL_ID_HINT[install.module]}.`);
+      return;
+    }
+    try {
+      await upsert.mutateAsync({
+        module: install.module,
+        externalId,
+        endpointUrl: endpointUrl || null,
+        configuration: install.configuration,
+        status: install.status === "disabled" ? "disabled" : install.id ? install.status : "pending",
+      });
+      setIdDrafts((d) => ({ ...d, [install.module]: "" }));
+      setUrlDrafts((d) => ({ ...d, [install.module]: "" }));
+      toast.success(`${MODULE_LABELS[install.module]} mapping saved.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save the mapping.");
+    }
+  }
+
+  async function onCheck(module?: ClientModuleInstallation["module"]) {
+    try {
+      const results = await health.mutateAsync({ module: module ?? null });
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length === 0) {
+        toast.success("All checked modules answered successfully.");
+      } else {
+        toast.error(
+          failed
+            .map((r) => `${MODULE_LABELS[r.module]}: ${r.error ?? "no response"}`)
+            .join(" | "),
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Health check failed.");
+    }
+  }
+
+  return (
+    <Section
+      title="Deployment and integrations"
+      hint="CAM, CCM, NorthStar CRM and SAM Core mapped to this client. Status reflects real endpoint checks only."
+      action={
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={health.isPending || q.isLoading}
+          onClick={() => void onCheck()}
+        >
+          {health.isPending ? "Checking…" : "Run health check"}
+        </Button>
+      }
+    >
+      {q.isLoading ? (
+        <p className="text-[12px] text-muted-foreground">Loading deployment state…</p>
+      ) : q.isError ? (
+        <p className="text-[12px] text-destructive">
+          {(q.error as Error)?.message ?? "Deployment state could not be read."}
+        </p>
+      ) : (
+        <div className="space-y-5">
+          {/* Summary */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px]">
+            <span className="text-muted-foreground">
+              Shared health:{" "}
+              <span className="text-foreground">
+                {summary ? HEALTH_LABEL[summary.health] : "Unknown"}
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              Modules mapped:{" "}
+              <span className="text-foreground">
+                {summary?.mappedModules ?? 0} of {installations.length}
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              Reporting credential:{" "}
+              <span className="text-foreground">
+                {q.data?.reportingCredentialConfigured ? "Configured" : "Not configured"}
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              northstar_client_id: <code className="text-foreground">{northstarClientId}</code>
+            </span>
+          </div>
+
+          {/* Provisioning checklist */}
+          {summary && (
+            <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+              {summary.checklist.map((step, i) => (
+                <li
+                  key={step.stage}
+                  className={`rounded-[6px] border px-2.5 py-2 ${
+                    step.state === "done"
+                      ? "border-emerald-500/40"
+                      : step.state === "blocked"
+                        ? "border-destructive/40"
+                        : step.state === "current"
+                          ? "border-amber-500/40"
+                          : "border-border/70"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-foreground">
+                      {i + 1}. {step.label}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {step.state}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
+                    {step.detail}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {/* Module rows */}
+          <div className="divide-y divide-border/60 rounded-[8px] border border-border/70">
+            {installations.map((install) => {
+              const effective = deriveModuleStatus(install);
+              return (
+                <div key={install.module} className="space-y-2 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12.5px] font-medium text-foreground">
+                        {MODULE_LABELS[install.module]}
+                      </span>
+                      <StatusPill status={effective} />
+                      {MODULE_PROVISIONING_MODE[install.module] === "requires_setup" &&
+                        effective === "not_configured" && (
+                          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                            Requires setup
+                          </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3 text-[10.5px] text-muted-foreground">
+                      <span>Last check {when(install.lastHealthCheckAt)}</span>
+                      <span>Last success {when(install.lastSuccessAt)}</span>
+                    </div>
+                  </div>
+
+                  {install.lastError && (
+                    <p className="text-[11px] text-destructive">{install.lastError}</p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      aria-label={MODULE_EXTERNAL_ID_HINT[install.module]}
+                      placeholder={MODULE_EXTERNAL_ID_HINT[install.module]}
+                      disabled={!canManage}
+                      value={idDrafts[install.module] ?? install.externalId ?? ""}
+                      onChange={(e) =>
+                        setIdDrafts((d) => ({ ...d, [install.module]: e.target.value }))
+                      }
+                      className="h-8 max-w-xs text-[12px]"
+                    />
+                    <Input
+                      aria-label={`${MODULE_LABELS[install.module]} endpoint override`}
+                      placeholder="Endpoint override (optional)"
+                      disabled={!canManage}
+                      value={urlDrafts[install.module] ?? install.endpointUrl ?? ""}
+                      onChange={(e) =>
+                        setUrlDrafts((d) => ({ ...d, [install.module]: e.target.value }))
+                      }
+                      className="h-8 max-w-xs text-[12px]"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!canManage || upsert.isPending}
+                      onClick={() => void onSave(install)}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={health.isPending || !install.externalId}
+                      onClick={() => void onCheck(install.module)}
+                    >
+                      Check
+                    </Button>
+                    {install.id && canManage && (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={setStatus.isPending}
+                          onClick={() =>
+                            void setStatus
+                              .mutateAsync({
+                                module: install.module,
+                                status: install.status === "disabled" ? "pending" : "disabled",
+                              })
+                              .then(() =>
+                                toast.success(
+                                  install.status === "disabled"
+                                    ? `${MODULE_LABELS[install.module]} enabled.`
+                                    : `${MODULE_LABELS[install.module]} disabled.`,
+                                ),
+                              )
+                              .catch((err: unknown) =>
+                                toast.error(
+                                  err instanceof Error ? err.message : "Status change failed.",
+                                ),
+                              )
+                          }
+                        >
+                          {install.status === "disabled" ? "Enable" : "Disable"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          disabled={remove.isPending}
+                          onClick={() =>
+                            void remove
+                              .mutateAsync({ module: install.module })
+                              .then(() => toast.success("Mapping removed."))
+                              .catch((err: unknown) =>
+                                toast.error(
+                                  err instanceof Error ? err.message : "Removal failed.",
+                                ),
+                              )
+                          }
+                        >
+                          Remove
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {!canManage && (
+            <p className="text-[11px] text-muted-foreground">
+              Mapping controls require an organization admin or owner role.
+            </p>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
