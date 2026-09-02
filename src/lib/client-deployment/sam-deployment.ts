@@ -177,7 +177,7 @@ export interface SamStatusDerivation {
  *
  * Installation state is checked first: an organization SAM has not installed,
  * suspended, or revoked is never reported as active regardless of health.
- * `no_traffic` is a truthful connected state, so it stays active with a note.
+ * `no_traffic` is not proof of a working deployment, so it reads as degraded.
  */
 export function deriveSamProvisioningStatus(report: SamDeploymentReport): SamStatusDerivation {
   if (!isSamDeploymentContract(report)) {
@@ -215,7 +215,10 @@ export function deriveSamProvisioningStatus(report: SamDeploymentReport): SamSta
     case "healthy":
       return { status: "active", reason: null };
     case "no_traffic":
-      return { status: "active", reason: "SAM Core is installed and authorized with no traffic yet." };
+      return {
+        status: "degraded",
+        reason: "SAM Core is installed and authorized but has processed no traffic yet.",
+      };
     case "degraded":
       return { status: "degraded", reason: errorNote ?? "SAM Core reports degraded health." };
     case "blocked":

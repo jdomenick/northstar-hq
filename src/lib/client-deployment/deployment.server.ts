@@ -208,7 +208,9 @@ export async function checkSamDeployment(params: {
         })
       : null;
 
-    const status: ProvisioningStatus = mismatch ? "degraded" : derived.status;
+    // Identity mismatch is a hard failure: HQ never silently accepts a
+    // deployment record that belongs to a different client.
+    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
     const ok = status === "active";
     return {
       ...base,
@@ -301,7 +303,8 @@ export async function checkCcmDeployment(params: {
         })
       : null;
 
-    const status: ProvisioningStatus = mismatch ? "degraded" : derived.status;
+    // Identity mismatch is a hard failure, never a soft downgrade.
+    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
     const ok = status === "active";
     return {
       ...base,
@@ -397,15 +400,14 @@ export async function checkCrmDeployment(params: {
         })
       : null;
 
-    // A mismatch never upgrades a gated status: pending stays pending.
-    const status: ProvisioningStatus =
-      mismatch && derived.status !== "pending" ? "degraded" : derived.status;
+    // Identity mismatch is a hard failure and outranks the isolation gate.
+    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
     const ok = status === "active";
     return {
       ...base,
       ok,
       httpStatus: res.status,
-      error: derived.status === "pending" ? derived.reason : (mismatch ?? (ok ? null : derived.reason)),
+      error: mismatch ?? (ok ? null : derived.reason),
       reportedStatus: status,
       reportedLastSuccessAt: report.lastSuccessAt,
       crmDeployment: report,
@@ -488,15 +490,14 @@ export async function checkCamDeployment(params: {
         })
       : null;
 
-    // A mismatch never upgrades CAM's real operating status.
-    const status: ProvisioningStatus =
-      mismatch && derived.status === "active" ? "degraded" : derived.status;
+    // Identity mismatch is a hard failure; otherwise CAM's real status stands.
+    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
     const ok = status === "active";
     return {
       ...base,
       ok,
       httpStatus: res.status,
-      error: ok ? null : (derived.reason ?? mismatch),
+      error: mismatch ?? (ok ? null : derived.reason),
       reportedStatus: status,
       reportedLastSuccessAt: report.lastSuccessAt,
       camDeployment: report,
@@ -607,7 +608,15 @@ export async function checkModuleHealth(params: {
       return { ...base, httpStatus: res.status, error: `Endpoint responded HTTP ${res.status}.` };
     }
     await res.json();
-    return { ...base, ok: true, httpStatus: res.status, error: null };
+    // Reachability is not health. Without a deployment contract to parse, HQ
+    // reports the module as pending rather than claiming it is active.
+    return {
+      ...base,
+      ok: false,
+      httpStatus: res.status,
+      reportedStatus: "pending",
+      error: "Module answered but exposes no deployment contract to verify against.",
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown transport error.";
     return {
