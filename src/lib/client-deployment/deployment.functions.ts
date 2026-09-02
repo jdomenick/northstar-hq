@@ -255,6 +255,7 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { samObservation } = await import("./sam-deployment");
+    const { ccmObservation } = await import("./ccm-deployment");
 
     return Promise.all(
       targets.map(async (install): Promise<ModuleHealthResult> => {
@@ -262,12 +263,17 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
           install.module === "sam" && typeof install.configuration.application_id === "string"
             ? (install.configuration.application_id as string)
             : null;
+        const tenantSlug =
+          install.module === "ccm" && typeof install.configuration.tenant_slug === "string"
+            ? (install.configuration.tenant_slug as string)
+            : null;
         const outcome = await checkModuleHealth({
           module: install.module,
           externalId: install.externalId,
           endpointUrl: install.endpointUrl,
           northstarClientId: data.northstarClientId,
           applicationId: appId,
+          tenantSlug,
         });
 
         // A source that reports its own deployment status is authoritative;
@@ -287,7 +293,12 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
               ...install.configuration,
               sam_deployment: samObservation(outcome.samDeployment),
             }
-          : null;
+          : outcome.ccmDeployment
+            ? {
+                ...install.configuration,
+                ccm_deployment: ccmObservation(outcome.ccmDeployment),
+              }
+            : null;
 
         await supabaseAdmin
           .from("client_module_connections")
