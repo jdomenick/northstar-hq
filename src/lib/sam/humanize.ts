@@ -181,7 +181,7 @@ export function humanizeStructuredValue(value: unknown): string | null {
 function looksStructured(text: string): boolean {
   const t = text.trim();
   if (!t) return false;
-  if ((t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"))) return true;
+  if (t.startsWith("{") || t.startsWith("[")) return true;
   return /```(?:json)?\s*[[{]/i.test(t);
 }
 
