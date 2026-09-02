@@ -38,6 +38,12 @@ import {
   type CcmCapabilityState,
   type CcmDeploymentStatus,
 } from "@/lib/client-deployment/ccm-deployment";
+import {
+  CRM_DEPLOYMENT_STATUS_LABELS,
+  CRM_READINESS_KEYS,
+  CRM_READINESS_LABELS,
+  type CrmDeploymentStatus,
+} from "@/lib/client-deployment/crm-deployment";
 
 const STATUS_TONE: Record<ProvisioningStatus, string> = {
   not_configured: "text-muted-foreground border-border/70",
@@ -132,6 +138,89 @@ function CcmDeploymentDetail({ config }: { config: Record<string, unknown> }) {
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * NorthStar CRM reports its own deployment truth through
+ * `northstar.crm.deployment.v1`. Readiness is shown exactly as reported, and
+ * the tenant-isolation gate is surfaced explicitly so an operator never reads
+ * an external CRM deployment as safe before isolation is proven.
+ */
+function CrmDeploymentDetail({ config }: { config: Record<string, unknown> }) {
+  const obs = config["crm_deployment"];
+  if (!obs || typeof obs !== "object" || Array.isArray(obs)) return null;
+  const o = obs as Record<string, unknown>;
+  const status = o["status"] as CrmDeploymentStatus | null;
+  const readiness =
+    o["readiness"] && typeof o["readiness"] === "object" && !Array.isArray(o["readiness"])
+      ? (o["readiness"] as Record<string, unknown>)
+      : {};
+  const isolated = o["tenant_isolation_verified"] === true;
+  const internal = o["internal_deployment"] === true;
+
+  return (
+    <div className="space-y-2">
+      <dl className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Deployment</dt>
+          <dd className="truncate text-foreground">
+            {status ? CRM_DEPLOYMENT_STATUS_LABELS[status] : "Not reported"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Tenant</dt>
+          <dd className="truncate text-foreground">
+            {typeof o["tenant"] === "string" ? o["tenant"] : "Not reported"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">NorthStar link</dt>
+          <dd className="truncate text-foreground">
+            {typeof o["northstar_client_id"] === "string" ? "Stamped" : "Not stamped"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Last success</dt>
+          <dd className="truncate text-foreground">
+            {when(typeof o["last_success_at"] === "string" ? o["last_success_at"] : null)}
+          </dd>
+        </div>
+      </dl>
+      <ul className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-3">
+        {CRM_READINESS_KEYS.map((key) => {
+          const raw = readiness[key];
+          const flag = typeof raw === "boolean" ? raw : null;
+          return (
+            <li key={key} className="flex items-baseline justify-between gap-2">
+              <span className="text-muted-foreground">{CRM_READINESS_LABELS[key]}</span>
+              <span
+                className={
+                  flag === true
+                    ? "text-emerald-500"
+                    : flag === false
+                      ? "text-destructive"
+                      : "text-muted-foreground"
+                }
+              >
+                {flag === true ? "Ready" : flag === false ? "Blocked" : "Not reported"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {!isolated && !internal && (
+        <p className="rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+          External-client activation is held: CRM has not proven per-business RLS and secure user
+          provisioning. Requires setup, not active.
+        </p>
+      )}
+      {!isolated && internal && (
+        <p className="text-[11px] text-muted-foreground">
+          Internal NorthStar Labs deployment. Not cleared for external multi-client use.
+        </p>
+      )}
     </div>
   );
 }
@@ -349,6 +438,10 @@ export function ClientDeploymentPanel({
 
                   {install.module === "ccm" && (
                     <CcmDeploymentDetail config={install.configuration} />
+                  )}
+
+                  {install.module === "crm" && (
+                    <CrmDeploymentDetail config={install.configuration} />
                   )}
 
                   {install.lastError && (
