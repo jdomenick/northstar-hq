@@ -17,6 +17,7 @@ import {
   emptyInstallation,
   isProvisioningStatus,
   type ClientModuleInstallation,
+  type JsonValue,
   type ModuleKey,
 } from "./types";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
