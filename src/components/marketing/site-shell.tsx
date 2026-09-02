@@ -282,16 +282,18 @@ export function PageIntro({
   lede: string;
 }) {
   return (
-    <section className="border-b border-border bg-card/30">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+    <section className="relative overflow-hidden border-b border-border bg-card/30">
+      <div className="pointer-events-none absolute inset-0 nsl-wash" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
         <div className="flex items-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
           <span className="h-1 w-1 rounded-full bg-primary" />
           {eyebrow}
         </div>
-        <h1 className="mt-4 max-w-3xl font-display text-[32px] font-semibold leading-[1.1] text-foreground md:text-[46px]">
+        <h1 className="mt-5 max-w-3xl font-display text-[36px] font-semibold leading-[1.06] text-foreground md:text-[54px]">
           {title}
         </h1>
-        <p className="mt-5 max-w-2xl text-[15px] leading-[1.8] text-muted-foreground">{lede}</p>
+        <p className="mt-6 max-w-2xl text-[16px] leading-[1.8] text-muted-foreground">{lede}</p>
       </div>
     </section>
   );
@@ -300,15 +302,29 @@ export function PageIntro({
 export function Band({
   children,
   muted = false,
+  deep = false,
+  textured = false,
   className,
 }: {
   children: ReactNode;
   muted?: boolean;
+  /** Heavier contrast treatment for sections that should sit forward. */
+  deep?: boolean;
+  /** Adds the fine engineering grid behind the content. */
+  textured?: boolean;
   className?: string;
 }) {
   return (
-    <section className={cn("border-b border-border", muted && "bg-card/30", className)}>
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">{children}</div>
+    <section
+      className={cn(
+        "relative overflow-hidden border-b border-border",
+        muted && "bg-card/30",
+        deep && "bg-card/70",
+        className,
+      )}
+    >
+      {textured && <div className="pointer-events-none absolute inset-0 nsl-grid-field opacity-20" aria-hidden />}
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">{children}</div>
     </section>
   );
 }
