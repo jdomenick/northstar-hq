@@ -256,6 +256,7 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
 
     const { samObservation } = await import("./sam-deployment");
     const { ccmObservation } = await import("./ccm-deployment");
+    const { crmObservation } = await import("./crm-deployment");
 
     return Promise.all(
       targets.map(async (install): Promise<ModuleHealthResult> => {
@@ -267,6 +268,8 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
           install.module === "ccm" && typeof install.configuration.tenant_slug === "string"
             ? (install.configuration.tenant_slug as string)
             : null;
+        const internalDeployment =
+          install.module === "crm" && install.configuration.internal_deployment === true;
         const outcome = await checkModuleHealth({
           module: install.module,
           externalId: install.externalId,
@@ -274,6 +277,7 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
           northstarClientId: data.northstarClientId,
           applicationId: appId,
           tenantSlug,
+          internalDeployment,
         });
 
         // A source that reports its own deployment status is authoritative;
@@ -298,7 +302,12 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
                 ...install.configuration,
                 ccm_deployment: ccmObservation(outcome.ccmDeployment),
               }
-            : null;
+            : outcome.crmDeployment
+              ? {
+                  ...install.configuration,
+                  crm_deployment: crmObservation(outcome.crmDeployment, { internalDeployment }),
+                }
+              : null;
 
         await supabaseAdmin
           .from("client_module_connections")
