@@ -42,6 +42,13 @@ import {
   crmMappingMismatch,
   type CrmDeploymentReport,
 } from "./crm-deployment";
+import {
+  buildCamDeploymentUrl,
+  deriveCamProvisioningStatus,
+  parseCamDeployment,
+  camMappingMismatch,
+  type CamDeploymentReport,
+} from "./cam-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
 
 export interface RawConnectionRow {
@@ -129,6 +136,8 @@ export interface HealthCheckOutcome {
   ccmDeployment: CcmDeploymentReport | null;
   /** NorthStar CRM deployment observation, persisted for the operator UI. */
   crmDeployment: CrmDeploymentReport | null;
+  /** CAM deployment observation, persisted for the operator UI. */
+  camDeployment: CamDeploymentReport | null;
 }
 
 /**
@@ -154,6 +163,7 @@ export async function checkSamDeployment(params: {
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
     crmDeployment: null as CrmDeploymentReport | null,
+    camDeployment: null as CamDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId) {
@@ -245,6 +255,7 @@ export async function checkCcmDeployment(params: {
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
     crmDeployment: null as CrmDeploymentReport | null,
+    camDeployment: null as CamDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId && !params.tenantSlug) {
@@ -339,6 +350,7 @@ export async function checkCrmDeployment(params: {
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
     crmDeployment: null as CrmDeploymentReport | null,
+    camDeployment: null as CamDeploymentReport | null,
   };
 
   if (!params.northstarClientId && !params.externalId) {
@@ -410,6 +422,97 @@ export async function checkCrmDeployment(params: {
 }
 
 /**
+ * CAM reports deployment truth through its existing HQ dashboard endpoint
+ * under `view=deployment` (contract 1.0.0), using the same shared reporting
+ * secret. No new endpoint and no second credential.
+ */
+export async function checkCamDeployment(params: {
+  northstarClientId: string | null;
+  externalId: string | null;
+  endpointUrl: string | null;
+  timeoutMs?: number;
+}): Promise<HealthCheckOutcome> {
+  const checkedAt = new Date().toISOString();
+  const base = {
+    module: "cam" as const,
+    ok: false,
+    httpStatus: null as number | null,
+    checkedAt,
+    reportedStatus: null as ProvisioningStatus | null,
+    reportedLastSuccessAt: null as string | null,
+    samDeployment: null as SamDeploymentReport | null,
+    ccmDeployment: null as CcmDeploymentReport | null,
+    crmDeployment: null as CrmDeploymentReport | null,
+    camDeployment: null as CamDeploymentReport | null,
+  };
+
+  if (!params.northstarClientId && !params.externalId) {
+    return { ...base, error: "No CAM organization ID is mapped for this client." };
+  }
+
+  const { secret } = await resolveReportingSecret();
+  if (!secret) {
+    return { ...base, error: "Shared reporting credential is not configured." };
+  }
+
+  const baseUrl = params.endpointUrl?.trim() || moduleBaseUrl("cam");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), params.timeoutMs ?? 10_000);
+  try {
+    const res = await fetch(
+      buildCamDeploymentUrl(baseUrl, {
+        northstarClientId: params.northstarClientId,
+        organizationId: params.externalId,
+      }),
+      { method: "GET", headers: buildReportingHeaders(secret), signal: controller.signal },
+    );
+    if (!res.ok) {
+      return {
+        ...base,
+        httpStatus: res.status,
+        error:
+          res.status === 401 || res.status === 403
+            ? "CAM rejected the shared reporting credential."
+            : res.status === 404
+              ? "CAM has no organization record for this selector."
+              : `CAM responded HTTP ${res.status}.`,
+      };
+    }
+
+    const report = parseCamDeployment(await res.json());
+    const derived = deriveCamProvisioningStatus(report);
+    const mismatch = params.northstarClientId
+      ? camMappingMismatch(report, {
+          northstarClientId: params.northstarClientId,
+          externalId: params.externalId,
+        })
+      : null;
+
+    // A mismatch never upgrades CAM's real operating status.
+    const status: ProvisioningStatus =
+      mismatch && derived.status === "active" ? "degraded" : derived.status;
+    const ok = status === "active";
+    return {
+      ...base,
+      ok,
+      httpStatus: res.status,
+      error: ok ? null : (derived.reason ?? mismatch),
+      reportedStatus: status,
+      reportedLastSuccessAt: report.lastSuccessAt,
+      camDeployment: report,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown transport error.";
+    return {
+      ...base,
+      error: message.toLowerCase().includes("abort") ? "CAM timed out." : message,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Real connectivity check against the module's reporting endpoint. Success
  * means the endpoint answered 200 with parseable JSON for this client's
  * external ID. Nothing else is treated as connected.
@@ -427,6 +530,14 @@ export async function checkModuleHealth(params: {
   internalDeployment?: boolean;
   timeoutMs?: number;
 }): Promise<HealthCheckOutcome> {
+  if (params.module === "cam") {
+    return checkCamDeployment({
+      northstarClientId: params.northstarClientId ?? null,
+      externalId: params.externalId,
+      endpointUrl: params.endpointUrl,
+      timeoutMs: params.timeoutMs,
+    });
+  }
   if (params.module === "crm") {
     return checkCrmDeployment({
       northstarClientId: params.northstarClientId ?? null,
@@ -465,6 +576,7 @@ export async function checkModuleHealth(params: {
     samDeployment: null as SamDeploymentReport | null,
     ccmDeployment: null as CcmDeploymentReport | null,
     crmDeployment: null as CrmDeploymentReport | null,
+    camDeployment: null as CamDeploymentReport | null,
   };
 
   if (!params.externalId || params.externalId.trim() === "") {
