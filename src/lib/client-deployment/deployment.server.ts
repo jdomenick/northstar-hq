@@ -50,6 +50,7 @@ import {
   type CamDeploymentReport,
 } from "./cam-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
+import { resolveDeploymentHealth } from "./health-resolution";
 
 export interface RawConnectionRow {
   id: string;
@@ -208,17 +209,18 @@ export async function checkSamDeployment(params: {
         })
       : null;
 
-    // Identity mismatch is a hard failure: HQ never silently accepts a
-    // deployment record that belongs to a different client.
-    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.health.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.health.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       samDeployment: report,
     };
   } catch (err) {
@@ -303,16 +305,18 @@ export async function checkCcmDeployment(params: {
         })
       : null;
 
-    // Identity mismatch is a hard failure, never a soft downgrade.
-    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       ccmDeployment: report,
     };
   } catch (err) {
@@ -400,16 +404,18 @@ export async function checkCrmDeployment(params: {
         })
       : null;
 
-    // Identity mismatch is a hard failure and outranks the isolation gate.
-    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       crmDeployment: report,
     };
   } catch (err) {
@@ -490,16 +496,18 @@ export async function checkCamDeployment(params: {
         })
       : null;
 
-    // Identity mismatch is a hard failure; otherwise CAM's real status stands.
-    const status: ProvisioningStatus = mismatch ? "failed" : derived.status;
-    const ok = status === "active";
+    const resolved = resolveDeploymentHealth({
+      derived,
+      mismatch,
+      remoteLastSuccessAt: report.lastSuccessAt,
+    });
     return {
       ...base,
-      ok,
+      ok: resolved.ok,
       httpStatus: res.status,
-      error: mismatch ?? (ok ? null : derived.reason),
-      reportedStatus: status,
-      reportedLastSuccessAt: report.lastSuccessAt,
+      error: resolved.error,
+      reportedStatus: resolved.status,
+      reportedLastSuccessAt: resolved.lastSuccessAt,
       camDeployment: report,
     };
   } catch (err) {
