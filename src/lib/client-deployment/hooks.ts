@@ -12,7 +12,7 @@ import {
   type ClientDeploymentResult,
   type ModuleHealthResult,
 } from "./deployment.functions";
-import type { ModuleKey, ProvisioningStatus } from "./types";
+import type { JsonValue, ModuleKey, ProvisioningStatus } from "./types";
 
 const key = (orgId: string | null, clientId: string | null) => [
   "client-deployment",
