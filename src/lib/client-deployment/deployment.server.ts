@@ -19,7 +19,15 @@ import {
   type ClientModuleInstallation,
   type JsonValue,
   type ModuleKey,
+  type ProvisioningStatus,
 } from "./types";
+import {
+  buildSamDeploymentUrl,
+  deriveSamProvisioningStatus,
+  parseSamDeployment,
+  samMappingMismatch,
+  type SamDeploymentReport,
+} from "./sam-deployment";
 import { MODULE_KEYS } from "@/lib/module-reporting/types";
 
 export interface RawConnectionRow {
