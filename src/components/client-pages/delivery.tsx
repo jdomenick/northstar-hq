@@ -208,6 +208,7 @@ function DeliverableCard({ deliverable }: { deliverable: ClientDeliverable }) {
   const decide = useServerFn(decideDeliverableFn);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const readOnly = useReadOnlyPreview();
   const open = deliverable.requires_client_review && deliverable.status === "ready_for_review";
 
   async function submit(decision: "approved" | "revision_requested") {
@@ -259,7 +260,8 @@ function DeliverableCard({ deliverable }: { deliverable: ClientDeliverable }) {
         {deliverable.has_file ? (
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || readOnly}
+            title={readOnly ? "Read-only preview" : undefined}
             onClick={async () => {
               try {
                 const { url } = await getUrl({ data: { documentId: deliverable.id } });
@@ -279,7 +281,8 @@ function DeliverableCard({ deliverable }: { deliverable: ClientDeliverable }) {
         <div className="mt-4 space-y-2 border-t border-foreground/10 pt-4">
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || readOnly}
+            title={readOnly ? "Read-only preview" : undefined}
             onClick={() => void submit("approved")}
             className="bg-foreground px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-background transition hover:opacity-90 disabled:opacity-50"
           >
@@ -297,7 +300,7 @@ function DeliverableCard({ deliverable }: { deliverable: ClientDeliverable }) {
           />
           <button
             type="button"
-            disabled={busy || reason.trim().length === 0}
+            disabled={busy || readOnly || reason.trim().length === 0}
             onClick={() => void submit("revision_requested")}
             className="border border-foreground/25 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground transition hover:bg-foreground hover:text-background disabled:opacity-50"
           >
