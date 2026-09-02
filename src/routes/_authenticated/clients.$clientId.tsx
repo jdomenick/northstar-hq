@@ -90,8 +90,10 @@ function ClientWorkspacePage() {
         actions={
           <div className="flex flex-wrap items-center gap-4">
             <DrillLink to="/clients">All clients</DrillLink>
+            <DrillLink to={`/client-preview/${client.id}`}>View as client</DrillLink>
             <DrillLink to={`/labs/clients/${client.id}/workspace`}>Client admin</DrillLink>
           </div>
+
         }
       />
       <PageBody>

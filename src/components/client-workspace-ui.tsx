@@ -9,17 +9,74 @@ import {
   registerClientUploadFn,
 } from "@/lib/client-workspace/workspace.functions";
 import type { ClientWorkspaceData } from "@/lib/client-workspace/types";
+import { useClientPreview } from "@/lib/client-preview/context";
+import {
+  getClientPreviewDeliveryFn,
+  getClientPreviewReportFn,
+  getClientPreviewWorkspaceFn,
+} from "@/lib/client-preview/preview.functions";
+import { getClientDeliveryFn } from "@/lib/delivery/delivery.functions";
+import type { ClientDeliveryView } from "@/lib/delivery/client-delivery";
+import { getClientExecutiveReportFn } from "@/lib/reporting/reporting.functions";
+import type { ClientExecutiveReportView } from "@/lib/reporting/types";
 
 export const WORKSPACE_QUERY_KEY = ["client-workspace"] as const;
+export const DELIVERY_QUERY_KEY = ["client-delivery"] as const;
+export const REPORT_QUERY_KEY = ["client-executive-report"] as const;
+
+/** In preview mode every client write control is disabled. */
+export function useReadOnlyPreview(): boolean {
+  return useClientPreview() !== null;
+}
 
 export function useClientWorkspace() {
+  const preview = useClientPreview();
   const load = useServerFn(getClientWorkspaceFn);
+  const loadPreview = useServerFn(getClientPreviewWorkspaceFn);
   return useQuery<ClientWorkspaceData>({
-    queryKey: WORKSPACE_QUERY_KEY,
-    queryFn: () => load(),
+    queryKey: preview ? [...WORKSPACE_QUERY_KEY, "preview", preview.clientId] : WORKSPACE_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
     retry: false,
   });
 }
+
+export function useClientDelivery() {
+  const preview = useClientPreview();
+  const load = useServerFn(getClientDeliveryFn);
+  const loadPreview = useServerFn(getClientPreviewDeliveryFn);
+  return useQuery<ClientDeliveryView>({
+    queryKey: preview ? [...DELIVERY_QUERY_KEY, "preview", preview.clientId] : DELIVERY_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
+    retry: false,
+  });
+}
+
+export function useClientExecutiveReport() {
+  const preview = useClientPreview();
+  const load = useServerFn(getClientExecutiveReportFn);
+  const loadPreview = useServerFn(getClientPreviewReportFn);
+  return useQuery<ClientExecutiveReportView>({
+    queryKey: preview ? [...REPORT_QUERY_KEY, "preview", preview.clientId] : REPORT_QUERY_KEY,
+    queryFn: () =>
+      preview
+        ? loadPreview({
+            data: { organizationId: preview.organizationId, clientId: preview.clientId },
+          })
+        : load(),
+    retry: false,
+  });
+}
+
 
 export function PageHeading({ label, title, lead }: { label: string; title: string; lead?: string }) {
   return (
@@ -109,6 +166,7 @@ export function UploadButton({
   const [busy, setBusy] = useState(false);
   const register = useServerFn(registerClientUploadFn);
   const queryClient = useQueryClient();
+  const readOnly = useReadOnlyPreview();
 
   async function handleFile(file: File) {
     if (file.size > 25 * 1024 * 1024) {
@@ -162,7 +220,8 @@ export function UploadButton({
       />
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || readOnly}
+        title={readOnly ? "Read-only preview" : undefined}
         onClick={() => inputRef.current?.click()}
         className="border border-foreground/25 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground transition hover:bg-foreground hover:text-background disabled:opacity-50"
       >
@@ -175,10 +234,12 @@ export function UploadButton({
 export function DownloadLink({ documentId, children }: { documentId: string; children: ReactNode }) {
   const getUrl = useServerFn(getClientDocumentUrlFn);
   const [busy, setBusy] = useState(false);
+  const readOnly = useReadOnlyPreview();
   return (
     <button
       type="button"
-      disabled={busy}
+      title={readOnly ? "Read-only preview" : undefined}
+      disabled={busy || readOnly}
       onClick={async () => {
         setBusy(true);
         try {

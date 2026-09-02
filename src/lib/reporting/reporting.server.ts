@@ -12,9 +12,11 @@ import { ClientIdentityError } from "@/lib/client-identity/errors";
 import {
   resolveClientAccount,
   requireOrgMember,
-  loadClientWorkspace,
+  buildClientWorkspace,
+  type ResolvedAccount,
 } from "@/lib/client-workspace/workspace.server";
-import { loadClientDelivery } from "@/lib/delivery/client-delivery.server";
+import { buildClientDelivery } from "@/lib/delivery/client-delivery.server";
+
 import {
   DELIVERABLE_STATUS_LABEL,
   DELIVERY_STAGE_LABEL,
@@ -85,11 +87,19 @@ export async function loadClientExecutiveReport(
   userId: string,
 ): Promise<ClientExecutiveReportView> {
   const acct = await resolveClientAccount(supabase, userId);
+  return buildClientExecutiveReport(supabase, acct);
+}
 
+/** Same client-facing executive report for an explicit org + client scope. */
+export async function buildClientExecutiveReport(
+  supabase: SB,
+  acct: ResolvedAccount,
+): Promise<ClientExecutiveReportView> {
   const [workspace, delivery, reportRes, metricRes] = await Promise.all([
-    loadClientWorkspace(supabase, userId),
-    loadClientDelivery(supabase, userId),
+    buildClientWorkspace(supabase, acct),
+    buildClientDelivery(supabase, acct),
     supabase
+
       .from("client_executive_reports")
       .select(REPORT_FIELDS)
       .eq("client_id", acct.client_id)
