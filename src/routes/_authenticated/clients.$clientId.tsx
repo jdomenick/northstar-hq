@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Eye } from "lucide-react";
 import { useOrg } from "@/lib/org-context";
 import { PageBody, PageHeader, Section } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
 import {
   DrillLink,
   EmptyLine,
@@ -14,6 +16,7 @@ import { money, useClientOutcomeChain } from "@/lib/command/hooks";
 import { useModuleDashboard } from "@/lib/command/module-hooks";
 import { StatusChip } from "@/components/command/source-state";
 import { ClientDeploymentPanel } from "@/components/command/client-deployment-panel";
+import { canPreviewAsClient } from "@/lib/client-preview/access";
 import {
   MODULE_KEYS,
   MODULE_LABELS,
@@ -46,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/clients/$clientId")({
 
 function ClientWorkspacePage() {
   const { clientId } = Route.useParams();
-  const { activeOrgId } = useOrg();
+  const { activeOrgId, activeMembership } = useOrg();
   const q = useClientOutcomeChain(activeOrgId, clientId);
   // Read-through reporting from CAM, CCM, NorthStar CRM and SAM Core.
   const modulesQ = useModuleDashboard(activeOrgId, clientId, "30d");
@@ -90,7 +93,14 @@ function ClientWorkspacePage() {
         actions={
           <div className="flex flex-wrap items-center gap-4">
             <DrillLink to="/clients">All clients</DrillLink>
-            <DrillLink to={`/client-preview/${client.id}`}>View as client</DrillLink>
+            {canPreviewAsClient(activeMembership?.role, activeMembership?.status) ? (
+              <Button asChild>
+                <Link to="/client-preview/$clientId" params={{ clientId: client.id }}>
+                  <Eye aria-hidden="true" />
+                  View as client
+                </Link>
+              </Button>
+            ) : null}
             <DrillLink to={`/labs/clients/${client.id}/workspace`}>Client admin</DrillLink>
           </div>
 

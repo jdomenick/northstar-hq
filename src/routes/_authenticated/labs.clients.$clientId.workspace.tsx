@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useOrg } from "@/lib/org-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ import {
 } from "@/lib/client-workspace/types";
 import { OperatorDeliveryAdmin } from "@/components/operator-delivery-admin";
 import { OperatorExecutiveReport } from "@/components/operator-executive-report";
+import { canPreviewAsClient } from "@/lib/client-preview/access";
 
 export const Route = createFileRoute("/_authenticated/labs/clients/$clientId/workspace")({
   component: OperatorWorkspacePage,
@@ -36,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/labs/clients/$clientId/wor
 
 function OperatorWorkspacePage() {
   const { clientId } = Route.useParams();
-  const { activeOrgId } = useOrg();
+  const { activeOrgId, activeMembership } = useOrg();
   const load = useServerFn(getOperatorClientWorkspaceFn);
   const queryClient = useQueryClient();
   const queryKey = ["operator-client-workspace", activeOrgId, clientId];
@@ -62,15 +64,25 @@ function OperatorWorkspacePage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-10 p-6">
-      <header>
-        <Link to="/labs/revenue" className="text-[11px] uppercase tracking-[0.18em] text-foreground/55 hover:text-foreground">
-          Back to revenue
-        </Link>
-        <h1 className="mt-3 font-display text-[30px] leading-tight">{data.client.name}</h1>
-        <p className="mt-2 text-[13px] text-foreground/65">
-          Client workspace administration. {data.accounts} active client login
-          {data.accounts === 1 ? "" : "s"}. Status: {data.client.status}.
-        </p>
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <Link to="/labs/revenue" className="text-[11px] uppercase tracking-[0.18em] text-foreground/55 hover:text-foreground">
+            Back to revenue
+          </Link>
+          <h1 className="mt-3 font-display text-[30px] leading-tight">{data.client.name}</h1>
+          <p className="mt-2 text-[13px] text-foreground/65">
+            Client workspace administration. {data.accounts} active client login
+            {data.accounts === 1 ? "" : "s"}. Status: {data.client.status}.
+          </p>
+        </div>
+        {canPreviewAsClient(activeMembership?.role, activeMembership?.status) ? (
+          <Button asChild className="shrink-0 self-start sm:self-auto">
+            <Link to="/client-preview/$clientId" params={{ clientId }}>
+              <Eye aria-hidden="true" />
+              View as client
+            </Link>
+          </Button>
+        ) : null}
       </header>
 
       <OnboardingAdmin
