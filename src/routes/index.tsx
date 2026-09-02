@@ -197,6 +197,9 @@ function HomePage() {
               </div>
             </Reveal>
           ))}
+          {/* Fillers keep the hairline grid from ending on an empty cell. */}
+          <div aria-hidden className="hidden bg-background sm:block" />
+          <div aria-hidden className="hidden bg-background lg:block" />
         </div>
         <div className="mt-9">
           <Link
