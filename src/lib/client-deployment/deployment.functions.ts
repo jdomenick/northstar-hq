@@ -257,6 +257,7 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
     const { samObservation } = await import("./sam-deployment");
     const { ccmObservation } = await import("./ccm-deployment");
     const { crmObservation } = await import("./crm-deployment");
+    const { camObservation } = await import("./cam-deployment");
 
     return Promise.all(
       targets.map(async (install): Promise<ModuleHealthResult> => {
@@ -307,7 +308,12 @@ export const runClientModuleHealthCheck = createServerFn({ method: "POST" })
                   ...install.configuration,
                   crm_deployment: crmObservation(outcome.crmDeployment, { internalDeployment }),
                 }
-              : null;
+              : outcome.camDeployment
+                ? {
+                    ...install.configuration,
+                    cam_deployment: camObservation(outcome.camDeployment),
+                  }
+                : null;
 
         await supabaseAdmin
           .from("client_module_connections")

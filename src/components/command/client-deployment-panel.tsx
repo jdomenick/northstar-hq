@@ -44,6 +44,14 @@ import {
   CRM_READINESS_LABELS,
   type CrmDeploymentStatus,
 } from "@/lib/client-deployment/crm-deployment";
+import {
+  CAM_CAPABILITY_KEYS,
+  CAM_CAPABILITY_LABELS,
+  CAM_COUNT_KEYS,
+  CAM_COUNT_LABELS,
+  CAM_DEPLOYMENT_STATUS_LABELS,
+  type CamDeploymentStatus,
+} from "@/lib/client-deployment/cam-deployment";
 
 const STATUS_TONE: Record<ProvisioningStatus, string> = {
   not_configured: "text-muted-foreground border-border/70",
@@ -221,6 +229,100 @@ function CrmDeploymentDetail({ config }: { config: Record<string, unknown> }) {
           Internal NorthStar Labs deployment. Not cleared for external multi-client use.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * CAM reports deployment truth through its existing HQ dashboard endpoint
+ * under `view=deployment`. Capability readiness, detail and counts are shown
+ * exactly as reported, never re-derived here.
+ */
+function CamDeploymentDetail({ config }: { config: Record<string, unknown> }) {
+  const obs = config["cam_deployment"];
+  if (!obs || typeof obs !== "object" || Array.isArray(obs)) return null;
+  const o = obs as Record<string, unknown>;
+  const status = o["status"] as CamDeploymentStatus | null;
+  const caps =
+    o["capabilities"] && typeof o["capabilities"] === "object" && !Array.isArray(o["capabilities"])
+      ? (o["capabilities"] as Record<string, unknown>)
+      : {};
+  const counts =
+    o["counts"] && typeof o["counts"] === "object" && !Array.isArray(o["counts"])
+      ? (o["counts"] as Record<string, unknown>)
+      : {};
+
+  return (
+    <div className="space-y-2">
+      <dl className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Deployment</dt>
+          <dd className="truncate text-foreground">
+            {status ? CAM_DEPLOYMENT_STATUS_LABELS[status] : "Not reported"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Account</dt>
+          <dd className="truncate text-foreground">
+            {typeof o["account_status"] === "string" ? o["account_status"] : "Not reported"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">HQ mapping</dt>
+          <dd className="truncate text-foreground">
+            {o["mapped"] === true ? "Mapped" : "Not mapped"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Last success</dt>
+          <dd className="truncate text-foreground">
+            {when(typeof o["last_success_at"] === "string" ? o["last_success_at"] : null)}
+          </dd>
+        </div>
+      </dl>
+      <ul className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-3">
+        {CAM_CAPABILITY_KEYS.map((key) => {
+          const raw = caps[key];
+          const cap =
+            raw && typeof raw === "object" && !Array.isArray(raw)
+              ? (raw as Record<string, unknown>)
+              : null;
+          const ready = cap && typeof cap["ready"] === "boolean" ? (cap["ready"] as boolean) : null;
+          const detail = cap && typeof cap["detail"] === "string" ? (cap["detail"] as string) : null;
+          return (
+            <li key={key} className="flex items-baseline justify-between gap-2">
+              <span className="truncate text-muted-foreground" title={detail ?? undefined}>
+                {CAM_CAPABILITY_LABELS[key]}
+              </span>
+              <span
+                className={
+                  ready === true
+                    ? "text-emerald-500"
+                    : ready === false
+                      ? "text-destructive"
+                      : "text-muted-foreground"
+                }
+                title={detail ?? undefined}
+              >
+                {ready === true ? "Ready" : ready === false ? "Not ready" : "Not reported"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <ul className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-3">
+        {CAM_COUNT_KEYS.map((key) => {
+          const value = typeof counts[key] === "number" ? (counts[key] as number) : null;
+          return (
+            <li key={key} className="flex items-baseline justify-between gap-2">
+              <span className="text-muted-foreground">{CAM_COUNT_LABELS[key]}</span>
+              <span className="text-foreground">
+                {value === null ? "Not reported" : value.toLocaleString()}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -442,6 +544,10 @@ export function ClientDeploymentPanel({
 
                   {install.module === "crm" && (
                     <CrmDeploymentDetail config={install.configuration} />
+                  )}
+
+                  {install.module === "cam" && (
+                    <CamDeploymentDetail config={install.configuration} />
                   )}
 
                   {install.lastError && (
