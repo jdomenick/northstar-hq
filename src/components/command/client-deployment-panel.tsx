@@ -30,6 +30,14 @@ import {
   type SamHealthStatus,
   type SamInstallationStatus,
 } from "@/lib/client-deployment/sam-deployment";
+import {
+  CCM_CAPABILITY_KEYS,
+  CCM_CAPABILITY_LABELS,
+  CCM_CAPABILITY_STATE_LABELS,
+  CCM_DEPLOYMENT_STATUS_LABELS,
+  type CcmCapabilityState,
+  type CcmDeploymentStatus,
+} from "@/lib/client-deployment/ccm-deployment";
 
 const STATUS_TONE: Record<ProvisioningStatus, string> = {
   not_configured: "text-muted-foreground border-border/70",
@@ -60,6 +68,71 @@ function StatusPill({ status }: { status: ProvisioningStatus }) {
     >
       {PROVISIONING_LABELS[status]}
     </span>
+  );
+}
+
+/**
+ * CCM reports its own deployment truth through `ccm.deployment.v1`, including
+ * per-capability state. Shown as reported, never re-derived here.
+ */
+function CcmDeploymentDetail({ config }: { config: Record<string, unknown> }) {
+  const obs = config["ccm_deployment"];
+  if (!obs || typeof obs !== "object" || Array.isArray(obs)) return null;
+  const o = obs as Record<string, unknown>;
+  const deploymentStatus = o["deployment_status"] as CcmDeploymentStatus | null;
+  const caps =
+    o["capabilities"] && typeof o["capabilities"] === "object" && !Array.isArray(o["capabilities"])
+      ? (o["capabilities"] as Record<string, unknown>)
+      : {};
+
+  const capabilityTone: Record<CcmCapabilityState, string> = {
+    connected: "text-emerald-500",
+    configured: "text-foreground",
+    blocked: "text-destructive",
+    not_configured: "text-muted-foreground",
+  };
+
+  return (
+    <div className="space-y-2">
+      <dl className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Deployment</dt>
+          <dd className="truncate text-foreground">
+            {deploymentStatus ? CCM_DEPLOYMENT_STATUS_LABELS[deploymentStatus] : "Not reported"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Standalone</dt>
+          <dd className="truncate text-foreground">{o["standalone"] === true ? "Yes" : "No"}</dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">NorthStar link</dt>
+          <dd className="truncate text-foreground">
+            {typeof o["northstar_client_id"] === "string" ? "Stamped" : "Not stamped"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-2">
+          <dt className="text-muted-foreground">Last success</dt>
+          <dd className="truncate text-foreground">
+            {when(typeof o["last_success_at"] === "string" ? o["last_success_at"] : null)}
+          </dd>
+        </div>
+      </dl>
+      <ul className="grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2 xl:grid-cols-4">
+        {CCM_CAPABILITY_KEYS.map((key) => {
+          const raw = caps[key];
+          const state = (typeof raw === "string" ? raw : null) as CcmCapabilityState | null;
+          return (
+            <li key={key} className="flex items-baseline justify-between gap-2">
+              <span className="text-muted-foreground">{CCM_CAPABILITY_LABELS[key]}</span>
+              <span className={state ? capabilityTone[state] : "text-muted-foreground"}>
+                {state ? CCM_CAPABILITY_STATE_LABELS[state] : "Not reported"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -272,6 +345,10 @@ export function ClientDeploymentPanel({
 
                   {install.module === "sam" && (
                     <SamDeploymentDetail config={install.configuration} />
+                  )}
+
+                  {install.module === "ccm" && (
+                    <CcmDeploymentDetail config={install.configuration} />
                   )}
 
                   {install.lastError && (
