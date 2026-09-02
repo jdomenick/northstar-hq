@@ -1,5 +1,7 @@
 import { generateText, generateObject, NoObjectGeneratedError } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { toConversationalText } from "@/lib/sam/humanize";
+
 import type {
   CompletionProvider,
   CompletionRequest,
@@ -95,16 +97,24 @@ export function createLovableGatewayCompletionProvider(
               };
             }
           }
-          // Final fallback: return the raw text as the answer so the user sees
-          // something instead of "Response failed."
+          // Final fallback: NEVER surface the raw payload. Convert whatever
+          // structure the model produced into conversational prose; log the
+          // raw text server-side only.
           if (raw.trim()) {
+            console.warn("[sam] structured response salvage failed; humanizing raw payload", {
+              modelId,
+              rawLength: raw.length,
+              rawPreview: raw.slice(0, 400),
+            });
+            const answer = toConversationalText(raw);
             return {
-              content: { answer: raw.trim(), executive_summary: null, observations: [], risks: [], opportunities: [], recommendations: [], missing_information: [], assumptions: [], next_question: null, model_confidence_hint: null, citations: [], unsupported_action: null } as unknown as T,
+              content: { answer, executive_summary: null, observations: [], risks: [], opportunities: [], recommendations: [], missing_information: [], assumptions: [], next_question: null, model_confidence_hint: null, citations: [], unsupported_action: null } as unknown as T,
               providerId: "lovable",
               modelId,
               usage: { latencyMs: Date.now() - started },
             };
           }
+
         }
         throw err;
       }
