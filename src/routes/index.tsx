@@ -93,7 +93,7 @@ function HomePage() {
                 </CtaLink>
               </div>
 
-              <dl className="mt-12 grid max-w-lg grid-cols-3 gap-px border border-border bg-border">
+              <dl className="mt-12 grid max-w-lg grid-cols-1 gap-px border border-border bg-border sm:grid-cols-3">
                 {[
                   { k: "Starts with", v: "An Assessment" },
                   { k: "Delivered as", v: "Implementation" },
