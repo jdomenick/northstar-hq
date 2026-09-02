@@ -83,7 +83,11 @@ export async function requireClientPreviewAccess(
           first_name: account.first_name,
           last_name: account.last_name,
           phone: account.phone,
-          preferred_contact_method: account.preferred_contact_method,
+          preferred_contact_method:
+            account.preferred_contact_method === "phone" ||
+            account.preferred_contact_method === "sms"
+              ? account.preferred_contact_method
+              : "email",
           role: account.role,
         }
       : null,
